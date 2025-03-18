@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  frontend:
+    build: 
+      context: ./front
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+    restart: always
+    volumes:
+      - ./front:/app
+      - /app/node_modules
+
+  admin:
+    build: 
+      context: ./admin
+      dockerfile: Dockerfile
+    ports:
+      - "3002:3002"
+    environment:
+      - NODE_ENV=production
+    restart: always
+    volumes:
+      - ./admin:/app
+      - /app/node_modules
+
+  app:
+    build: 
+      context: ./application
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+    restart: always
+    volumes:
+      - ./application:/app
+      - /app/node_modules    
