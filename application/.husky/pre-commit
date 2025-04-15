@@ -1,2 +1,0 @@
-echo "Running linting and formatting checks..."
-npm run lint-staged
