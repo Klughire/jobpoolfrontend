@@ -1,120 +1,134 @@
-"use client"
+"use client";
 
-import { useState, ChangeEvent, FormEvent } from "react"
-import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../../components/ui/card"
-import { Input } from "../../components/ui/input"
-import { Label } from "../../components/ui/label"
-import { RadioGroup, RadioGroupItem } from "../../components/ui/radio-group"
-import { Toaster } from "../../components/ui/sonner"
-import { toast } from "sonner"
+import { useState, ChangeEvent, FormEvent } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "../../components/ui/card";
+import { Input } from "../../components/ui/input";
+import { Label } from "../../components/ui/label";
+import { RadioGroup, RadioGroupItem } from "../../components/ui/radio-group";
+import { Toaster } from "../../components/ui/sonner";
+import { toast } from "sonner";
+import axiosInstance from "@/lib/axiosInstance";
 
-type AccountType = "tasker" | "poster" | "both"
+type AccountType = "tasker" | "poster" | "both";
 
 interface FormData {
-  name: string
-  email: string
-  password: string
-  confirmPassword: string
-  accountType: AccountType
+  user_fullname: string;
+  user_email: string;
+  password: string;
+  confirm_password: string;
+  accountType: AccountType;
 }
 
 export default function SignUpPage() {
-  const router = useRouter()
+  const router = useRouter();
   const [formData, setFormData] = useState<FormData>({
-    name: "",
-    email: "",
+    user_fullname: "",
+    user_email: "",
     password: "",
-    confirmPassword: "",
+    confirm_password: "",
     accountType: "both",
-  })
-  const [isLoading, setIsLoading] = useState(false)
+  });
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value }))
-  }
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
 
   const handleRadioChange = (value: AccountType) => {
-    setFormData((prev) => ({ ...prev, accountType: value }))
-  }
+    setFormData((prev) => ({ ...prev, accountType: value }));
+  };
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
+    e.preventDefault();
 
-    // Basic validation
-    if (!formData.name || !formData.email || !formData.password) {
-      toast.error("Please fill in all required fields")
-      return
+    const { user_fullname, user_email, password, confirm_password } = formData;
+
+    if (!user_fullname || !user_email || !password || !confirm_password) {
+      toast.error("Please fill in all required fields");
+      return;
     }
 
-    if (formData.password !== formData.confirmPassword) {
-      toast.error("Passwords do not match")
-      return
+    if (password !== confirm_password) {
+      toast.error("Passwords do not match");
+      return;
     }
 
-    setIsLoading(true)
+    const payload = {
+      user_fullname,
+      user_email,
+      password,
+      confirm_password,
+      task_manager:
+        formData.accountType === "poster" || formData.accountType === "both",
+      tasker:
+        formData.accountType === "tasker" || formData.accountType === "both",
+    };
 
-    // Simulate API call
-    setTimeout(() => {
-      // In a real app, you would send the data to your backend
-      console.log("Form submitted:", formData)
-
-      // Store user in localStorage for demo purposes
-      localStorage.setItem(
-        "user",
-        JSON.stringify({
-          id: "user_" + Math.random().toString(36).substr(2, 9),
-          name: formData.name,
-          email: formData.email,
-          accountType: formData.accountType,
-          isLoggedIn: true,
-        })
-      )
-
-      toast.success("Your account has been created!")
-
-      setIsLoading(false)
-      router.push("/signin")
-    }, 1500)
-  }
+    try {
+      setIsLoading(true);
+      await axiosInstance.post("/user-registration/", payload);
+      toast.success("Your account has been created!");
+      setTimeout(() => {
+        router.push("/signin");
+      }, 1500);
+    } catch (error) {
+      toast.error("An error occurred while creating your account");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div className="container flex h-screen w-screen flex-col items-center justify-center">
       <Toaster />
       <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]">
         <div className="flex flex-col space-y-2 text-center">
-          <h1 className="text-2xl font-semibold tracking-tight">Create an account</h1>
-          <p className="text-sm text-muted-foreground">Enter your information below to create your account</p>
+          <h1 className="text-2xl font-semibold tracking-tight">
+            Create an account
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            Enter your information below to create your account
+          </p>
         </div>
         <Card>
           <form onSubmit={handleSubmit}>
             <CardHeader>
               <CardTitle>Sign Up</CardTitle>
-              <CardDescription>Join JobPool to start posting or completing tasks</CardDescription>
+              <CardDescription>
+                Join JobPool to start posting or completing tasks
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="name">Full Name</Label>
+                <Label htmlFor="user_fullname">Full Name</Label>
                 <Input
-                  id="name"
-                  name="name"
+                  id="user_fullname"
+                  name="user_fullname"
                   placeholder="John Doe"
-                  value={formData.name}
+                  value={formData.user_fullname}
                   onChange={handleChange}
                   required
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="user_email">Email</Label>
                 <Input
-                  id="email"
-                  name="email"
+                  id="user_email"
+                  name="user_email"
                   type="email"
                   placeholder="john@example.com"
-                  value={formData.email}
+                  value={formData.user_email}
                   onChange={handleChange}
                   required
                 />
@@ -131,12 +145,12 @@ export default function SignUpPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Confirm Password</Label>
+                <Label htmlFor="confirm_password">Confirm Password</Label>
                 <Input
-                  id="confirmPassword"
-                  name="confirmPassword"
+                  id="confirm_password"
+                  name="confirm_password"
                   type="password"
-                  value={formData.confirmPassword}
+                  value={formData.confirm_password}
                   onChange={handleChange}
                   required
                 />
@@ -146,7 +160,9 @@ export default function SignUpPage() {
                 <RadioGroup
                   defaultValue="both"
                   value={formData.accountType}
-                  onValueChange={handleRadioChange}
+                  onValueChange={(value: string) =>
+                    handleRadioChange(value as AccountType)
+                  }
                   className="flex flex-col space-y-1"
                 >
                   <div className="flex items-center space-x-2">
@@ -170,7 +186,10 @@ export default function SignUpPage() {
               </Button>
               <div className="text-center text-sm">
                 Already have an account?{" "}
-                <Link href="/signin" className="underline underline-offset-4 hover:text-primary">
+                <Link
+                  href="/signin"
+                  className="underline underline-offset-4 hover:text-primary"
+                >
                   Sign in
                 </Link>
               </div>
@@ -179,5 +198,5 @@ export default function SignUpPage() {
         </Card>
       </div>
     </div>
-  )
+  );
 }

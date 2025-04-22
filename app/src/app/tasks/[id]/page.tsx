@@ -411,7 +411,7 @@ export default function TaskDetailPage({ params }: TaskDetailPageProps) {
                     <div className="space-y-1">
                       <h4 className="text-sm font-medium text-muted-foreground">Budget</h4>
                       <p className="flex items-center gap-1">
-                        <DollarSign className="h-4 w-4" />${task.budget}
+                        <DollarSign className="h-4 w-4" />{task.budget}
                       </p>
                     </div>
                     <div className="space-y-1">

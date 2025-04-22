@@ -1,67 +1,87 @@
-"use client"
+"use client";
 
-import { ChangeEvent, FormEvent, useState } from "react"
-import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { Button } from "../../components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../../components/ui/card"
-import { Input } from "../../components/ui/input"
-import { Label } from "../../components/ui/label"
-import { Toaster } from "../../components/ui/sonner"
-import { toast } from "sonner"
+import { ChangeEvent, FormEvent, useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { Button } from "../../components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "../../components/ui/card";
+import { Input } from "../../components/ui/input";
+import { Label } from "../../components/ui/label";
+import { Toaster } from "../../components/ui/sonner";
+import { toast } from "sonner";
+import axiosInstance from "../../lib/axiosInstance";
+import useStore from "../../lib/Zustand";
 
 export default function SignInPage() {
-  const router = useRouter()
+  const { login } = useStore();
+  const router = useRouter();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
-  })
-  const [isLoading, setIsLoading] = useState(false)
+  });
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value }))
-  }
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    
+    e.preventDefault();
+  
     // Basic validation
     if (!formData.email || !formData.password) {
-      toast.error("Please fill in all required fields")
-      return
+      toast.error("Please fill in all required fields");
+      return;
     }
-    
-    setIsLoading(true)
-    
-    // Simulate API call
-    setTimeout(() => {
-      // In a real app, you would validate credentials with your backend
-      // For demo purposes, just simulate a successful login
-      localStorage.setItem(
-        "user",
-        JSON.stringify({
-          id: "user_" + Math.random().toString(36).substr(2, 9),
-          name: "Demo User",
-          email: formData.email,
-          accountType: "both",
-          isLoggedIn: true,
-        }),
-      )
-      
-      toast.success("You have successfully signed in!")
-      setIsLoading(false)
-      router.push("/dashboard")
-    }, 1500)
-  }
+  
+    try {
+      setIsLoading(true);
+      const response = await axiosInstance.post("/login/", formData);
+  
+      if (response.data.status_code === 200 && response.data.data) {
+        const { token, user } = response.data.data;
+        console.log(user); 
+
+        // Validate token and user data
+        if (!token || !user) {
+          throw new Error('Invalid response: Missing token or user data');
+        }
+
+        // Call Zustand store's login function (handles localStorage internally)
+        login(token, user);
+
+        toast.success('Login successful!');
+        router.push('/dashboard'); // Redirect to the dashboard
+      } else {
+        toast.error(response.data.message || "Login failed");
+      }
+    } catch (error) {
+      toast.error("An error occurred while logging in");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
 
   return (
     <div className="container flex h-screen w-screen flex-col items-center justify-center">
       <Toaster />
       <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]">
         <div className="flex flex-col space-y-2 text-center">
-          <h1 className="text-2xl font-semibold tracking-tight">Sign in to your account</h1>
-          <p className="text-sm text-muted-foreground">Enter your credentials below to sign in</p>
+          <h1 className="text-2xl font-semibold tracking-tight">
+            Sign in to your account
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            Enter your credentials below to sign in
+          </p>
         </div>
         <Card>
           <form onSubmit={handleSubmit}>
@@ -108,7 +128,10 @@ export default function SignInPage() {
               </Button>
               <div className="text-center text-sm">
                 Don't have an account?{" "}
-                <Link href="/signup" className="underline underline-offset-4 hover:text-primary">
+                <Link
+                  href="/signup"
+                  className="underline underline-offset-4 hover:text-primary"
+                >
                   Sign up
                 </Link>
               </div>
@@ -117,5 +140,5 @@ export default function SignInPage() {
         </Card>
       </div>
     </div>
-  )
+  );
 }

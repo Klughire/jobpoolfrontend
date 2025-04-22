@@ -1,50 +1,68 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
-import { Clock, DollarSign, MapPin, Star, Briefcase, CheckCircle } from "lucide-react"
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import {
+  Clock,
+  DollarSign,
+  MapPin,
+  Star,
+  Briefcase,
+  CheckCircle,
+} from "lucide-react";
+
+import axiosInstance from "../../lib/axiosInstance";
 
 interface User {
-  id: string
-  name: string
-  email: string
-  accountType: string
-  isLoggedIn: boolean
+  id: string;
+  name: string;
+  email: string;
+  accountType: string;
+  isLoggedIn: boolean;
 }
 
 interface Task {
-  id: string
-  title: string
-  description: string
-  budget: number
-  location: string
-  status: string
-  postedAt: string
-  offers?: number
-  assignedTo?: string
-  postedBy?: string
-  dueDate?: string
-  completedDate?: string
-  rating?: number
+  id: string;
+  title: string;
+  description: string;
+  budget: number;
+  location: string;
+  status: string;
+  postedAt: string;
+  offers?: number;
+  assignedTo?: string;
+  postedBy?: string;
+  dueDate?: string;
+  completedDate?: string;
+  rating?: number;
 }
 
 export default function DashboardPage() {
-  const router = useRouter()
-  const [user, setUser] = useState<User | null>(null)
-  const [loading, setLoading] = useState(true)
+  const router = useRouter();
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [postedTasks, setPostedTasks] = useState<Task[]>([]);
 
   // Mock data for tasks
   const myTasks: Task[] = [
     {
       id: "task1",
       title: "Help with moving furniture",
-      description: "Need help moving a couch and a few boxes from my apartment to my new place.",
+      description:
+        "Need help moving a couch and a few boxes from my apartment to my new place.",
       budget: 50,
       location: "Brooklyn, NY",
       status: "open",
@@ -54,7 +72,8 @@ export default function DashboardPage() {
     {
       id: "task2",
       title: "Fix leaky faucet",
-      description: "Kitchen faucet is leaking and needs to be fixed or replaced.",
+      description:
+        "Kitchen faucet is leaking and needs to be fixed or replaced.",
       budget: 75,
       location: "Queens, NY",
       status: "assigned",
@@ -62,43 +81,7 @@ export default function DashboardPage() {
       assignedTo: "John D.",
       offers: 5,
     },
-  ]
-
-  const availableTasks: Task[] = [
-    {
-      id: "task3",
-      title: "Website debugging",
-      description: "Need help fixing some bugs on my WordPress website.",
-      budget: 120,
-      location: "Remote",
-      status: "open",
-      postedAt: "3 hours ago",
-      postedBy: "Sarah M.",
-      offers: 2,
-    },
-    {
-      id: "task4",
-      title: "Dog walking",
-      description: "Need someone to walk my dog for the next 3 days while I'm away.",
-      budget: 60,
-      location: "Manhattan, NY",
-      status: "open",
-      postedAt: "1 day ago",
-      postedBy: "Mike T.",
-      offers: 4,
-    },
-    {
-      id: "task5",
-      title: "Grocery delivery",
-      description: "Need someone to pick up groceries from the store and deliver to my home.",
-      budget: 30,
-      location: "Bronx, NY",
-      status: "open",
-      postedAt: "5 hours ago",
-      postedBy: "Lisa K.",
-      offers: 1,
-    },
-  ]
+  ];
 
   const assignedTasks: Task[] = [
     {
@@ -112,7 +95,7 @@ export default function DashboardPage() {
       postedBy: "Robert J.",
       dueDate: "Tomorrow",
     },
-  ]
+  ];
 
   const completedTasks: Task[] = [
     {
@@ -127,31 +110,68 @@ export default function DashboardPage() {
       completedDate: "1 week ago",
       rating: 5,
     },
-  ]
+  ];
 
   useEffect(() => {
-    // Check if user is logged in
-    const storedUser = localStorage.getItem("user")
+    const storedUser = localStorage.getItem("user");
     if (storedUser) {
-      setUser(JSON.parse(storedUser))
+      const parsedUser = JSON.parse(storedUser);
+      setUser(parsedUser);
     } else {
-      // Redirect to sign in if not logged in
-      router.push("/signin")
+      router.push("/signin");
     }
-    setLoading(false)
-  }, [router])
+  }, [router]);
+
+  useEffect(() => {
+    if (!user || !user.id) return;
+
+    const fetchTasks = async () => {
+      try {
+        const response = await axiosInstance.get(`/get-user-jobs/${user.id}`);
+        const result = response.data;
+
+        if (result.status_code === 200 && result.data?.jobs) {
+          const tasks: Task[] = result.data.jobs.map((job: any) => ({
+            id: job.job_id,
+            title: job.job_title,
+            description: job.job_description || "No description provided.",
+            budget: job.job_budget,
+            location: job.job_location,
+            status: job.status === false ? "open" : "assigned",
+            postedAt: job.job_due_date
+              ? new Date(job.job_due_date).toLocaleDateString("en-GB")
+              : "Unknown",
+            offers: 0,
+          }));
+          setPostedTasks(tasks);
+        } else {
+          console.warn("No jobs found or API error");
+        }
+      } catch (err) {
+        console.error("Axios fetch failed:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTasks();
+  }, [user]);
 
   const handleSignOut = () => {
-    localStorage.removeItem("user")
-    router.push("/")
-  }
+    localStorage.removeItem("user");
+    router.push("/");
+  };
 
   if (loading) {
-    return <div className="flex h-screen items-center justify-center">Loading...</div>
+    return (
+      <div className="flex h-screen items-center justify-center">
+        Loading...
+      </div>
+    );
   }
 
   if (!user) {
-    return null // Will redirect in useEffect
+    return null; // Will redirect in useEffect
   }
 
   return (
@@ -162,13 +182,22 @@ export default function DashboardPage() {
             <span className="text-primary">JobPool</span>
           </Link>
           <nav className="hidden md:flex gap-6">
-            <Link href="/browse" className="text-sm font-medium hover:underline underline-offset-4">
+            <Link
+              href="/browse"
+              className="text-sm font-medium hover:underline underline-offset-4"
+            >
               Browse Tasks
             </Link>
-            <Link href="/post-task" className="text-sm font-medium hover:underline underline-offset-4">
+            <Link
+              href="/post-task"
+              className="text-sm font-medium hover:underline underline-offset-4"
+            >
               Post a Task
             </Link>
-            <Link href="/messages" className="text-sm font-medium hover:underline underline-offset-4">
+            <Link
+              href="/messages"
+              className="text-sm font-medium hover:underline underline-offset-4"
+            >
               Messages
             </Link>
           </nav>
@@ -178,7 +207,9 @@ export default function DashboardPage() {
                 <AvatarImage src="/placeholder.svg" alt={user.name} />
                 <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
               </Avatar>
-              <span className="text-sm font-medium hidden md:inline-block">{user.name}</span>
+              <span className="text-sm font-medium hidden md:inline-block">
+                {user.name}
+              </span>
             </div>
             <Button variant="outline" size="sm" onClick={handleSignOut}>
               Sign Out
@@ -190,7 +221,9 @@ export default function DashboardPage() {
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-            <p className="text-muted-foreground">Manage your tasks and offers</p>
+            <p className="text-muted-foreground">
+              Manage your tasks and offers
+            </p>
           </div>
           <Link href="/post-task">
             <Button>
@@ -210,10 +243,12 @@ export default function DashboardPage() {
 
           <TabsContent value="my-tasks" className="space-y-4 mt-6">
             <h2 className="text-xl font-semibold">Tasks You've Posted</h2>
-            {myTasks.length === 0 ? (
+            {postedTasks.length === 0 ? (
               <Card>
                 <CardContent className="flex flex-col items-center justify-center py-10">
-                  <p className="text-muted-foreground mb-4">You haven't posted any tasks yet</p>
+                  <p className="text-muted-foreground mb-4">
+                    You haven't posted any tasks yet
+                  </p>
                   <Link href="/post-task">
                     <Button>Post Your First Task</Button>
                   </Link>
@@ -221,12 +256,16 @@ export default function DashboardPage() {
               </Card>
             ) : (
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {myTasks.map((task) => (
+                {postedTasks.map((task) => (
                   <Card key={task.id}>
                     <CardHeader className="pb-2">
                       <div className="flex justify-between items-start">
                         <CardTitle className="text-lg">{task.title}</CardTitle>
-                        <Badge variant={task.status === "open" ? "outline" : "secondary"}>
+                        <Badge
+                          variant={
+                            task.status === "open" ? "outline" : "secondary"
+                          }
+                        >
                           {task.status === "open" ? "Open" : "Assigned"}
                         </Badge>
                       </div>
@@ -236,11 +275,13 @@ export default function DashboardPage() {
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <p className="text-sm text-muted-foreground line-clamp-2 mb-4">{task.description}</p>
+                      <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
+                        {task.description}
+                      </p>
                       <div className="flex flex-col gap-2 text-sm">
                         <div className="flex items-center gap-2">
                           <DollarSign className="h-4 w-4 text-muted-foreground" />
-                          <span>${task.budget}</span>
+                          <span>{task.budget}</span>
                         </div>
                         <div className="flex items-center gap-2">
                           <MapPin className="h-4 w-4 text-muted-foreground" />
@@ -268,7 +309,7 @@ export default function DashboardPage() {
           <TabsContent value="available" className="space-y-4 mt-6">
             <h2 className="text-xl font-semibold">Available Tasks</h2>
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {availableTasks.map((task) => (
+              {myTasks.map((task) => (
                 <Card key={task.id}>
                   <CardHeader className="pb-2">
                     <div className="flex justify-between items-start">
@@ -281,7 +322,9 @@ export default function DashboardPage() {
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-sm text-muted-foreground line-clamp-2 mb-4">{task.description}</p>
+                    <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
+                      {task.description}
+                    </p>
                     <div className="flex flex-col gap-2 text-sm">
                       <div className="flex items-center gap-2">
                         <DollarSign className="h-4 w-4 text-muted-foreground" />
@@ -293,7 +336,9 @@ export default function DashboardPage() {
                       </div>
                       <div className="flex items-center gap-2">
                         <Avatar className="h-4 w-4">
-                          <AvatarFallback>{task.postedBy?.charAt(0) || "?"}</AvatarFallback>
+                          <AvatarFallback>
+                            {task.postedBy?.charAt(0) || "?"}
+                          </AvatarFallback>
                         </Avatar>
                         <span>{task.postedBy}</span>
                       </div>
@@ -314,7 +359,9 @@ export default function DashboardPage() {
             {assignedTasks.length === 0 ? (
               <Card>
                 <CardContent className="flex flex-col items-center justify-center py-10">
-                  <p className="text-muted-foreground">You don't have any assigned tasks</p>
+                  <p className="text-muted-foreground">
+                    You don't have any assigned tasks
+                  </p>
                 </CardContent>
               </Card>
             ) : (
@@ -332,7 +379,9 @@ export default function DashboardPage() {
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <p className="text-sm text-muted-foreground line-clamp-2 mb-4">{task.description}</p>
+                      <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
+                        {task.description}
+                      </p>
                       <div className="flex flex-col gap-2 text-sm">
                         <div className="flex items-center gap-2">
                           <DollarSign className="h-4 w-4 text-muted-foreground" />
@@ -344,7 +393,9 @@ export default function DashboardPage() {
                         </div>
                         <div className="flex items-center gap-2">
                           <Avatar className="h-4 w-4">
-                            <AvatarFallback>{task.postedBy?.charAt(0) || "?"}</AvatarFallback>
+                            <AvatarFallback>
+                              {task.postedBy?.charAt(0) || "?"}
+                            </AvatarFallback>
                           </Avatar>
                           <span>{task.postedBy}</span>
                         </div>
@@ -356,7 +407,10 @@ export default function DashboardPage() {
                           View Details
                         </Button>
                       </Link>
-                      <Link href={`/tasks/${task.id}/complete`} className="flex-1">
+                      <Link
+                        href={`/tasks/${task.id}/complete`}
+                        className="flex-1"
+                      >
                         <Button className="w-full">Mark Complete</Button>
                       </Link>
                     </CardFooter>
@@ -371,7 +425,9 @@ export default function DashboardPage() {
             {completedTasks.length === 0 ? (
               <Card>
                 <CardContent className="flex flex-col items-center justify-center py-10">
-                  <p className="text-muted-foreground">You don't have any completed tasks</p>
+                  <p className="text-muted-foreground">
+                    You don't have any completed tasks
+                  </p>
                 </CardContent>
               </Card>
             ) : (
@@ -389,7 +445,9 @@ export default function DashboardPage() {
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <p className="text-sm text-muted-foreground line-clamp-2 mb-4">{task.description}</p>
+                      <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
+                        {task.description}
+                      </p>
                       <div className="flex flex-col gap-2 text-sm">
                         <div className="flex items-center gap-2">
                           <DollarSign className="h-4 w-4 text-muted-foreground" />
@@ -420,5 +478,5 @@ export default function DashboardPage() {
         </Tabs>
       </main>
     </div>
-  )
+  );
 }
