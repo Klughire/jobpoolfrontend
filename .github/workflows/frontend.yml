@@ -16,12 +16,12 @@ jobs:
       - name: Setup SSH
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.DO_SSH_PRIVATE_KEY }}" | sed 's/\r$//' > ~/.ssh/id_ed25519
-          chmod 600 ~/.ssh/id_ed25519
+          echo "${{ secrets.DO_SSH_PRIVATE_KEY }}" | sed 's/\r$//' > ~/.ssh/id_ed25519_github
+          chmod 600 ~/.ssh/id_ed25519_github
           ssh-keyscan -H ${{ secrets.DO_FRONTEND_IP }} >> ~/.ssh/known_hosts
 
       - name: Test SSH Connection
-        run: ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no root@${{ secrets.DO_FRONTEND_IP }} "echo 'Connected successfully!'"
+        run: ssh -i ~/.ssh/id_ed25519_github -o StrictHostKeyChecking=no root@${{ secrets.DO_FRONTEND_IP }} "echo 'Connected successfully!'"
 
       - name: Add GitHub to Known Hosts
         run: ssh-keyscan github.com >> ~/.ssh/known_hosts
@@ -36,7 +36,7 @@ jobs:
               cd /root/frontend
       
               if [ ! -d .git ]; then
-                git clone git@github.com:DesisMart/frontendapplication.git .
+                git clone git@github.com:Klughire/jobpoolfrontend.git .
               else
                 git pull origin main
               fi
