@@ -28,7 +28,7 @@ jobs:
 
       - name: Deploy application
         run: |
-          ssh -i ~/.ssh/github-actions root@${{ secrets.DO_FRONTEND_IP }} \
+          ssh -i ~/.ssh/id_ed25519 root@${{ secrets.DO_FRONTEND_IP }} \
             NEXT_PUBLIC_API_BASE_URL=${{ secrets.NEXT_PUBLIC_API_BASE_URL }} 'bash -s' << 'EOF'
               set -e
       
@@ -41,15 +41,15 @@ jobs:
                 git pull origin main
               fi
       
-              echo "NEXT_PUBLIC_API_BASE_URL=${NEXT_PUBLIC_API_BASE_URL}" > code/.env.production
+              echo "NEXT_PUBLIC_API_BASE_URL=${NEXT_PUBLIC_API_BASE_URL}" > app/.env.production
               echo "NEXT_PUBLIC_API_BASE_URL=${NEXT_PUBLIC_API_BASE_URL}" > admin/.env.production
               echo "NEXT_PUBLIC_API_BASE_URL=${NEXT_PUBLIC_API_BASE_URL}" > .env.production
 
               # 🔍 DEBUG: Output contents of .env.production
               echo "Contents of root .env.production:"
               cat .env.production
-              echo "Contents of code/.env.production:"
-              cat code/.env.production
+              echo "Contents of app/.env.production:"
+              cat app/.env.production
               echo "Contents of admin/.env.production:"
               cat admin/.env.production
       
