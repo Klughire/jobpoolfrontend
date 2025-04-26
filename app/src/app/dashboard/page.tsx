@@ -127,7 +127,7 @@ export default function DashboardPage() {
 
     const fetchTasks = async () => {
       try {
-        const response = await axiosInstance.get(`/get-user-jobs/${user.id}`);
+        const response = await axiosInstance.get(`/get-user-jobs/${user.id}/`);
         const result = response.data;
 
         if (result.status_code === 200 && result.data?.jobs) {
