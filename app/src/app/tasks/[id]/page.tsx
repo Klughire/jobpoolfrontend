@@ -2050,7 +2050,7 @@ export default function TaskDetailPage({ params }: TaskDetailPageProps) {
   useEffect(() => {
     const loadTaskData = async () => {
       try {
-        const response = await axiosInstance.get(`/get-job/${id}`);
+        const response = await axiosInstance.get(`/get-job/${id}/`);
         const data: ApiJobResponse = response.data;
 
         if (data.status_code !== 200) {
@@ -2114,8 +2114,8 @@ export default function TaskDetailPage({ params }: TaskDetailPageProps) {
     async function fetchBids() {
       try {
         const endpoint = isTaskPoster
-          ? `/get-bids/${id}`
-          : `/get-user-bids/${userId}`;
+          ? `/get-bids/${id}/`
+          : `/get-user-bids/${userId}/`;
         console.log("Fetching bids from:", endpoint);
 
         const response = await axiosInstance.get(endpoint);
