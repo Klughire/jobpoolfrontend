@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 
 import axiosInstance from "../../lib/axiosInstance";
+import useStore from "../../lib/Zustand";
 
 interface User {
   id: string;
@@ -36,6 +37,7 @@ interface User {
 
 interface Task {
   id: string;
+  user_ref_id?:string;
   title: string;
   description: string;
   budget: number;
@@ -44,7 +46,7 @@ interface Task {
   postedAt: string;
   offers?: number;
   assignedTo?: string;
-  postedBy?: string;
+  posted_by?: string;
   dueDate?: string;
   completedDate?: string;
   rating?: number;
@@ -55,34 +57,11 @@ export default function DashboardPage() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [postedTasks, setPostedTasks] = useState<Task[]>([]);
+  const [availableTasks, setAvailableTasks] = useState<Task[]>([]);
+  
+  const { userId } = useStore();
 
-  // Mock data for tasks
-  const myTasks: Task[] = [
-    {
-      id: "task1",
-      title: "Help with moving furniture",
-      description:
-        "Need help moving a couch and a few boxes from my apartment to my new place.",
-      budget: 50,
-      location: "Brooklyn, NY",
-      status: "open",
-      postedAt: "2 days ago",
-      offers: 3,
-    },
-    {
-      id: "task2",
-      title: "Fix leaky faucet",
-      description:
-        "Kitchen faucet is leaking and needs to be fixed or replaced.",
-      budget: 75,
-      location: "Queens, NY",
-      status: "assigned",
-      postedAt: "1 week ago",
-      assignedTo: "John D.",
-      offers: 5,
-    },
-  ];
-
+  
   const assignedTasks: Task[] = [
     {
       id: "task6",
@@ -92,7 +71,7 @@ export default function DashboardPage() {
       location: "Staten Island, NY",
       status: "in-progress",
       postedAt: "3 days ago",
-      postedBy: "Robert J.",
+      posted_by: "Robert J.",
       dueDate: "Tomorrow",
     },
   ];
@@ -106,7 +85,7 @@ export default function DashboardPage() {
       location: "Remote",
       status: "completed",
       postedAt: "2 weeks ago",
-      postedBy: "Emma S.",
+      posted_by: "Emma S.",
       completedDate: "1 week ago",
       rating: 5,
     },
@@ -123,11 +102,11 @@ export default function DashboardPage() {
   }, [router]);
 
   useEffect(() => {
-    if (!user || !user.id) return;
+    if (!user || !userId) return;
 
     const fetchTasks = async () => {
       try {
-        const response = await axiosInstance.get(`/get-user-jobs/${user.id}/`);
+        const response = await axiosInstance.get(`/get-user-jobs/${userId}`);
         const result = response.data;
 
         if (result.status_code === 200 && result.data?.jobs) {
@@ -142,6 +121,7 @@ export default function DashboardPage() {
               ? new Date(job.job_due_date).toLocaleDateString("en-GB")
               : "Unknown",
             offers: 0,
+            posted_by: job.posted_by, 
           }));
           setPostedTasks(tasks);
         } else {
@@ -156,6 +136,45 @@ export default function DashboardPage() {
 
     fetchTasks();
   }, [user]);
+
+
+  useEffect(() => {
+    if (!user || !userId) return;
+  
+    const fetchAllTasks = async () => {
+      try {
+        const response = await axiosInstance.get(`/get-all-jobs/`);
+        const result = response.data;
+  
+        if (result.status_code === 200 && result.data?.jobs) {
+          const tasks: Task[] = result.data.jobs
+            .filter((job: any) => job.user_ref_id !== userId) // Filter out tasks posted by the logged-in user
+            .map((job: any) => ({
+              id: job.job_id,
+              title: job.job_title,
+              description: job.job_description || "No description provided.",
+              budget: job.job_budget,
+              location: job.job_location,
+              status: job.status === false ? "open" : "assigned",
+              postedAt: job.job_due_date
+                ? new Date(job.job_due_date).toLocaleDateString("en-GB")
+                : "Unknown",
+              offers: 0,
+              posted_by: job.posted_by,
+            }));
+          setAvailableTasks(tasks);
+        } else {
+          console.warn("No jobs found or API error");
+        }
+      } catch (err) {
+        console.error("Axios fetch failed:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+  
+    fetchAllTasks();
+  }, [user, userId]); // Add userId to the dependency array
 
   const handleSignOut = () => {
     localStorage.removeItem("user");
@@ -189,11 +208,20 @@ export default function DashboardPage() {
               Browse Tasks
             </Link>
             <Link
-              href="/post-task"
-              className="text-sm font-medium hover:underline underline-offset-4"
-            >
-              Post a Task
-            </Link>
+                href="/post-task"
+                className="text-sm font-medium hover:underline underline-offset-4"
+              >
+                Post a Task
+              </Link>
+            {/* {(user.accountType === "task_manager" ||
+              user.accountType === "both") && (
+              <Link
+                href="/post-task"
+                className="text-sm font-medium hover:underline underline-offset-4"
+              >
+                Post a Task
+              </Link>
+            )} */}
             <Link
               href="/messages"
               className="text-sm font-medium hover:underline underline-offset-4"
@@ -225,17 +253,24 @@ export default function DashboardPage() {
               Manage your tasks and offers
             </p>
           </div>
-          <Link href="/post-task">
-            <Button>
-              <Briefcase className="mr-2 h-4 w-4" />
-              Post a New Task
-            </Button>
-          </Link>
+          {/* {(user.accountType === "task_manager" ||
+            user.accountType === "both") && (
+            <Link href="/post-task">
+              <Button>
+                <Briefcase className="mr-2 h-4 w-4" />
+                Post a New Task
+              </Button>
+            </Link>
+          )} */}
         </div>
 
         <Tabs defaultValue="my-tasks" className="w-full">
           <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="my-tasks">My Tasks</TabsTrigger>
+          <TabsTrigger value="my-tasks">My Tasks</TabsTrigger>
+            {/* {(user.accountType === "task_manager" ||
+              user.accountType === "both") && (
+              <TabsTrigger value="my-tasks">My Tasks</TabsTrigger>
+            )} */}
             <TabsTrigger value="available">Available Tasks</TabsTrigger>
             <TabsTrigger value="assigned">Assigned to Me</TabsTrigger>
             <TabsTrigger value="completed">Completed</TabsTrigger>
@@ -309,7 +344,7 @@ export default function DashboardPage() {
           <TabsContent value="available" className="space-y-4 mt-6">
             <h2 className="text-xl font-semibold">Available Tasks</h2>
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {myTasks.map((task) => (
+              {availableTasks.map((task) => (
                 <Card key={task.id}>
                   <CardHeader className="pb-2">
                     <div className="flex justify-between items-start">
@@ -337,10 +372,10 @@ export default function DashboardPage() {
                       <div className="flex items-center gap-2">
                         <Avatar className="h-4 w-4">
                           <AvatarFallback>
-                            {task.postedBy?.charAt(0) || "?"}
+                            {task.posted_by?.charAt(0) || "?"}
                           </AvatarFallback>
                         </Avatar>
-                        <span>{task.postedBy}</span>
+                        <span>{task.posted_by}</span>
                       </div>
                     </div>
                   </CardContent>
@@ -394,10 +429,10 @@ export default function DashboardPage() {
                         <div className="flex items-center gap-2">
                           <Avatar className="h-4 w-4">
                             <AvatarFallback>
-                              {task.postedBy?.charAt(0) || "?"}
+                              {task.posted_by?.charAt(0) || "?"}
                             </AvatarFallback>
                           </Avatar>
-                          <span>{task.postedBy}</span>
+                          <span>{task.posted_by}</span>
                         </div>
                       </div>
                     </CardContent>

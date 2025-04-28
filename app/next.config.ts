@@ -17,6 +17,10 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: isProd, // Skip TypeScript errors in production builds
   },
+  images: {
+    domains: ['blr1.digitaloceanspaces.com'],
+  },
+
 };
 
 export default nextConfig;

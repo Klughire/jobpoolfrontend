@@ -1,8 +1,7 @@
+"use client";
 
-'use client';
-
-import { create } from 'zustand';
-import jwt from 'jsonwebtoken';
+import { create } from "zustand";
+import jwt from "jsonwebtoken";
 
 // 🔹 Interfaces
 interface ThemeColors {
@@ -17,9 +16,6 @@ interface ThemeColors {
 
 interface JwtPayload {
   userId: string;
-  post: boolean;
-  perform: boolean;
-  accountType: string;
   exp: number;
 }
 
@@ -33,9 +29,6 @@ interface UserData {
 
 interface AuthState {
   userId: string | null;
-  post: boolean;
-  perform: boolean;
-  accountType: string;
   exp: number | null;
   isAuthenticated: boolean;
   user: UserData | null;
@@ -78,16 +71,13 @@ interface StoreState
 const useStore = create<StoreState>((set) => ({
   // 🔸 Auth
   userId: null,
-  post: false,
-  perform: false,
-  accountType: 'none',
   exp: null,
   isAuthenticated: false,
   user: null,
 
   login: (token: string, user: UserData) => {
     if (!token || !user) {
-      console.error('No token or user data received');
+      console.error("No token or user data received");
       return;
     }
 
@@ -96,9 +86,6 @@ const useStore = create<StoreState>((set) => ({
       if (decoded && decoded.userId !== undefined) {
         set({
           userId: decoded.userId,
-          post: decoded.post,
-          perform: decoded.perform,
-          accountType: decoded.accountType,
           exp: decoded.exp,
           isAuthenticated: true,
           user: {
@@ -109,38 +96,35 @@ const useStore = create<StoreState>((set) => ({
             isLoggedIn: user.isLoggedIn,
           },
         });
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('token', token);
-          localStorage.setItem('user', JSON.stringify(user));
+        if (typeof window !== "undefined") {
+          localStorage.setItem("token", token);
+          localStorage.setItem("user", JSON.stringify(user));
         }
       } else {
-        console.error('Invalid token payload', decoded);
+        console.error("Invalid token payload", decoded);
       }
     } catch (error) {
-      console.error('Error decoding token:', error);
+      console.error("Error decoding token:", error);
     }
   },
 
   logout: () => {
     set({
       userId: null,
-      post: false,
-      perform: false,
-      accountType: 'none',
       exp: null,
       isAuthenticated: false,
       user: null,
     });
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
     }
   },
 
   checkAuth: () => {
-    if (typeof window === 'undefined') return;
-    const token = localStorage.getItem('token');
-    const user = localStorage.getItem('user');
+    if (typeof window === "undefined") return;
+    const token = localStorage.getItem("token");
+    const user = localStorage.getItem("user");
     if (token && user) {
       try {
         const decoded = jwt.decode(token) as JwtPayload | null;
@@ -148,9 +132,6 @@ const useStore = create<StoreState>((set) => ({
         if (decoded && decoded.userId !== undefined && parsedUser) {
           set({
             userId: decoded.userId,
-            post: decoded.post,
-            perform: decoded.perform,
-            accountType: decoded.accountType,
             exp: decoded.exp,
             isAuthenticated: true,
             user: {
@@ -162,26 +143,26 @@ const useStore = create<StoreState>((set) => ({
             },
           });
         } else {
-          localStorage.removeItem('token');
-          localStorage.removeItem('user');
+          localStorage.removeItem("token");
+          localStorage.removeItem("user");
         }
       } catch (error) {
-        console.error('Token or user data decode failed:', error);
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
+        console.error("Token or user data decode failed:", error);
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
       }
     }
   },
 
   // 🔸 Theme
   themeColors: {
-    topBarColor: '',
-    sidebarColor: '',
-    sidebarBackground: '',
-    primary: '240 5.9% 10%',
-    primaryForeground: '0 0% 98%',
-    secondary: '240 4.8% 95.9%',
-    secondaryForeground: '240 5.9% 10%',
+    topBarColor: "",
+    sidebarColor: "",
+    sidebarBackground: "",
+    primary: "240 5.9% 10%",
+    primaryForeground: "0 0% 98%",
+    secondary: "240 4.8% 95.9%",
+    secondaryForeground: "240 5.9% 10%",
   },
 
   updateThemeColor: (colorType, colorValue) =>
@@ -195,13 +176,13 @@ const useStore = create<StoreState>((set) => ({
   resetTheme: () =>
     set(() => ({
       themeColors: {
-        topBarColor: '',
-        sidebarColor: '',
-        sidebarBackground: '',
-        primary: '240 5.9% 10%',
-        primaryForeground: '0 0% 98%',
-        secondary: '240 4.8% 95.9%',
-        secondaryForeground: '240 5.9% 10%',
+        topBarColor: "",
+        sidebarColor: "",
+        sidebarBackground: "",
+        primary: "240 5.9% 10%",
+        primaryForeground: "0 0% 98%",
+        secondary: "240 4.8% 95.9%",
+        secondaryForeground: "240 5.9% 10%",
       },
     })),
 
@@ -221,46 +202,48 @@ const useStore = create<StoreState>((set) => ({
 
   // 🔸 Validation
   validateName: (name: string) => {
-    if (!name) return { isValid: false, error: 'Name is required' };
+    if (!name) return { isValid: false, error: "Name is required" };
     if (name.length < 2)
-      return { isValid: false, error: 'Name must be at least 2 characters' };
+      return { isValid: false, error: "Name must be at least 2 characters" };
     if (!/^[a-zA-Z\s-]+$/.test(name))
       return {
         isValid: false,
-        error: 'Name can only contain letters, spaces, or hyphens',
+        error: "Name can only contain letters, spaces, or hyphens",
       };
     return { isValid: true };
   },
 
   validateEmail: (email: string) => {
-    if (!email) return { isValid: false, error: 'Email is required' };
+    if (!email) return { isValid: false, error: "Email is required" };
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email))
-      return { isValid: false, error: 'Invalid email format' };
+      return { isValid: false, error: "Invalid email format" };
     return { isValid: true };
   },
 
   validatePassword: (password: string) => {
-    if (!password) return { isValid: false, error: 'Password is required' };
+    if (!password) return { isValid: false, error: "Password is required" };
     if (password.length < 8)
       return {
         isValid: false,
-        error: 'Password must be at least 8 characters',
+        error: "Password must be at least 8 characters",
       };
     if (!/[A-Z]/.test(password))
       return {
         isValid: false,
-        error: 'Password must contain at least one uppercase letter',
+        error: "Password must contain at least one uppercase letter",
       };
     if (!/[0-9]/.test(password))
       return {
-        isValid: false, error: 'Password must contain at least one number' };
+        isValid: false,
+        error: "Password must contain at least one number",
+      };
     return { isValid: true };
   },
 }));
 
 // 🔹 Immediately check auth status on load
-if (typeof window !== 'undefined') {
+if (typeof window !== "undefined") {
   useStore.getState().checkAuth();
 }
 

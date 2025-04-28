@@ -24,8 +24,11 @@ import {
 } from "@/components/ui/select";
 import { Toaster } from "../../components/ui/sonner";
 import { toast } from "sonner";
-import { Upload, X } from "lucide-react";
-import axiosInstance from "@/lib/axiosInstance";
+import { Loader, Upload, X } from "lucide-react";
+import axiosInstance from "../../lib/axiosInstance";
+import useStore from "../../lib/Zustand";
+import { handleAxiosError } from "../../lib/handleAxiosError";
+
 // Define types for our data structures
 interface User {
   // Add user properties as needed
@@ -38,7 +41,7 @@ interface FormData {
   title: string;
   description: string;
   category: string;
-  budget: string;
+  budget: number;
   location: string;
   dueDate: string;
 }
@@ -63,15 +66,26 @@ export default function PostTaskPage() {
     title: "",
     description: "",
     category: "",
-    budget: "",
+    budget: 0,
     location: "",
     dueDate: "",
   });
   const [images, setImages] = useState<ImageData[]>([]);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [minDate, setMinDate] = useState("");
+
+  useEffect(() => {
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, "0");
+    const dd = String(today.getDate()).padStart(2, "0");
+    setMinDate(`${yyyy}-${mm}-${dd}`);
+  }, []);
 
   const [categories, setCategories] = useState<Category[]>([]);
   const [error, setError] = useState("");
+
+  const { userId } = useStore();
 
   useEffect(() => {
     // Check if user is logged in
@@ -154,11 +168,11 @@ export default function PostTaskPage() {
     setIsSubmitting(true);
 
     const formDataToSubmit = new FormData();
-    formDataToSubmit.append("user_id", user?.id || "");
+    formDataToSubmit.append("user_id", userId || "");
     formDataToSubmit.append("title", formData.title);
     formDataToSubmit.append("description", formData.description);
     formDataToSubmit.append("category", formData.category); // Ensure this is category_id
-    formDataToSubmit.append("budget", formData.budget);
+    formDataToSubmit.append("budget", formData.budget.toString());
     formDataToSubmit.append("location", formData.location);
     formDataToSubmit.append("due_date", formData.dueDate);
 
@@ -185,12 +199,8 @@ export default function PostTaskPage() {
           response.data.message || "Failed to post task. Please try again."
         );
       }
-    } catch (error: any) {
-      console.error("Error posting task:", error);
-      toast.error(
-        error.response?.data?.message ||
-          "Failed to post task. Please try again."
-      );
+    } catch (error) {
+      handleAxiosError(error);
     } finally {
       setIsSubmitting(false);
     }
@@ -245,6 +255,8 @@ export default function PostTaskPage() {
             <p className="text-muted-foreground">
               Describe what you need done and find the right person for the job
             </p>
+
+            {error && <p className="text-red-500 text-center mb-4">{error}</p>}
           </div>
 
           <Card>
@@ -337,6 +349,7 @@ export default function PostTaskPage() {
                       id="dueDate"
                       name="dueDate"
                       type="date"
+                      min={minDate}
                       value={formData.dueDate}
                       onChange={handleChange}
                     />
@@ -399,7 +412,11 @@ export default function PostTaskPage() {
                   Cancel
                 </Button>
                 <Button type="submit" disabled={isSubmitting}>
-                  {isSubmitting ? "Posting..." : "Post Task"}
+                  {isSubmitting ? (
+                    <Loader className="animate-spin" />
+                  ) : (
+                    "Post Task"
+                  )}
                 </Button>
               </CardFooter>
             </form>

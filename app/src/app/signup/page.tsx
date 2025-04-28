@@ -26,7 +26,7 @@ interface FormData {
   user_email: string;
   password: string;
   confirm_password: string;
-  accountType: AccountType;
+  // accountType: AccountType;
 }
 
 export default function SignUpPage() {
@@ -36,7 +36,8 @@ export default function SignUpPage() {
     user_email: "",
     password: "",
     confirm_password: "",
-    accountType: "both",
+    // accountType: "both",
+
   });
   const [isLoading, setIsLoading] = useState(false);
 
@@ -52,7 +53,7 @@ export default function SignUpPage() {
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    const { user_fullname, user_email, password, confirm_password } = formData;
+    const { user_fullname, user_email, password, confirm_password} = formData;
 
     if (!user_fullname || !user_email || !password || !confirm_password) {
       toast.error("Please fill in all required fields");
@@ -69,10 +70,13 @@ export default function SignUpPage() {
       user_email,
       password,
       confirm_password,
-      task_manager:
-        formData.accountType === "poster" || formData.accountType === "both",
-      tasker:
-        formData.accountType === "tasker" || formData.accountType === "both",
+  
+
+
+      // task_manager:
+      //   formData.accountType === "poster" || formData.accountType === "both",
+      // tasker:
+      //   formData.accountType === "tasker" || formData.accountType === "both",
     };
 
     try {
@@ -155,7 +159,7 @@ export default function SignUpPage() {
                   required
                 />
               </div>
-              <div className="space-y-2">
+              {/* <div className="space-y-2">
                 <Label>I want to:</Label>
                 <RadioGroup
                   defaultValue="both"
@@ -178,7 +182,7 @@ export default function SignUpPage() {
                     <Label htmlFor="both">Both</Label>
                   </div>
                 </RadioGroup>
-              </div>
+              </div> */}
             </CardContent>
             <CardFooter className="flex flex-col space-y-4">
               <Button type="submit" className="w-full" disabled={isLoading}>
