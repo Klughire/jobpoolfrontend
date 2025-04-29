@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect, useState } from "react";
@@ -149,7 +148,7 @@ export default function DashboardPage() {
           setPostedTasks(tasks);
         } else {
           console.warn("No jobs found or API error:", result.message);
-          toast.error("Failed to load posted tasks.");
+          toast.error("Failed to load postted tasks.");
         }
       } catch (err) {
         console.error("Failed to fetch tasks:", err);
@@ -188,9 +187,7 @@ export default function DashboardPage() {
                 ? new Date(job.job_due_date).toLocaleDateString("en-GB")
                 : "Unknown",
               offers: job.offers || 0,
-              posted_by: job.posted_by
-
- || "Unknown",
+              posted_by: job.posted_by || "Unknown",
             }));
           setAvailableTasks(tasks);
         } else {
@@ -291,50 +288,51 @@ export default function DashboardPage() {
   }, [user, userId]);
 
   // Fetch requested bids
-useEffect(() => {
-  if (!user || !userId) return;
+  useEffect(() => {
+    if (!user || !userId) return;
 
-  const fetchRequestedBids = async () => {
-    try {
-      const response = await axiosInstance.get<
-        APIResponse<{ bids: BidRequest[] }>
-      >(`/get-user-requested-bids/${userId}/`);
-      const result = response.data;
+    const fetchRequestedBids = async () => {
+      try {
+        const response = await axiosInstance.get<
+          APIResponse<{ bids: BidRequest[] }>
+        >(`/get-user-requested-bids/${userId}/`);
+        const result = response.data;
 
-      if (result.status_code === 200 && Array.isArray(result.data?.bids)) {
-        const bids: BidRequest[] = result.data.bids.map((bid) => ({
-          bid_id: bid.bid_id,
-          task_id: bid.task_id.toString(),
-          task_title: bid.task_title || "Untitled",
-          bid_amount: Number(bid.bid_amount) || 0,
-          bid_description: bid.bid_description || "No description provided.",
-          status: bid.status || "pending",
-          created_at: bid.created_at
-            ? new Date(bid.created_at).toLocaleDateString("en-GB")
-            : "Unknown",
-          task_location: bid.task_location || "Unknown",
-          task_description: bid.task_description || "No description provided.",
-          posted_by: bid.posted_by || "Unknown",
-          job_due_date: bid.job_due_date
-            ? new Date(bid.job_due_date).toLocaleDateString("en-GB")
-            : "Unknown",
-          job_budget: Number(bid.job_budget) || 0,
-          job_category: bid.job_category || "General",
-          category_name: bid.category_name || "Unknown",
-        }));
-        setRequestedTasks(bids);
-      } else {
-        console.warn("No requested bids found or API error:", result.message);
-        toast.error("Failed to load requested bids.");
+        if (result.status_code === 200 && Array.isArray(result.data?.bids)) {
+          const bids: BidRequest[] = result.data.bids.map((bid) => ({
+            bid_id: bid.bid_id,
+            task_id: bid.task_id.toString(),
+            task_title: bid.task_title || "Untitled",
+            bid_amount: Number(bid.bid_amount) || 0,
+            bid_description: bid.bid_description || "No description provided.",
+            status: bid.status || "pending",
+            created_at: bid.created_at
+              ? new Date(bid.created_at).toLocaleDateString("en-GB")
+              : "Unknown",
+            task_location: bid.task_location || "Unknown",
+            task_description:
+              bid.task_description || "No description provided.",
+            posted_by: bid.posted_by || "Unknown",
+            job_due_date: bid.job_due_date
+              ? new Date(bid.job_due_date).toLocaleDateString("en-GB")
+              : "Unknown",
+            job_budget: Number(bid.job_budget) || 0,
+            job_category: bid.job_category || "General",
+            category_name: bid.category_name || "Unknown",
+          }));
+          setRequestedTasks(bids);
+        } else {
+          console.warn("No requested bids found or API error:", result.message);
+          toast.error("Failed to load requested bids.");
+        }
+      } catch (err) {
+        console.error("Failed to fetch requested bids:", err);
+        toast.error("An error occurred while fetching requested bids.");
       }
-    } catch (err) {
-      console.error("Failed to fetch requested bids:", err);
-      toast.error("An error occurred while fetching requested bids.");
-    }
-  };
+    };
 
-  fetchRequestedBids();
-}, [user, userId]);
+    fetchRequestedBids();
+  }, [user, userId]);
 
   // Fetch completed tasks
   useEffect(() => {
@@ -368,7 +366,10 @@ useEffect(() => {
           }));
           setCompletedTasks(tasks);
         } else {
-          console.warn("No completed tasks found or API error:", result.message);
+          console.warn(
+            "No completed tasks found or API error:",
+            result.message
+          );
           toast.error("Failed to load completed tasks.");
         }
       } catch (err) {
@@ -435,7 +436,8 @@ useEffect(() => {
           <Link href="/" className="flex items-center gap-2 font-bold text-xl">
             <span className="text-primary">JobPool</span>
           </Link>
-          <nav className="hidden md:flex gap-6">
+
+          {/* <nav className="hidden md:flex gap-6">
             <Link
               href="/browse"
               className="text-sm font-medium hover:underline underline-offset-4"
@@ -454,7 +456,7 @@ useEffect(() => {
             >
               Messages
             </Link>
-          </nav>
+          </nav> */}
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
               <Avatar className="h-8 w-8">
@@ -477,6 +479,9 @@ useEffect(() => {
             <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
             <p className="text-muted-foreground">Manage your tasks and bids</p>
           </div>
+          <Link href="/post-task" passHref>
+            <Button>+ Post a Task</Button>
+          </Link>
         </div>
 
         <Tabs defaultValue="my-tasks" className="w-full">

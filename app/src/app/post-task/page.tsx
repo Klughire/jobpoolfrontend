@@ -28,6 +28,7 @@ import { Loader, Upload, X } from "lucide-react";
 import axiosInstance from "../../lib/axiosInstance";
 import useStore from "../../lib/Zustand";
 import { handleAxiosError } from "../../lib/handleAxiosError";
+import LocationDetector from "../../components/LocationDetector";
 
 // Define types for our data structures
 interface User {
@@ -335,13 +336,23 @@ export default function PostTaskPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="location">Location</Label>
-                    <Input
-                      id="location"
-                      name="location"
-                      placeholder="e.g., Brooklyn, NY or Remote"
-                      value={formData.location}
-                      onChange={handleChange}
-                    />
+                    <div className="flex flex-col sm:flex-row gap-2 items-start">
+                      {/* <Input
+        id="location"
+        name="location"
+        // placeholder="e.g., Brooklyn, NY or Remote"
+        value={formData.location}
+        onChange={handleChange}
+        className="flex-1 w-full"
+      /> */}
+                      <div className="w-full sm:w-auto">
+                        <LocationDetector
+                          onLocationChange={(location: string) =>
+                            setFormData((prev) => ({ ...prev, location }))
+                          }
+                        />
+                      </div>
+                    </div>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="dueDate">Due Date (Optional)</Label>
@@ -352,6 +363,7 @@ export default function PostTaskPage() {
                       min={minDate}
                       value={formData.dueDate}
                       onChange={handleChange}
+                      className="w-full"
                     />
                   </div>
                 </div>
