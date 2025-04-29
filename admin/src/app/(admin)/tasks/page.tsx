@@ -1,7 +1,6 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import Link from "next/link"
+import { useState, useEffect } from "react";
 import {
   Search,
   MoreHorizontal,
@@ -11,9 +10,9 @@ import {
   CheckCircle,
   Clock,
   AlertCircle,
-} from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -21,7 +20,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
+} from "@/components/ui/table";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -29,17 +28,17 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from "@/components/ui/dropdown-menu";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
-import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   Dialog,
   DialogContent,
@@ -47,45 +46,95 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Toaster } from "@/components/ui/sonner";
+import { toast } from "sonner";
+import axiosInstance from "@/lib/axiosInstance";
 
-// Define interfaces for type safety
 interface User {
-  id: number
-  name: string
-  avatar: string
+  id: string; // Changed to string to match user_ref_id
+  name: string;
+  avatar?: string; // Optional since not provided in API
 }
 
 interface Task {
-  id: number
-  title: string
-  description: string
-  category: string
-  status: "Open" | "Assigned" | "In Progress" | "Completed" | "Cancelled"
-  location: string
-  dueDate: string
-  budget: number
-  remote: boolean
-  createdAt: string
-  taskmaster: User
-  tasker: User | null
-  offers: number
-  completedAt?: string
-  cancelledAt?: string
-  cancellationReason?: string
+  id: string; // Changed to string to match job_id
+  title: string;
+  description: string;
+  category: string;
+  status: "Open" | "Assigned" | "In Progress" | "Completed" | "Cancelled";
+  location: string;
+  dueDate: string;
+  budget: number;
+  remote: boolean;
+  createdAt: string; // Not in API, will use current date as fallback
+  taskmaster: User;
+  tasker: User | null;
+  offers: number;
+  completedAt?: string;
+  cancelledAt?: string;
+  cancellationReason?: string;
 }
 
 export default function TasksPage() {
-  const [tasks, setTasks] = useState<Task[]>([])
-  const [searchTerm, setSearchTerm] = useState<string>("")
-  const [categoryFilter, setCategoryFilter] = useState<string>("all")
-  const [statusFilter, setStatusFilter] = useState<string>("all")
-  const [selectedTask, setSelectedTask] = useState<Task | null>(null)
-  const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState<boolean>(false)
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState<boolean>(false)
-  const [editTask, setEditTask] = useState<Task | null>(null)
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [categoryFilter, setCategoryFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState<boolean>(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState<boolean>(false);
+  const [editTask, setEditTask] = useState<Task | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+
+  // Fetch tasks from API
+  const fetchTasks = async () => {
+    try {
+      setIsLoading(true);
+      const response = await axiosInstance.get("get-all-jobs/");
+      if (response.data.status_code === 200) {
+        const jobs = response.data.data.jobs;
+        const mappedTasks: Task[] = jobs.map((job: any) => ({
+          id: job.job_id,
+          title: job.job_title,
+          description: job.job_description,
+          category: job.job_category_name,
+          status: job.status ? "Cancelled" : "Open", // Assuming false = Open, true = Cancelled
+          location: job.job_location,
+          dueDate: job.job_due_date,
+          budget: job.job_budget,
+          remote: false, // Not in API, default to false
+          createdAt: new Date().toISOString(), // Not in API, using current date
+          taskmaster: {
+            id: job.user_ref_id,
+            name: job.posted_by,
+            avatar: undefined, // Not in API
+          },
+          tasker: null, // Not in API
+          offers: 0, // Not in API
+          completedAt: undefined, // Not in API
+          cancelledAt: job.status ? new Date().toISOString() : undefined, // Set if cancelled
+          cancellationReason: undefined, // Not in API
+        }));
+        setTasks(mappedTasks);
+      } else {
+        toast.error(response.data.message || "Failed to fetch tasks");
+      }
+    } catch (error) {
+      toast.error("An error occurred while fetching tasks");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchTasks();
+  }, []);
+
+  // Get unique categories for filter
+  const categories = Array.from(new Set(tasks.map((task) => task.category)));
 
   // Filter tasks based on search term and filters
   const filteredTasks = tasks.filter((task: Task) => {
@@ -93,83 +142,134 @@ export default function TasksPage() {
       task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       task.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
       task.taskmaster.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (task.tasker && task.tasker.name.toLowerCase().includes(searchTerm.toLowerCase()))
+      (task.tasker && task.tasker.name.toLowerCase().includes(searchTerm.toLowerCase()));
 
-    const matchesCategory = categoryFilter === "all" || task.category === categoryFilter
-    const matchesStatus = statusFilter === "all" || task.status === statusFilter
+    const matchesCategory = categoryFilter === "all" || task.category === categoryFilter;
+    const matchesStatus = statusFilter === "all" || task.status === statusFilter;
 
-    return matchesSearch && matchesCategory && matchesStatus
-  })
+    return matchesSearch && matchesCategory && matchesStatus;
+  });
 
   // Calculate statistics
-  const openTasks = tasks.filter((t) => t.status === "Open").length
-  const inProgressTasks = tasks.filter((t) => t.status === "In Progress").length
-  const completedTasks = tasks.filter((t) => t.status === "Completed").length
-  const totalBudget = tasks.reduce((sum, t) => sum + t.budget, 0)
+  const openTasks = tasks.filter((t) => t.status === "Open").length;
+  const inProgressTasks = tasks.filter((t) => t.status === "In Progress").length;
+  const completedTasks = tasks.filter((t) => t.status === "Completed").length;
+  const totalBudget = tasks.reduce((sum, t) => sum + t.budget, 0);
 
-  const handleUpdateTaskStatus = (taskId: number, newStatus: Task["status"]) => {
-    setTasks(
-      tasks.map((task) =>
-        task.id === taskId ? { ...task, status: newStatus } : task
-      )
-    )
-    setIsDetailsDialogOpen(false)
-  }
+  const handleUpdateTaskStatus = async (taskId: string, newStatus: Task["status"]) => {
+    try {
+      setIsLoading(true);
+      // Placeholder endpoint; replace with actual update endpoint
+      const response = await axiosInstance.put(`update-job/${taskId}/`, {
+        status: newStatus === "Cancelled" ? true : false, // Map to API's boolean status
+      });
 
-  const handleSaveTask = () => {
-    if (!editTask) return
+      if (response.data.status_code === 200) {
+        toast.success(`Task status updated to ${newStatus}`);
+        setTasks(
+          tasks.map((task) =>
+            task.id === taskId
+              ? {
+                  ...task,
+                  status: newStatus,
+                  cancelledAt: newStatus === "Cancelled" ? new Date().toISOString() : undefined,
+                  completedAt: newStatus === "Completed" ? new Date().toISOString() : undefined,
+                }
+              : task
+          )
+        );
+        setIsDetailsDialogOpen(false);
+      } else {
+        toast.error(response.data.message || "Failed to update task status");
+      }
+    } catch (error) {
+      toast.error("An error occurred while updating task status");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-    setTasks(
-      tasks.map((task) =>
-        task.id === editTask.id ? { ...editTask } : task
-      )
-    )
-    setIsEditDialogOpen(false)
-    setEditTask(null)
-  }
+  const handleSaveTask = async () => {
+    if (!editTask) return;
+
+    try {
+      setIsLoading(true);
+      // Placeholder endpoint; replace with actual update endpoint
+      const response = await axiosInstance.put(`update-job/${editTask.id}/`, {
+        job_title: editTask.title,
+        job_description: editTask.description,
+        job_category_name: editTask.category,
+        job_budget: editTask.budget,
+        job_location: editTask.location,
+        job_due_date: editTask.dueDate,
+        status: editTask.status === "Cancelled" ? true : false,
+      });
+
+      if (response.data.status_code === 200) {
+        toast.success("Task updated successfully");
+        setTasks(
+          tasks.map((task) =>
+            task.id === editTask.id
+              ? {
+                  ...editTask,
+                  cancelledAt: editTask.status === "Cancelled" ? new Date().toISOString() : undefined,
+                  completedAt: editTask.status === "Completed" ? new Date().toISOString() : undefined,
+                }
+              : task
+          )
+        );
+        setIsEditDialogOpen(false);
+        setEditTask(null);
+      } else {
+        toast.error(response.data.message || "Failed to update task");
+      }
+    } catch (error) {
+      toast.error("An error occurred while updating task");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const getStatusBadgeVariant = (
     status: Task["status"]
   ): "outline" | "secondary" | "default" | "destructive" => {
     switch (status) {
       case "Open":
-        return "outline"
+        return "outline";
       case "Assigned":
-        return "secondary"
+        return "secondary";
       case "In Progress":
-        return "default"
+        return "default";
       case "Completed":
-        return "default" // Changed from "success" to "default"
+        return "default";
       case "Cancelled":
-        return "destructive"
+        return "destructive";
       default:
-        return "outline"
+        return "outline";
     }
-  }
+  };
 
   const getStatusIcon = (status: Task["status"]) => {
     switch (status) {
       case "Open":
       case "Assigned":
-        return null
+        return null;
       case "In Progress":
-        return <Clock className="h-4 w-4 mr-1" />
+        return <Clock className="h-4 w-4 mr-1" />;
       case "Completed":
-        return <CheckCircle className="h-4 w-4 mr-1" />
+        return <CheckCircle className="h-4 w-4 mr-1" />;
       case "Cancelled":
-        return <AlertCircle className="h-4 w-4 mr-1" />
+        return <AlertCircle className="h-4 w-4 mr-1" />;
       default:
-        return null
+        return null;
     }
-  }
+  };
 
   return (
     <div className="flex flex-col gap-4">
+      <Toaster />
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-semibold">Tasks Management</h1>
-        <Button asChild>
-          <Link href="/admin/tasks/new">Create Task</Link>
-        </Button>
       </div>
 
       <div className="grid gap-4 md:grid-cols-4">
@@ -216,26 +316,24 @@ export default function TasksPage() {
             className="pl-8 w-full"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
+            disabled={isLoading}
           />
         </div>
         <div className="flex items-center gap-2 w-full md:w-auto">
-          <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+          <Select value={categoryFilter} onValueChange={setCategoryFilter} disabled={isLoading}>
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Filter by category" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Categories</SelectItem>
-              <SelectItem value="Moving">Moving</SelectItem>
-              <SelectItem value="Cleaning">Cleaning</SelectItem>
-              <SelectItem value="Web Design">Web Design</SelectItem>
-              <SelectItem value="Furniture Assembly">Furniture Assembly</SelectItem>
-              <SelectItem value="Pet Care">Pet Care</SelectItem>
-              <SelectItem value="Social Media">Social Media</SelectItem>
-              <SelectItem value="Gardening">Gardening</SelectItem>
-              <SelectItem value="Admin Support">Admin Support</SelectItem>
+              {categories.map((category) => (
+                <SelectItem key={category} value={category}>
+                  {category}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <Select value={statusFilter} onValueChange={setStatusFilter} disabled={isLoading}>
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Filter by status" />
             </SelectTrigger>
@@ -266,7 +364,13 @@ export default function TasksPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredTasks.length === 0 ? (
+            {isLoading ? (
+              <TableRow>
+                <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                  Loading...
+                </TableCell>
+              </TableRow>
+            ) : filteredTasks.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                   No tasks found
@@ -293,7 +397,6 @@ export default function TasksPage() {
                   <TableCell className="hidden md:table-cell">
                     <div className="flex items-center gap-2">
                       <Avatar className="h-6 w-6">
-                        <AvatarImage src={task.taskmaster.avatar} alt={task.taskmaster.name} />
                         <AvatarFallback>
                           {task.taskmaster.name
                             .split(" ")
@@ -308,7 +411,6 @@ export default function TasksPage() {
                     {task.tasker ? (
                       <div className="flex items-center gap-2">
                         <Avatar className="h-6 w-6">
-                          <AvatarImage src={task.tasker.avatar} alt={task.tasker.name} />
                           <AvatarFallback>
                             {task.tasker.name
                               .split(" ")
@@ -338,13 +440,13 @@ export default function TasksPage() {
                     <Dialog
                       open={isDetailsDialogOpen && selectedTask?.id === task.id}
                       onOpenChange={(open) => {
-                        setIsDetailsDialogOpen(open)
-                        if (!open) setSelectedTask(null)
+                        setIsDetailsDialogOpen(open);
+                        if (!open) setSelectedTask(null);
                       }}
                     >
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon">
+                          <Button variant="ghost" size="icon" disabled={isLoading}>
                             <MoreHorizontal className="h-4 w-4" />
                             <span className="sr-only">Open menu</span>
                           </Button>
@@ -353,16 +455,16 @@ export default function TasksPage() {
                           <DropdownMenuLabel>Actions</DropdownMenuLabel>
                           <DropdownMenuItem
                             onClick={() => {
-                              setSelectedTask(task)
-                              setIsDetailsDialogOpen(true)
+                              setSelectedTask(task);
+                              setIsDetailsDialogOpen(true);
                             }}
                           >
                             View Details
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={() => {
-                              setEditTask(task)
-                              setIsEditDialogOpen(true)
+                              setEditTask(task);
+                              setIsEditDialogOpen(true);
                             }}
                           >
                             Edit Task
@@ -429,10 +531,6 @@ export default function TasksPage() {
                                   <Label>Taskmaster</Label>
                                   <div className="flex items-center gap-3 mt-2">
                                     <Avatar>
-                                      <AvatarImage
-                                        src={selectedTask.taskmaster.avatar}
-                                        alt={selectedTask.taskmaster.name}
-                                      />
                                       <AvatarFallback>
                                         {selectedTask.taskmaster.name
                                           .split(" ")
@@ -454,10 +552,6 @@ export default function TasksPage() {
                                   {selectedTask.tasker ? (
                                     <div className="flex items-center gap-3 mt-2">
                                       <Avatar>
-                                        <AvatarImage
-                                          src={selectedTask.tasker.avatar}
-                                          alt={selectedTask.tasker.name}
-                                        />
                                         <AvatarFallback>
                                           {selectedTask.tasker.name
                                             .split(" ")
@@ -533,7 +627,7 @@ export default function TasksPage() {
                           </div>
                         )}
                         <DialogFooter>
-                          <Button variant="outline" onClick={() => setIsDetailsDialogOpen(false)}>
+                          <Button variant="outline" onClick={() => setIsDetailsDialogOpen(false)} disabled={isLoading}>
                             Close
                           </Button>
                         </DialogFooter>
@@ -543,8 +637,8 @@ export default function TasksPage() {
                     <Dialog
                       open={isEditDialogOpen && editTask?.id === task.id}
                       onOpenChange={(open) => {
-                        setIsEditDialogOpen(open)
-                        if (!open) setEditTask(null)
+                        setIsEditDialogOpen(open);
+                        if (!open) setEditTask(null);
                       }}
                     >
                       <DialogContent>
@@ -560,6 +654,7 @@ export default function TasksPage() {
                                 id="title"
                                 value={editTask.title}
                                 onChange={(e) => setEditTask({ ...editTask, title: e.target.value })}
+                                disabled={isLoading}
                               />
                             </div>
                             <div className="grid gap-2">
@@ -569,6 +664,7 @@ export default function TasksPage() {
                                 rows={4}
                                 value={editTask.description}
                                 onChange={(e) => setEditTask({ ...editTask, description: e.target.value })}
+                                disabled={isLoading}
                               />
                             </div>
                             <div className="grid grid-cols-2 gap-4">
@@ -577,19 +673,17 @@ export default function TasksPage() {
                                 <Select
                                   value={editTask.category}
                                   onValueChange={(value) => setEditTask({ ...editTask, category: value })}
+                                  disabled={isLoading}
                                 >
                                   <SelectTrigger id="category">
                                     <SelectValue placeholder="Select category" />
                                   </SelectTrigger>
                                   <SelectContent>
-                                    <SelectItem value="Moving">Moving</SelectItem>
-                                    <SelectItem value="Cleaning">Cleaning</SelectItem>
-                                    <SelectItem value="Web Design">Web Design</SelectItem>
-                                    <SelectItem value="Furniture Assembly">Furniture Assembly</SelectItem>
-                                    <SelectItem value="Pet Care">Pet Care</SelectItem>
-                                    <SelectItem value="Social Media">Social Media</SelectItem>
-                                    <SelectItem value="Gardening">Gardening</SelectItem>
-                                    <SelectItem value="Admin Support">Admin Support</SelectItem>
+                                    {categories.map((category) => (
+                                      <SelectItem key={category} value={category}>
+                                        {category}
+                                      </SelectItem>
+                                    ))}
                                   </SelectContent>
                                 </Select>
                               </div>
@@ -598,6 +692,7 @@ export default function TasksPage() {
                                 <Select
                                   value={editTask.status}
                                   onValueChange={(value: Task["status"]) => setEditTask({ ...editTask, status: value })}
+                                  disabled={isLoading}
                                 >
                                   <SelectTrigger id="status">
                                     <SelectValue placeholder="Select status" />
@@ -619,6 +714,7 @@ export default function TasksPage() {
                                   id="location"
                                   value={editTask.location}
                                   onChange={(e) => setEditTask({ ...editTask, location: e.target.value })}
+                                  disabled={isLoading}
                                 />
                               </div>
                               <div className="grid gap-2">
@@ -628,6 +724,7 @@ export default function TasksPage() {
                                   type="number"
                                   value={editTask.budget}
                                   onChange={(e) => setEditTask({ ...editTask, budget: Number(e.target.value) })}
+                                  disabled={isLoading}
                                 />
                               </div>
                             </div>
@@ -638,16 +735,21 @@ export default function TasksPage() {
                                 type="date"
                                 value={editTask.dueDate}
                                 onChange={(e) => setEditTask({ ...editTask, dueDate: e.target.value })}
+                                disabled={isLoading}
                               />
                             </div>
                           </div>
                         )}
                         <DialogFooter>
-                          <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+                          <Button
+                            variant="outline"
+                            onClick={() => setIsEditDialogOpen(false)}
+                            disabled={isLoading}
+                          >
                             Cancel
                           </Button>
-                          <Button onClick={handleSaveTask} disabled={!editTask}>
-                            Save Changes
+                          <Button onClick={handleSaveTask} disabled={!editTask || isLoading}>
+                            {isLoading ? "Saving..." : "Save Changes"}
                           </Button>
                         </DialogFooter>
                       </DialogContent>
@@ -660,5 +762,5 @@ export default function TasksPage() {
         </Table>
       </div>
     </div>
-  )
+  );
 }

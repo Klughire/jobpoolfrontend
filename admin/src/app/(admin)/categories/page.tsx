@@ -1,10 +1,10 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Plus, Pencil, Trash2, Search } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { useState, useEffect } from "react";
+import { Plus, Pencil, Trash2, Search } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import {
   Dialog,
   DialogContent,
@@ -13,7 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
+} from "@/components/ui/dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,124 +24,140 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
+} from "@/components/ui/alert-dialog";
+import { Label } from "@/components/ui/label";
+import { Toaster } from "@/components/ui/sonner";
+import { toast } from "sonner";
+import axiosInstance from "@/lib/axiosInstance";
 
-// Mock data for categories
-const initialCategories = [
-  {
-    id: 1,
-    name: "Web Development",
-    description: "Website creation, maintenance, and optimization services",
-    tasksCount: 145,
-  },
-  {
-    id: 2,
-    name: "Graphic Design",
-    description: "Visual content creation including logos, banners, and marketing materials",
-    tasksCount: 98,
-  },
-  {
-    id: 3,
-    name: "Content Writing",
-    description: "Blog posts, articles, product descriptions, and other written content",
-    tasksCount: 112,
-  },
-  {
-    id: 4,
-    name: "Digital Marketing",
-    description: "SEO, social media management, email marketing, and PPC campaigns",
-    tasksCount: 87,
-  },
-  {
-    id: 5,
-    name: "Mobile App Development",
-    description: "iOS and Android application development and maintenance",
-    tasksCount: 56,
-  },
-  {
-    id: 6,
-    name: "Video Editing",
-    description: "Video production, editing, and post-production services",
-    tasksCount: 43,
-  },
-  {
-    id: 7,
-    name: "Virtual Assistance",
-    description: "Administrative support, scheduling, and customer service",
-    tasksCount: 76,
-  },
-  {
-    id: 8,
-    name: "Data Entry",
-    description: "Information processing, database management, and spreadsheet work",
-    tasksCount: 65,
-  },
-]
+interface Category {
+  category_id: string;
+  category_name: string;
+  status: boolean;
+  tstamp: string;
+}
 
 export default function CategoriesPage() {
-  const [categories, setCategories] = useState(initialCategories)
-  const [searchTerm, setSearchTerm] = useState("")
-  const [newCategory, setNewCategory] = useState({ name: "", description: "" })
-  const [editCategory, setEditCategory] = useState<null | { id: number; name: string; description: string }>(null)
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
-  const [categoryToDelete, setCategoryToDelete] = useState<null | number>(null)
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [newCategory, setNewCategory] = useState({ name: "" });
+  const [editCategory, setEditCategory] = useState<null | { category_id: string; category_name: string }>(null);
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [categoryToDelete, setCategoryToDelete] = useState<null | string>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const fetchCategories = async () => {
+    try {
+      setIsLoading(true);
+      const response = await axiosInstance.get("get-all-categories/");
+      if (response.data.status_code === 200) {
+        setCategories(response.data.data);
+      } else {
+        toast.error(response.data.message || "Failed to fetch categories");
+      }
+    } catch (error) {
+      toast.error("An error occurred while fetching categories");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchCategories();
+  }, []);
 
   const filteredCategories = categories.filter(
     (category) =>
-      category.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      category.description.toLowerCase().includes(searchTerm.toLowerCase()),
-  )
+      category.category_name.toLowerCase().includes(searchTerm.toLowerCase()),
+  );
 
-  const handleAddCategory = () => {
-    if (newCategory.name.trim() === "") return
+  const handleAddCategory = async () => {
+    if (newCategory.name.trim() === "") {
+      toast.error("Category name is required");
+      return;
+    }
 
-    const newId = Math.max(...categories.map((c) => c.id), 0) + 1
-    setCategories([
-      ...categories,
-      {
-        id: newId,
-        name: newCategory.name,
-        description: newCategory.description,
-        tasksCount: 0,
-      },
-    ])
-    setNewCategory({ name: "", description: "" })
-    setIsAddDialogOpen(false)
-  }
+    try {
+      setIsLoading(true);
+      const response = await axiosInstance.post("create-category/", {
+        category_name: newCategory.name,
+      });
 
-  const handleEditCategory = () => {
-    if (!editCategory || editCategory.name.trim() === "") return
+      if (response.data.status_code === 201) {
+        toast.success("Category created successfully");
+        setNewCategory({ name: "" });
+        setIsAddDialogOpen(false);
+        fetchCategories();
+      } else {
+        toast.error(response.data.message || "Failed to create category");
+      }
+    } catch (error) {
+      toast.error("An error occurred while creating category");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-    setCategories(
-      categories.map((category) =>
-        category.id === editCategory.id
-          ? { ...category, name: editCategory.name, description: editCategory.description }
-          : category,
-      ),
-    )
-    setEditCategory(null)
-    setIsEditDialogOpen(false)
-  }
+  const handleEditCategory = async () => {
+    if (!editCategory || editCategory.category_name.trim() === "") {
+      toast.error("Category name is required");
+      return;
+    }
 
-  const handleDeleteCategory = () => {
-    if (categoryToDelete === null) return
+    try {
+      setIsLoading(true);
+      const response = await axiosInstance.put(`update-category/${editCategory.category_id}/`, {
+        category_name: editCategory.category_name,
+      });
 
-    setCategories(categories.filter((category) => category.id !== categoryToDelete))
-    setCategoryToDelete(null)
-    setIsDeleteDialogOpen(false)
-  }
+      if (response.data.status_code === 200) {
+        toast.success("Category updated successfully");
+        setEditCategory(null);
+        setIsEditDialogOpen(false);
+        fetchCategories();
+      } else {
+        toast.error(response.data.message || "Failed to update category");
+      }
+    } catch (error) {
+      toast.error("An error occurred while updating category");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDeleteCategory = async () => {
+    if (categoryToDelete === null) return;
+
+    try {
+      setIsLoading(true);
+      // Assuming there's a delete endpoint; adjust if different
+      const response = await axiosInstance.delete(`delete-category/${categoryToDelete}/`);
+
+      if (response.data.status_code === 200) {
+        toast.success("Category deleted successfully");
+        setCategories(categories.filter((category) => category.category_id !== categoryToDelete));
+        setCategoryToDelete(null);
+        setIsDeleteDialogOpen(false);
+      } else {
+        toast.error(response.data.message || "Failed to delete category");
+      }
+    } catch (error) {
+      toast.error("An error occurred while deleting category");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div className="flex flex-col gap-4">
+      <Toaster />
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-semibold">Categories Management</h1>
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
-            <Button>
+            <Button disabled={isLoading}>
               <Plus className="mr-2 h-4 w-4" />
               Add Category
             </Button>
@@ -158,24 +174,18 @@ export default function CategoriesPage() {
                   id="name"
                   value={newCategory.name}
                   onChange={(e) => setNewCategory({ ...newCategory, name: e.target.value })}
-                  placeholder="e.g., Web Development"
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="description">Description</Label>
-                <Textarea
-                  id="description"
-                  value={newCategory.description}
-                  onChange={(e) => setNewCategory({ ...newCategory, description: e.target.value })}
-                  placeholder="Describe what kind of tasks fall under this category"
+                  placeholder="e.g., Animation"
+                  disabled={isLoading}
                 />
               </div>
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+              <Button variant="outline" onClick={() => setIsAddDialogOpen(false)} disabled={isLoading}>
                 Cancel
               </Button>
-              <Button onClick={handleAddCategory}>Add Category</Button>
+              <Button onClick={handleAddCategory} disabled={isLoading}>
+                {isLoading ? "Adding..." : "Add Category"}
+              </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -190,6 +200,7 @@ export default function CategoriesPage() {
             className="pl-8"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
+            disabled={isLoading}
           />
         </div>
       </div>
@@ -199,13 +210,19 @@ export default function CategoriesPage() {
           <TableHeader>
             <TableRow>
               <TableHead>Name</TableHead>
-              <TableHead className="hidden md:table-cell">Description</TableHead>
-              <TableHead>Tasks</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Created At</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredCategories.length === 0 ? (
+            {isLoading ? (
+              <TableRow>
+                <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
+                  Loading...
+                </TableCell>
+              </TableRow>
+            ) : filteredCategories.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
                   No categories found
@@ -213,17 +230,17 @@ export default function CategoriesPage() {
               </TableRow>
             ) : (
               filteredCategories.map((category) => (
-                <TableRow key={category.id}>
-                  <TableCell className="font-medium">{category.name}</TableCell>
-                  <TableCell className="hidden md:table-cell">{category.description}</TableCell>
-                  <TableCell>{category.tasksCount}</TableCell>
+                <TableRow key={category.category_id}>
+                  <TableCell className="font-medium">{category.category_name}</TableCell>
+                  <TableCell>{category.status ? "Active" : "Inactive"}</TableCell>
+                  <TableCell>{new Date(category.tstamp).toLocaleDateString()}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
                       <Dialog
-                        open={isEditDialogOpen && editCategory?.id === category.id}
+                        open={isEditDialogOpen && editCategory?.category_id === category.category_id}
                         onOpenChange={(open) => {
-                          setIsEditDialogOpen(open)
-                          if (!open) setEditCategory(null)
+                          setIsEditDialogOpen(open);
+                          if (!open) setEditCategory(null);
                         }}
                       >
                         <DialogTrigger asChild>
@@ -232,12 +249,12 @@ export default function CategoriesPage() {
                             size="icon"
                             onClick={() => {
                               setEditCategory({
-                                id: category.id,
-                                name: category.name,
-                                description: category.description,
-                              })
-                              setIsEditDialogOpen(true)
+                                category_id: category.category_id,
+                                category_name: category.category_name,
+                              });
+                              setIsEditDialogOpen(true);
                             }}
+                            disabled={isLoading}
                           >
                             <Pencil className="h-4 w-4" />
                             <span className="sr-only">Edit</span>
@@ -254,33 +271,34 @@ export default function CategoriesPage() {
                                 <Label htmlFor="edit-name">Category Name</Label>
                                 <Input
                                   id="edit-name"
-                                  value={editCategory.name}
-                                  onChange={(e) => setEditCategory({ ...editCategory, name: e.target.value })}
-                                />
-                              </div>
-                              <div className="grid gap-2">
-                                <Label htmlFor="edit-description">Description</Label>
-                                <Textarea
-                                  id="edit-description"
-                                  value={editCategory.description}
-                                  onChange={(e) => setEditCategory({ ...editCategory, description: e.target.value })}
+                                  value={editCategory.category_name}
+                                  onChange={(e) =>
+                                    setEditCategory({ ...editCategory, category_name: e.target.value })
+                                  }
+                                  disabled={isLoading}
                                 />
                               </div>
                             </div>
                           )}
                           <DialogFooter>
-                            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+                            <Button
+                              variant="outline"
+                              onClick={() => setIsEditDialogOpen(false)}
+                              disabled={isLoading}
+                            >
                               Cancel
                             </Button>
-                            <Button onClick={handleEditCategory}>Save Changes</Button>
+                            <Button onClick={handleEditCategory} disabled={isLoading}>
+                              {isLoading ? "Saving..." : "Save Changes"}
+                            </Button>
                           </DialogFooter>
                         </DialogContent>
                       </Dialog>
                       <AlertDialog
-                        open={isDeleteDialogOpen && categoryToDelete === category.id}
+                        open={isDeleteDialogOpen && categoryToDelete === category.category_id}
                         onOpenChange={(open) => {
-                          setIsDeleteDialogOpen(open)
-                          if (!open) setCategoryToDelete(null)
+                          setIsDeleteDialogOpen(open);
+                          if (!open) setCategoryToDelete(null);
                         }}
                       >
                         <AlertDialogTrigger asChild>
@@ -288,9 +306,10 @@ export default function CategoriesPage() {
                             variant="ghost"
                             size="icon"
                             onClick={() => {
-                              setCategoryToDelete(category.id)
-                              setIsDeleteDialogOpen(true)
+                              setCategoryToDelete(category.category_id);
+                              setIsDeleteDialogOpen(true);
                             }}
+                            disabled={isLoading}
                           >
                             <Trash2 className="h-4 w-4" />
                             <span className="sr-only">Delete</span>
@@ -301,16 +320,13 @@ export default function CategoriesPage() {
                             <AlertDialogTitle>Delete Category</AlertDialogTitle>
                             <AlertDialogDescription>
                               Are you sure you want to delete this category? This action cannot be undone.
-                              {category.tasksCount > 0 && (
-                                <p className="mt-2 text-red-500">
-                                  Warning: This category has {category.tasksCount} tasks associated with it.
-                                </p>
-                              )}
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction onClick={handleDeleteCategory}>Delete</AlertDialogAction>
+                            <AlertDialogCancel disabled={isLoading}>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={handleDeleteCategory} disabled={isLoading}>
+                              {isLoading ? "Deleting..." : "Delete"}
+                            </AlertDialogAction>
                           </AlertDialogFooter>
                         </AlertDialogContent>
                       </AlertDialog>
@@ -323,5 +339,5 @@ export default function CategoriesPage() {
         </Table>
       </div>
     </div>
-  )
+  );
 }
