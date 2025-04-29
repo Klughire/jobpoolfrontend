@@ -1,13 +1,11 @@
 "use client"
 
 import Link from "next/link"
-import { BarChart3, Users, Tags, CreditCard,  CheckSquare } from "lucide-react"
+import { BarChart3, Users, Tags, CreditCard, CheckSquare } from "lucide-react"
 import { cn } from "../lib/utils"
-
 
 interface SidebarProps {
   pathname: string
-  handleLogout: () => void
 }
 
 const sidebarNavItems = [
@@ -36,10 +34,9 @@ const sidebarNavItems = [
     href: "/payouts",
     icon: CreditCard,
   },
- 
 ]
 
-export function Sidebar({ pathname, handleLogout }: SidebarProps) {
+export function Sidebar({ pathname }: SidebarProps) {
   return (
     <aside className="hidden w-64 border-r bg-muted/40 md:block">
       <nav className="grid items-start px-4 py-4 text-sm font-medium">
@@ -56,7 +53,6 @@ export function Sidebar({ pathname, handleLogout }: SidebarProps) {
             {item.title}
           </Link>
         ))}
-        
       </nav>
     </aside>
   )

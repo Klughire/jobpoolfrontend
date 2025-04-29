@@ -39,6 +39,7 @@ interface Notifications {
 export default function AdminProfilePage() {
   const [admin, setAdmin] = useState<Admin | null>(null)
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string>("")
   const [notifications, setNotifications] = useState<Notifications>({
     email: true,
     push: false,
@@ -50,17 +51,26 @@ export default function AdminProfilePage() {
 
   const handleProfileUpdate = async (e: React.FormEvent) => {
     e.preventDefault()
+    setError("")
     setIsLoading(true)
 
     try {
       // Simulate API call to update profile
       await new Promise((resolve) => setTimeout(resolve, 1500))
       // In a real application, you would send updated admin data to your backend
+      // Example:
+      // const response = await fetch("/api/admin/profile", {
+      //   method: "PATCH",
+      //   headers: { "Content-Type": "application/json" },
+      //   body: JSON.stringify(admin),
+      // })
+      // if (!response.ok) throw new Error("Failed to update profile")
       // toast({
       //   title: "Profile updated",
       //   description: "Your profile information has been updated successfully.",
       // })
-    } catch (error) {
+    } catch {
+      setError("Failed to update profile. Please try again.")
       // toast({
       //   title: "Update failed",
       //   description: "There was a problem updating your profile. Please try again.",
@@ -72,17 +82,26 @@ export default function AdminProfilePage() {
   }
 
   const handleNotificationUpdate = async () => {
+    setError("")
     setIsLoading(true)
 
     try {
       // Simulate API call to update notification settings
       await new Promise((resolve) => setTimeout(resolve, 1000))
       // In a real application, you would send updated notifications to your backend
+      // Example:
+      // const response = await fetch("/api/admin/notifications", {
+      //   method: "PATCH",
+      //   headers: { "Content-Type": "application/json" },
+      //   body: JSON.stringify(notifications),
+      // })
+      // if (!response.ok) throw new Error("Failed to update notifications")
       // toast({
       //   title: "Notification settings updated",
       //   description: "Your notification preferences have been saved.",
       // })
-    } catch (error) {
+    } catch {
+      setError("Failed to update notification settings. Please try again.")
       // toast({
       //   title: "Update failed",
       //   description: "There was a problem updating your notification settings. Please try again.",
@@ -167,6 +186,9 @@ export default function AdminProfilePage() {
                 </CardHeader>
                 <form onSubmit={handleProfileUpdate}>
                   <CardContent className="space-y-4">
+                    {error && (
+                      <div className="p-3 text-sm bg-red-50 text-red-500 rounded-md">{error}</div>
+                    )}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label htmlFor="name">Full Name</Label>
@@ -248,6 +270,9 @@ export default function AdminProfilePage() {
                   <CardDescription>Manage how you receive notifications and alerts</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
+                  {error && (
+                    <div className="p-3 text-sm bg-red-50 text-red-500 rounded-md">{error}</div>
+                  )}
                   <div className="space-y-4">
                     <h3 className="text-sm font-medium">Notification Channels</h3>
                     <div className="flex items-center justify-between">
