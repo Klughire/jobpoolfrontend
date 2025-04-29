@@ -57,12 +57,13 @@ export default function CategoriesPage() {
       } else {
         toast.error(response.data.message || "Failed to fetch categories");
       }
-    } catch (error) {
+    } catch {
       toast.error("An error occurred while fetching categories");
     } finally {
       setIsLoading(false);
     }
   };
+  
 
   useEffect(() => {
     fetchCategories();
@@ -78,13 +79,13 @@ export default function CategoriesPage() {
       toast.error("Category name is required");
       return;
     }
-
+  
     try {
       setIsLoading(true);
       const response = await axiosInstance.post("create-category/", {
         category_name: newCategory.name,
       });
-
+  
       if (response.data.status_code === 201) {
         toast.success("Category created successfully");
         setNewCategory({ name: "" });
@@ -93,25 +94,26 @@ export default function CategoriesPage() {
       } else {
         toast.error(response.data.message || "Failed to create category");
       }
-    } catch (error) {
+    } catch {
       toast.error("An error occurred while creating category");
     } finally {
       setIsLoading(false);
     }
   };
+  
 
   const handleEditCategory = async () => {
     if (!editCategory || editCategory.category_name.trim() === "") {
       toast.error("Category name is required");
       return;
     }
-
+  
     try {
       setIsLoading(true);
       const response = await axiosInstance.put(`update-category/${editCategory.category_id}/`, {
         category_name: editCategory.category_name,
       });
-
+  
       if (response.data.status_code === 200) {
         toast.success("Category updated successfully");
         setEditCategory(null);
@@ -120,7 +122,7 @@ export default function CategoriesPage() {
       } else {
         toast.error(response.data.message || "Failed to update category");
       }
-    } catch (error) {
+    } catch {
       toast.error("An error occurred while updating category");
     } finally {
       setIsLoading(false);
@@ -129,12 +131,11 @@ export default function CategoriesPage() {
 
   const handleDeleteCategory = async () => {
     if (categoryToDelete === null) return;
-
+  
     try {
       setIsLoading(true);
-      // Assuming there's a delete endpoint; adjust if different
       const response = await axiosInstance.delete(`delete-category/${categoryToDelete}/`);
-
+  
       if (response.data.status_code === 200) {
         toast.success("Category deleted successfully");
         setCategories(categories.filter((category) => category.category_id !== categoryToDelete));
@@ -143,7 +144,7 @@ export default function CategoriesPage() {
       } else {
         toast.error(response.data.message || "Failed to delete category");
       }
-    } catch (error) {
+    } catch {
       toast.error("An error occurred while deleting category");
     } finally {
       setIsLoading(false);

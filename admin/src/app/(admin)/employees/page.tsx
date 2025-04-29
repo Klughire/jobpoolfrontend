@@ -55,8 +55,8 @@ export default function AdminUsersPage() {
     try {
       setIsLoading(true);
       const response = await axiosInstance.get("users/");
-      setUsers(response.data); // Assuming response.data is an array of users
-    } catch (error) {
+      setUsers(response.data);
+    } catch {
       toast.error("An error occurred while fetching users");
     } finally {
       setIsLoading(false);
@@ -88,7 +88,7 @@ export default function AdminUsersPage() {
       toast.error("Password must be at least 8 characters");
       return;
     }
-
+  
     try {
       setIsLoading(true);
       const response = await axiosInstance.post("users/", {
@@ -96,9 +96,9 @@ export default function AdminUsersPage() {
         email: newUser.email,
         password: newUser.password,
         role: newUser.role,
-        status: false, // New users are active by default
+        status: false,
       });
-
+  
       if (response.data.status_code === 201) {
         toast.success("User created successfully");
         setNewUser({ full_name: "", email: "", password: "", role: "Moderator" });
@@ -107,7 +107,7 @@ export default function AdminUsersPage() {
       } else {
         toast.error(response.data.message || "Failed to create user");
       }
-    } catch (error) {
+    } catch {
       toast.error("An error occurred while creating user");
     } finally {
       setIsLoading(false);
@@ -123,7 +123,7 @@ export default function AdminUsersPage() {
       toast.error("Valid email is required");
       return;
     }
-
+  
     try {
       setIsLoading(true);
       const response = await axiosInstance.put(`users/${editUser.user_id}/`, {
@@ -132,7 +132,7 @@ export default function AdminUsersPage() {
         role: editUser.role,
         status: editUser.status,
       });
-
+  
       if (response.data.status_code === 200) {
         toast.success("User updated successfully");
         setEditUser(null);
@@ -141,7 +141,7 @@ export default function AdminUsersPage() {
       } else {
         toast.error(response.data.message || "Failed to update user");
       }
-    } catch (error) {
+    } catch {
       toast.error("An error occurred while updating user");
     } finally {
       setIsLoading(false);
@@ -150,11 +150,11 @@ export default function AdminUsersPage() {
 
   const handleDeleteUser = async () => {
     if (userToDelete === null) return;
-
+  
     try {
       setIsLoading(true);
       const response = await axiosInstance.delete(`users/${userToDelete}/`);
-
+  
       if (response.data.status_code === 200) {
         toast.success("User deleted successfully");
         setUsers(users.filter((user) => user.user_id !== userToDelete));
@@ -163,7 +163,7 @@ export default function AdminUsersPage() {
       } else {
         toast.error(response.data.message || "Failed to delete user");
       }
-    } catch (error) {
+    } catch {
       toast.error("An error occurred while deleting user");
     } finally {
       setIsLoading(false);

@@ -8,6 +8,15 @@ import axiosInstance from "@/lib/axiosInstance";
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
 
+interface TaskStatus {
+  id: number;
+  name: string;
+  count: number;
+  percentage: number;
+  icon: typeof CheckCircle2 | typeof Clock | typeof AlertCircle; // Specific icon types
+  color: string;
+}
+
 interface User {
   user_id: string;
   user_fullname: string;
@@ -40,14 +49,7 @@ interface ActivityItem {
   time: string;
 }
 
-interface TaskStatus {
-  id: number;
-  name: string;
-  count: number;
-  percentage: number;
-  icon: any;
-  color: string;
-}
+
 
 interface RecentTask {
   id: string;
@@ -64,7 +66,6 @@ export default function AdminDashboard() {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Fetch data from APIs
   const fetchData = async () => {
     try {
       setIsLoading(true);
@@ -84,7 +85,7 @@ export default function AdminDashboard() {
       } else {
         toast.error(jobsResponse.data.message || "Failed to fetch jobs");
       }
-    } catch (error) {
+    } catch {
       toast.error("An error occurred while fetching data");
     } finally {
       setIsLoading(false);
