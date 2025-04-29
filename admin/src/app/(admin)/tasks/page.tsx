@@ -1,7 +1,7 @@
-"use client";
+"use client"
 
-import { useState } from "react";
-import Link from "next/link";
+import { useState } from "react"
+import Link from "next/link"
 import {
   Search,
   MoreHorizontal,
@@ -11,9 +11,9 @@ import {
   CheckCircle,
   Clock,
   AlertCircle,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+} from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import {
   Table,
   TableBody,
@@ -21,7 +21,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
+} from "@/components/ui/table"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -29,21 +29,17 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from "@/components/ui/dropdown-menu"
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@/components/ui/avatar";
+} from "@/components/ui/select"
+import { Badge } from "@/components/ui/badge"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
   Dialog,
   DialogContent,
@@ -51,231 +47,45 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+} from "@/components/ui/dialog"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
 
 // Define interfaces for type safety
 interface User {
-  id: number;
-  name: string;
-  avatar: string;
+  id: number
+  name: string
+  avatar: string
 }
 
 interface Task {
-  id: number;
-  title: string;
-  description: string;
-  category: string;
-  status: "Open" | "Assigned" | "In Progress" | "Completed" | "Cancelled";
-  location: string;
-  dueDate: string;
-  budget: number;
-  remote: boolean;
-  createdAt: string;
-  taskmaster: User;
-  tasker: User | null;
-  offers: number;
-  completedAt?: string;
-  cancelledAt?: string;
-  cancellationReason?: string;
+  id: number
+  title: string
+  description: string
+  category: string
+  status: "Open" | "Assigned" | "In Progress" | "Completed" | "Cancelled"
+  location: string
+  dueDate: string
+  budget: number
+  remote: boolean
+  createdAt: string
+  taskmaster: User
+  tasker: User | null
+  offers: number
+  completedAt?: string
+  cancelledAt?: string
+  cancellationReason?: string
 }
 
-// Mock data for tasks
-const initialTasks: Task[] = [
-  {
-    id: 1,
-    title: "Help moving furniture to new apartment",
-    description:
-      "Need help moving a couch, bed, and dining table from my current apartment to my new place about 2 miles away.",
-    category: "Moving",
-    status: "Open",
-    location: "Brooklyn, NY",
-    dueDate: "2023-05-15",
-    budget: 120,
-    remote: false,
-    createdAt: "2023-05-10",
-    taskmaster: {
-      id: 1,
-      name: "John Smith",
-      avatar: "/placeholder.svg?height=32&width=32",
-    },
-    tasker: null,
-    offers: 3,
-  },
-  {
-    id: 2,
-    title: "House cleaning for 2-bedroom apartment",
-    description:
-      "Looking for someone to do a deep clean of my 2-bedroom apartment, including kitchen, bathrooms, and floors.",
-    category: "Cleaning",
-    status: "Assigned",
-    location: "Manhattan, NY",
-    dueDate: "2023-05-18",
-    budget: 150,
-    remote: false,
-    createdAt: "2023-05-09",
-    taskmaster: {
-      id: 5,
-      name: "David Miller",
-      avatar: "/placeholder.svg?height=32&width=32",
-    },
-    tasker: {
-      id: 2,
-      name: "Emily Johnson",
-      avatar: "/placeholder.svg?height=32&width=32",
-    },
-    offers: 7,
-  },
-  {
-    id: 3,
-    title: "Website design for small business",
-    description: "Need a professional to design a simple website for my bakery business. Should include about 5 pages.",
-    category: "Web Design",
-    status: "In Progress",
-    location: "Remote",
-    dueDate: "2023-05-30",
-    budget: 500,
-    remote: true,
-    createdAt: "2023-05-08",
-    taskmaster: {
-      id: 3,
-      name: "Michael Brown",
-      avatar: "/placeholder.svg?height=32&width=32",
-    },
-    tasker: {
-      id: 8,
-      name: "Jennifer Lee",
-      avatar: "/placeholder.svg?height=32&width=32",
-    },
-    offers: 12,
-  },
-  {
-    id: 4,
-    title: "Assemble IKEA furniture",
-    description: "Need help assembling a bed frame, dresser, and bookshelf from IKEA. All items are still in boxes.",
-    category: "Furniture Assembly",
-    status: "Completed",
-    location: "Queens, NY",
-    dueDate: "2023-05-14",
-    budget: 100,
-    remote: false,
-    createdAt: "2023-05-07",
-    taskmaster: {
-      id: 6,
-      name: "Sarah Williams",
-      avatar: "/placeholder.svg?height=32&width=32",
-    },
-    tasker: {
-      id: 3,
-      name: "Michael Brown",
-      avatar: "/placeholder.svg?height=32&width=32",
-    },
-    offers: 5,
-    completedAt: "2023-05-14",
-  },
-  {
-    id: 5,
-    title: "Dog walking for 2 weeks",
-    description: "Looking for someone to walk my golden retriever once a day for 2 weeks while I'm on vacation.",
-    category: "Pet Care",
-    status: "Cancelled",
-    location: "Bronx, NY",
-    dueDate: "2023-05-20",
-    budget: 200,
-    remote: false,
-    createdAt: "2023-05-06",
-    taskmaster: {
-      id: 7,
-      name: "Robert Wilson",
-      avatar: "/placeholder.svg?height=32&width=32",
-    },
-    tasker: null,
-    offers: 4,
-    cancelledAt: "2023-05-12",
-    cancellationReason: "Taskmaster found another solution",
-  },
-  {
-    id: 6,
-    title: "Social media content creation",
-    description:
-      "Need someone to create content for my small business Instagram account. Looking for 20 posts with captions.",
-    category: "Social Media",
-    status: "Open",
-    location: "Remote",
-    dueDate: "2023-05-25",
-    budget: 300,
-    remote: true,
-    createdAt: "2023-05-05",
-    taskmaster: {
-      id: 4,
-      name: "Jessica Davis",
-      avatar: "/placeholder.svg?height=32&width=32",
-    },
-    tasker: null,
-    offers: 9,
-  },
-  {
-    id: 7,
-    title: "Garden maintenance and lawn mowing",
-    description:
-      "Need someone to mow the lawn, trim hedges, and do general garden maintenance for a medium-sized yard.",
-    category: "Gardening",
-    status: "In Progress",
-    location: "Staten Island, NY",
-    dueDate: "2023-05-16",
-    budget: 80,
-    remote: false,
-    createdAt: "2023-05-04",
-    taskmaster: {
-      id: 2,
-      name: "Emily Johnson",
-      avatar: "/placeholder.svg?height=32&width=32",
-    },
-    tasker: {
-      id: 6,
-      name: "Sarah Williams",
-      avatar: "/placeholder.svg?height=32&width=32",
-    },
-    offers: 3,
-  },
-  {
-    id: 8,
-    title: "Data entry for customer database",
-    description: "Need help transferring customer information from spreadsheets to our new CRM system.",
-    category: "Admin Support",
-    status: "Completed",
-    location: "Remote",
-    dueDate: "2023-05-12",
-    budget: 150,
-    remote: true,
-    createdAt: "2023-05-03",
-    taskmaster: {
-      id: 8,
-      name: "Jennifer Lee",
-      avatar: "/placeholder.svg?height=32&width=32",
-    },
-    tasker: {
-      id: 4,
-      name: "Jessica Davis",
-      avatar: "/placeholder.svg?height=32&width=32",
-    },
-    offers: 6,
-   
-
- completedAt: "2023-05-11",
-  },
-];
-
 export default function TasksPage() {
-  const [tasks, setTasks] = useState<Task[]>(initialTasks);
-  const [searchTerm, setSearchTerm] = useState<string>("");
-  const [categoryFilter, setCategoryFilter] = useState<string>("all");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
-  const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState<boolean>(false);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState<boolean>(false);
-  const [editTask, setEditTask] = useState<Task | null>(null);
+  const [tasks, setTasks] = useState<Task[]>([])
+  const [searchTerm, setSearchTerm] = useState<string>("")
+  const [categoryFilter, setCategoryFilter] = useState<string>("all")
+  const [statusFilter, setStatusFilter] = useState<string>("all")
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null)
+  const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState<boolean>(false)
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState<boolean>(false)
+  const [editTask, setEditTask] = useState<Task | null>(null)
 
   // Filter tasks based on search term and filters
   const filteredTasks = tasks.filter((task: Task) => {
@@ -283,78 +93,75 @@ export default function TasksPage() {
       task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       task.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
       task.taskmaster.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (task.tasker && task.tasker.name.toLowerCase().includes(searchTerm.toLowerCase()));
+      (task.tasker && task.tasker.name.toLowerCase().includes(searchTerm.toLowerCase()))
 
-    const matchesCategory = categoryFilter === "all" || task.category === categoryFilter;
-    const matchesStatus = statusFilter === "all" || task.status === statusFilter;
+    const matchesCategory = categoryFilter === "all" || task.category === categoryFilter
+    const matchesStatus = statusFilter === "all" || task.status === statusFilter
 
-    return matchesSearch && matchesCategory && matchesStatus;
-  });
+    return matchesSearch && matchesCategory && matchesStatus
+  })
 
   // Calculate statistics
-  const openTasks = tasks.filter((t) => t.status === "Open").length;
-  const inProgressTasks = tasks.filter((t) => t.status === "In Progress").length;
-  const completedTasks = tasks.filter((t) => t.status === "Completed").length;
-  const totalBudget = tasks.reduce((sum, t) => sum + t.budget, 0);
+  const openTasks = tasks.filter((t) => t.status === "Open").length
+  const inProgressTasks = tasks.filter((t) => t.status === "In Progress").length
+  const completedTasks = tasks.filter((t) => t.status === "Completed").length
+  const totalBudget = tasks.reduce((sum, t) => sum + t.budget, 0)
 
-  const handleUpdateTaskStatus = (
-    taskId: number,
-    newStatus: Task["status"],
-  ) => {
+  const handleUpdateTaskStatus = (taskId: number, newStatus: Task["status"]) => {
     setTasks(
       tasks.map((task) =>
-        task.id === taskId ? { ...task, status: newStatus } : task,
-      ),
-    );
-    setIsDetailsDialogOpen(false);
-  };
+        task.id === taskId ? { ...task, status: newStatus } : task
+      )
+    )
+    setIsDetailsDialogOpen(false)
+  }
 
   const handleSaveTask = () => {
-    if (!editTask) return;
+    if (!editTask) return
 
     setTasks(
       tasks.map((task) =>
-        task.id === editTask.id ? { ...editTask } : task,
-      ),
-    );
-    setIsEditDialogOpen(false);
-    setEditTask(null);
-  };
+        task.id === editTask.id ? { ...editTask } : task
+      )
+    )
+    setIsEditDialogOpen(false)
+    setEditTask(null)
+  }
 
   const getStatusBadgeVariant = (
-    status: Task["status"],
-  ): "outline" | "secondary" | "default" | "success" | "destructive" => {
+    status: Task["status"]
+  ): "outline" | "secondary" | "default" | "destructive" => {
     switch (status) {
       case "Open":
-        return "outline";
+        return "outline"
       case "Assigned":
-        return "secondary";
+        return "secondary"
       case "In Progress":
-        return "default";
+        return "default"
       case "Completed":
-        return "success";
+        return "default" // Changed from "success" to "default"
       case "Cancelled":
-        return "destructive";
+        return "destructive"
       default:
-        return "outline";
+        return "outline"
     }
-  };
+  }
 
   const getStatusIcon = (status: Task["status"]) => {
     switch (status) {
       case "Open":
       case "Assigned":
-        return null;
+        return null
       case "In Progress":
-        return <Clock className="h-4 w-4 mr-1" />;
+        return <Clock className="h-4 w-4 mr-1" />
       case "Completed":
-        return <CheckCircle className="h-4 w-4 mr-1" />;
+        return <CheckCircle className="h-4 w-4 mr-1" />
       case "Cancelled":
-        return <AlertCircle className="h-4 w-4 mr-1" />;
+        return <AlertCircle className="h-4 w-4 mr-1" />
       default:
-        return null;
+        return null
     }
-  };
+  }
 
   return (
     <div className="flex flex-col gap-4">
@@ -531,8 +338,8 @@ export default function TasksPage() {
                     <Dialog
                       open={isDetailsDialogOpen && selectedTask?.id === task.id}
                       onOpenChange={(open) => {
-                        setIsDetailsDialogOpen(open);
-                        if (!open) setSelectedTask(null);
+                        setIsDetailsDialogOpen(open)
+                        if (!open) setSelectedTask(null)
                       }}
                     >
                       <DropdownMenu>
@@ -546,16 +353,16 @@ export default function TasksPage() {
                           <DropdownMenuLabel>Actions</DropdownMenuLabel>
                           <DropdownMenuItem
                             onClick={() => {
-                              setSelectedTask(task);
-                              setIsDetailsDialogOpen(true);
+                              setSelectedTask(task)
+                              setIsDetailsDialogOpen(true)
                             }}
                           >
                             View Details
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={() => {
-                              setEditTask(task);
-                              setIsEditDialogOpen(true);
+                              setEditTask(task)
+                              setIsEditDialogOpen(true)
                             }}
                           >
                             Edit Task
@@ -736,8 +543,8 @@ export default function TasksPage() {
                     <Dialog
                       open={isEditDialogOpen && editTask?.id === task.id}
                       onOpenChange={(open) => {
-                        setIsEditDialogOpen(open);
-                        if (!open) setEditTask(null);
+                        setIsEditDialogOpen(open)
+                        if (!open) setEditTask(null)
                       }}
                     >
                       <DialogContent>
@@ -853,5 +660,5 @@ export default function TasksPage() {
         </Table>
       </div>
     </div>
-  );
+  )
 }

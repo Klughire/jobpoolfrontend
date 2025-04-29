@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import { Loader2, Save, Mail, Phone, MapPin, Building, Calendar } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -13,26 +12,34 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Switch } from "@/components/ui/switch"
 
+// Define the Admin type for TypeScript
+interface Admin {
+  id: number
+  name: string
+  email: string
+  phone: string
+  role: string
+  avatar: string
+  joinDate: string
+  address: string
+  company: string
+  bio: string
+}
 
-// Mock admin data
-const adminData = {
-  id: 1,
-  name: "Alex Johnson",
-  email: "alex.johnson@taskmaster.com",
-  phone: "+1 (555) 123-4567",
-  role: "Super Admin",
-  avatar: "/placeholder.svg?height=128&width=128",
-  joinDate: "2022-05-15",
-  address: "123 Admin Street, New York, NY 10001",
-  company: "TaskMaster Inc.",
-  bio: "Experienced administrator with over 10 years in platform management and customer support. Passionate about creating efficient systems and providing excellent user experiences.",
+// Define the Notifications type for TypeScript
+interface Notifications {
+  email: boolean
+  push: boolean
+  taskUpdates: boolean
+  newUsers: boolean
+  systemAlerts: boolean
+  marketingEmails: boolean
 }
 
 export default function AdminProfilePage() {
-  
-  const [admin, setAdmin] = useState(adminData)
+  const [admin, setAdmin] = useState<Admin | null>(null)
   const [isLoading, setIsLoading] = useState(false)
-  const [notifications, setNotifications] = useState({
+  const [notifications, setNotifications] = useState<Notifications>({
     email: true,
     push: false,
     taskUpdates: true,
@@ -41,52 +48,58 @@ export default function AdminProfilePage() {
     marketingEmails: false,
   })
 
-//   const handleProfileUpdate = async (e: React.FormEvent) => {
-//     e.preventDefault()
-//     setIsLoading(true)
+  const handleProfileUpdate = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsLoading(true)
 
-//     try {
-//       // In a real application, you would update the profile with your backend
-//       // For demo purposes, we'll simulate a successful update after a delay
-//       await new Promise((resolve) => setTimeout(resolve, 1500))
+    try {
+      // Simulate API call to update profile
+      await new Promise((resolve) => setTimeout(resolve, 1500))
+      // In a real application, you would send updated admin data to your backend
+      // toast({
+      //   title: "Profile updated",
+      //   description: "Your profile information has been updated successfully.",
+      // })
+    } catch (error) {
+      // toast({
+      //   title: "Update failed",
+      //   description: "There was a problem updating your profile. Please try again.",
+      //   variant: "destructive",
+      // })
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
-//       toast({
-//         title: "Profile updated",
-//         description: "Your profile information has been updated successfully.",
-//       })
-//     } catch (error) {
-//       toast({
-//         title: "Update failed",
-//         description: "There was a problem updating your profile. Please try again.",
-//         variant: "destructive",
-//       })
-//     } finally {
-//       setIsLoading(false)
-//     }
-//   }
+  const handleNotificationUpdate = async () => {
+    setIsLoading(true)
 
-//   const handleNotificationUpdate = async () => {
-//     setIsLoading(true)
+    try {
+      // Simulate API call to update notification settings
+      await new Promise((resolve) => setTimeout(resolve, 1000))
+      // In a real application, you would send updated notifications to your backend
+      // toast({
+      //   title: "Notification settings updated",
+      //   description: "Your notification preferences have been saved.",
+      // })
+    } catch (error) {
+      // toast({
+      //   title: "Update failed",
+      //   description: "There was a problem updating your notification settings. Please try again.",
+      //   variant: "destructive",
+      // })
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
-//     try {
-//       // In a real application, you would update notification settings with your backend
-//       // For demo purposes, we'll simulate a successful update after a delay
-//       await new Promise((resolve) => setTimeout(resolve, 1000))
-
-//       toast({
-//         title: "Notification settings updated",
-//         description: "Your notification preferences have been saved.",
-//       })
-//     } catch (error) {
-//       toast({
-//         title: "Update failed",
-//         description: "There was a problem updating your notification settings. Please try again.",
-//         variant: "destructive",
-//       })
-//     } finally {
-//       setIsLoading(false)
-//     }
-//   }
+  if (!admin) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <p className="text-muted-foreground">Loading profile data...</p>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6">
@@ -152,8 +165,7 @@ export default function AdminProfilePage() {
                   <CardTitle>Account Information</CardTitle>
                   <CardDescription>Update your account details and profile information</CardDescription>
                 </CardHeader>
-                {/* <form onSubmit={handleProfileUpdate}> */}
-                <form>
+                <form onSubmit={handleProfileUpdate}>
                   <CardContent className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
@@ -311,8 +323,7 @@ export default function AdminProfilePage() {
                   </div>
                 </CardContent>
                 <CardFooter>
-                  {/* <Button onClick={handleNotificationUpdate} disabled={isLoading}> */}
-                      <Button>
+                  <Button onClick={handleNotificationUpdate} disabled={isLoading}>
                     {isLoading ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />

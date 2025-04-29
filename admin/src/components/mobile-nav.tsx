@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { BarChart3, Users, Tags, CreditCard, Settings, X, LogOut, CheckSquare } from "lucide-react"
+import { BarChart3, Users, Tags, CreditCard, X, LogOut, CheckSquare } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 

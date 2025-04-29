@@ -1,10 +1,25 @@
 "use client"
 
 import { useState } from "react"
-import { Search, Download, MoreHorizontal, CheckCircle, XCircle, Clock, AlertCircle } from "lucide-react"
+import {
+  Search,
+  Download,
+  MoreHorizontal,
+  CheckCircle,
+  XCircle,
+  Clock,
+  AlertCircle,
+} from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,7 +28,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -27,160 +48,58 @@ import {
 } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 
-// Mock data for payouts
-const initialPayouts = [
-  {
-    id: 1,
-    tasker: {
-      id: 2,
-      name: "Emily Johnson",
-      email: "emily.j@example.com",
-    },
-    amount: 450.0,
-    fee: 22.5,
-    netAmount: 427.5,
-    status: "Completed",
-    method: "Bank Transfer",
-    reference: "PAY-1234567890",
-    date: "2023-04-15",
-    completedDate: "2023-04-15",
-  },
-  {
-    id: 2,
-    tasker: {
-      id: 3,
-      name: "Michael Brown",
-      email: "michael.b@example.com",
-    },
-    amount: 150.0,
-    fee: 7.5,
-    netAmount: 142.5,
-    status: "Completed",
-    method: "PayPal",
-    reference: "PAY-0987654321",
-    date: "2023-04-14",
-    completedDate: "2023-04-14",
-  },
-  {
-    id: 3,
-    tasker: {
-      id: 4,
-      name: "Jessica Davis",
-      email: "jessica.d@example.com",
-    },
-    amount: 300.0,
-    fee: 15.0,
-    netAmount: 285.0,
-    status: "Pending",
-    method: "Bank Transfer",
-    reference: "PAY-5678901234",
-    date: "2023-04-14",
-    completedDate: null,
-  },
-  {
-    id: 4,
-    tasker: {
-      id: 8,
-      name: "Jennifer Lee",
-      email: "jennifer.l@example.com",
-    },
-    amount: 600.0,
-    fee: 30.0,
-    netAmount: 570.0,
-    status: "Completed",
-    method: "PayPal",
-    reference: "PAY-3456789012",
-    date: "2023-04-13",
-    completedDate: "2023-04-13",
-  },
-  {
-    id: 5,
-    tasker: {
-      id: 6,
-      name: "Sarah Williams",
-      email: "sarah.w@example.com",
-    },
-    amount: 275.0,
-    fee: 13.75,
-    netAmount: 261.25,
-    status: "Failed",
-    method: "Bank Transfer",
-    reference: "PAY-6789012345",
-    date: "2023-04-12",
-    completedDate: null,
-  },
-  {
-    id: 6,
-    tasker: {
-      id: 2,
-      name: "Emily Johnson",
-      email: "emily.j@example.com",
-    },
-    amount: 525.0,
-    fee: 26.25,
-    netAmount: 498.75,
-    status: "Processing",
-    method: "Bank Transfer",
-    reference: "PAY-9012345678",
-    date: "2023-04-16",
-    completedDate: null,
-  },
-  {
-    id: 7,
-    tasker: {
-      id: 3,
-      name: "Michael Brown",
-      email: "michael.b@example.com",
-    },
-    amount: 180.0,
-    fee: 9.0,
-    netAmount: 171.0,
-    status: "Pending",
-    method: "PayPal",
-    reference: "PAY-2345678901",
-    date: "2023-04-16",
-    completedDate: null,
-  },
-  {
-    id: 8,
-    tasker: {
-      id: 8,
-      name: "Jennifer Lee",
-      email: "jennifer.l@example.com",
-    },
-    amount: 350.0,
-    fee: 17.5,
-    netAmount: 332.5,
-    status: "Pending",
-    method: "Bank Transfer",
-    reference: "PAY-4567890123",
-    date: "2023-04-16",
-    completedDate: null,
-  },
-]
+interface Tasker {
+  id: number
+  name: string
+  email: string
+}
+
+interface Payout {
+  id: number
+  tasker: Tasker
+  amount: number
+  fee: number
+  netAmount: number
+  status: string
+  method: string
+  reference: string
+  date: string
+  completedDate: string | null
+}
 
 export default function PayoutsPage() {
-  const [payouts, setPayouts] = useState(initialPayouts)
+  const [payouts, setPayouts] = useState<Payout[]>([])
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
   const [methodFilter, setMethodFilter] = useState("all")
-  const [selectedPayout, setSelectedPayout] = useState(null)
+  const [selectedPayout, setSelectedPayout] = useState<Payout | null>(null)
   const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false)
 
-  // Filter payouts based on search term and filters
+  const handleStatusChange = (payoutId: number, newStatus: string) => {
+    setPayouts((prev) =>
+      prev.map((p) =>
+        p.id === payoutId ? { ...p, status: newStatus } : p
+      )
+    )
+  }
+
   const filteredPayouts = payouts.filter((payout) => {
     const matchesSearch =
       payout.tasker.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       payout.tasker.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
       payout.reference.toLowerCase().includes(searchTerm.toLowerCase())
 
-    const matchesStatus = statusFilter === "all" || payout.status.toLowerCase() === statusFilter.toLowerCase()
-    const matchesMethod = methodFilter === "all" || payout.method.toLowerCase() === methodFilter.toLowerCase()
+    const matchesStatus =
+      statusFilter === "all" ||
+      payout.status.toLowerCase() === statusFilter.toLowerCase()
+
+    const matchesMethod =
+      methodFilter === "all" ||
+      payout.method.toLowerCase() === methodFilter.toLowerCase()
 
     return matchesSearch && matchesStatus && matchesMethod
   })
 
-  // Calculate statistics
   const totalPending = payouts
     .filter((p) => p.status === "Pending")
     .reduce((sum, p) => sum + p.amount, 0)
@@ -309,12 +228,9 @@ export default function PayoutsPage() {
                   <TableCell>
                     <div className="flex items-center gap-3">
                       <Avatar>
-                        <AvatarImage src={`/placeholder.svg?height=32&width=32`} alt={payout.tasker.name} />
+                        <AvatarImage src={`/placeholder.svg`} alt={payout.tasker.name} />
                         <AvatarFallback>
-                          {payout.tasker.name
-                            .split(" ")
-                            .map((n) => n[0])
-                            .join("")}
+                          {payout.tasker.name.split(" ").map((n) => n[0]).join("")}
                         </AvatarFallback>
                       </Avatar>
                       <div>
@@ -331,12 +247,12 @@ export default function PayoutsPage() {
                     <Badge
                       variant={
                         payout.status === "Completed"
-                          ? "success"
+                          ? "default"
                           : payout.status === "Pending"
-                            ? "outline"
-                            : payout.status === "Processing"
-                              ? "secondary"
-                              : "destructive"
+                          ? "outline"
+                          : payout.status === "Processing"
+                          ? "secondary"
+                          : "destructive"
                       }
                     >
                       {payout.status}
@@ -372,14 +288,23 @@ export default function PayoutsPage() {
                           {payout.status === "Pending" && (
                             <>
                               <DropdownMenuSeparator />
-                              <DropdownMenuItem>Process Payout</DropdownMenuItem>
-                              <DropdownMenuItem className="text-destructive">Cancel Payout</DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleStatusChange(payout.id, "Processing")}>
+                                Process Payout
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                className="text-destructive"
+                                onClick={() => handleStatusChange(payout.id, "Failed")}
+                              >
+                                Cancel Payout
+                              </DropdownMenuItem>
                             </>
                           )}
                           {payout.status === "Failed" && (
                             <>
                               <DropdownMenuSeparator />
-                              <DropdownMenuItem>Retry Payout</DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleStatusChange(payout.id, "Pending")}>
+                                Retry Payout
+                              </DropdownMenuItem>
                             </>
                           )}
                         </DropdownMenuContent>
@@ -393,10 +318,7 @@ export default function PayoutsPage() {
                           <div className="grid gap-4 py-4">
                             <div className="flex items-center gap-4">
                               <Avatar className="h-12 w-12">
-                                <AvatarImage
-                                  src={`/placeholder.svg?height=48&width=48`}
-                                  alt={selectedPayout.tasker.name}
-                                />
+                                <AvatarImage src={`/placeholder.svg`} alt={selectedPayout.tasker.name} />
                                 <AvatarFallback>
                                   {selectedPayout.tasker.name
                                     .split(" ")
@@ -416,21 +338,19 @@ export default function PayoutsPage() {
                               </div>
                               <div>
                                 <Label>Status</Label>
-                                <div>
-                                  <Badge
-                                    variant={
-                                      selectedPayout.status === "Completed"
-                                        ? "success"
-                                        : selectedPayout.status === "Pending"
-                                          ? "outline"
-                                          : selectedPayout.status === "Processing"
-                                            ? "secondary"
-                                            : "destructive"
-                                    }
-                                  >
-                                    {selectedPayout.status}
-                                  </Badge>
-                                </div>
+                                <Badge
+                                  variant={
+                                    selectedPayout.status === "Completed"
+                                      ? "default"
+                                      : selectedPayout.status === "Pending"
+                                      ? "outline"
+                                      : selectedPayout.status === "Processing"
+                                      ? "secondary"
+                                      : "destructive"
+                                  }
+                                >
+                                  {selectedPayout.status}
+                                </Badge>
                               </div>
                             </div>
                             <div className="grid grid-cols-2 gap-4">

@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
@@ -27,19 +26,21 @@ export default function AdminLoginPage() {
     setIsLoading(true)
 
     try {
-      // In a real application, you would authenticate with your backend
-      // For demo purposes, we'll simulate a successful login after a delay
+      // Simulate API authentication call
       await new Promise((resolve) => setTimeout(resolve, 1500))
+      
+      // In a real application, this would be an API call like:
+      // const response = await fetch("/api/auth/login", {
+      //   method: "POST",
+      //   headers: { "Content-Type": "application/json" },
+      //   body: JSON.stringify({ email, password, rememberMe }),
+      // })
+      // if (!response.ok) throw new Error("Invalid credentials")
 
-      // For demo, we'll use hardcoded credentials
-      if (email === "admin@taskmaster.com" && password === "admin123") {
-        // Redirect to admin dashboard on successful login
-        router.push("/dashboard")
-      } else {
-        setError("Invalid email or password")
-      }
-    } catch (err) {
-      setError("An error occurred during login. Please try again.")
+      // On successful login, redirect to dashboard
+      router.push("/dashboard")
+    } catch {
+      setError("Invalid email or password")
     } finally {
       setIsLoading(false)
     }

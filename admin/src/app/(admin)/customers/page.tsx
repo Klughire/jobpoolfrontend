@@ -18,111 +18,34 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
-// Mock data for customers
-const initialCustomers = [
-  {
-    id: 1,
-    name: "John Smith",
-    email: "john.smith@example.com",
-    phone: "+1 (555) 123-4567",
-    role: "Taskmaster",
-    status: "Active",
-    tasksCreated: 12,
-    tasksCompleted: 0,
-    joinDate: "2023-01-15",
-    lastActive: "2023-04-15",
-  },
-  {
-    id: 2,
-    name: "Emily Johnson",
-    email: "emily.j@example.com",
-    phone: "+1 (555) 234-5678",
-    role: "Tasker",
-    status: "Active",
-    tasksCreated: 0,
-    tasksCompleted: 18,
-    joinDate: "2023-02-10",
-    lastActive: "2023-04-16",
-  },
-  {
-    id: 3,
-    name: "Michael Brown",
-    email: "michael.b@example.com",
-    phone: "+1 (555) 345-6789",
-    role: "Both",
-    status: "Active",
-    tasksCreated: 8,
-    tasksCompleted: 15,
-    joinDate: "2023-01-05",
-    lastActive: "2023-04-14",
-  },
-  {
-    id: 4,
-    name: "Jessica Davis",
-    email: "jessica.d@example.com",
-    phone: "+1 (555) 456-7890",
-    role: "Tasker",
-    status: "Inactive",
-    tasksCreated: 0,
-    tasksCompleted: 7,
-    joinDate: "2023-03-20",
-    lastActive: "2023-04-01",
-  },
-  {
-    id: 5,
-    name: "David Miller",
-    email: "david.m@example.com",
-    phone: "+1 (555) 567-8901",
-    role: "Taskmaster",
-    status: "Active",
-    tasksCreated: 25,
-    tasksCompleted: 0,
-    joinDate: "2022-11-12",
-    lastActive: "2023-04-15",
-  },
-  {
-    id: 6,
-    name: "Sarah Williams",
-    email: "sarah.w@example.com",
-    phone: "+1 (555) 678-9012",
-    role: "Both",
-    status: "Active",
-    tasksCreated: 14,
-    tasksCompleted: 9,
-    joinDate: "2022-12-05",
-    lastActive: "2023-04-16",
-  },
-  {
-    id: 7,
-    name: "Robert Wilson",
-    email: "robert.w@example.com",
-    phone: "+1 (555) 789-0123",
-    role: "Taskmaster",
-    status: "Suspended",
-    tasksCreated: 5,
-    tasksCompleted: 0,
-    joinDate: "2023-02-28",
-    lastActive: "2023-03-15",
-  },
-  {
-    id: 8,
-    name: "Jennifer Lee",
-    email: "jennifer.l@example.com",
-    phone: "+1 (555) 890-1234",
-    role: "Tasker",
-    status: "Active",
-    tasksCreated: 0,
-    tasksCompleted: 22,
-    joinDate: "2022-10-10",
-    lastActive: "2023-04-14",
-  },
-]
+// Define the Customer type for TypeScript
+interface Customer {
+  id: number
+  name: string
+  email: string
+  phone: string
+  role: string
+  status: string
+  tasksCreated: number
+  tasksCompleted: number
+  joinDate: string
+  lastActive: string
+}
 
 export default function CustomersPage() {
-  const [customers, setCustomers] = useState(initialCustomers)
+  const [customers, setCustomers] = useState<Customer[]>([])
   const [searchTerm, setSearchTerm] = useState("")
   const [roleFilter, setRoleFilter] = useState("all")
   const [statusFilter, setStatusFilter] = useState("all")
+
+  // Function to handle status changes
+  const handleStatusChange = (customerId: number, newStatus: string) => {
+    setCustomers(
+      customers.map((customer) =>
+        customer.id === customerId ? { ...customer, status: newStatus } : customer
+      )
+    )
+  }
 
   // Filter customers based on search term and filters
   const filteredCustomers = customers.filter((customer) => {
@@ -186,7 +109,7 @@ export default function CustomersPage() {
 
       <div className="flex flex-col md:flex-row items-center gap-4">
         <div className="relative flex-1 w-full">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 https://lucide.dev/?h=4&w=4" />
           <Input
             type="search"
             placeholder="Search customers..."
@@ -289,7 +212,7 @@ export default function CustomersPage() {
                     <Badge
                       variant={
                         customer.status === "Active"
-                          ? "success"
+                          ? "default"
                           : customer.status === "Inactive"
                             ? "outline"
                             : "destructive"
@@ -322,12 +245,17 @@ export default function CustomersPage() {
                         <DropdownMenuItem>Send Message</DropdownMenuItem>
                         <DropdownMenuSeparator />
                         {customer.status === "Active" ? (
-                          <DropdownMenuItem className="text-destructive">
+                          <DropdownMenuItem
+                            className="text-destructive"
+                            onClick={() => handleStatusChange(customer.id, "Suspended")}
+                          >
                             <UserX className="mr-2 h-4 w-4" />
                             Suspend Account
                           </DropdownMenuItem>
                         ) : (
-                          <DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => handleStatusChange(customer.id, "Active")}
+                          >
                             <UserCheck className="mr-2 h-4 w-4" />
                             Activate Account
                           </DropdownMenuItem>
