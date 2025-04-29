@@ -54,13 +54,28 @@ import { toast } from "sonner";
 import axiosInstance from "@/lib/axiosInstance";
 
 interface User {
-  id: string; // Changed to string to match user_ref_id
+  id: string;
   name: string;
-  avatar?: string; // Optional since not provided in API
+  avatar?: string;
+}
+
+interface Job {
+  job_id: string;
+  posted_by: string;
+  user_ref_id: string;
+  job_title: string;
+  job_description: string;
+  job_category: string;
+  job_category_name: string;
+  job_budget: number;
+  job_location: string;
+  job_due_date: string;
+  job_images: { urls: string[] };
+  status: boolean;
 }
 
 interface Task {
-  id: string; // Changed to string to match job_id
+  id: string;
   title: string;
   description: string;
   category: string;
@@ -69,7 +84,7 @@ interface Task {
   dueDate: string;
   budget: number;
   remote: boolean;
-  createdAt: string; // Not in API, will use current date as fallback
+  createdAt: string;
   taskmaster: User;
   tasker: User | null;
   offers: number;
@@ -93,36 +108,36 @@ export default function TasksPage() {
   const fetchTasks = async () => {
     try {
       setIsLoading(true);
-      const response = await axiosInstance.get("get-all-jobs/");
+      const response = await axiosInstance.get("/api/v1/get-all-jobs/");
       if (response.data.status_code === 200) {
-        const jobs = response.data.data.jobs;
-        const mappedTasks: Task[] = jobs.map((job: any) => ({
+        const jobs: Job[] = response.data.data.jobs;
+        const mappedTasks: Task[] = jobs.map((job: Job) => ({
           id: job.job_id,
           title: job.job_title,
           description: job.job_description,
           category: job.job_category_name,
-          status: job.status ? "Cancelled" : "Open", // Assuming false = Open, true = Cancelled
+          status: job.status ? "Cancelled" : "Open",
           location: job.job_location,
           dueDate: job.job_due_date,
           budget: job.job_budget,
-          remote: false, // Not in API, default to false
-          createdAt: new Date().toISOString(), // Not in API, using current date
+          remote: false,
+          createdAt: new Date().toISOString(),
           taskmaster: {
             id: job.user_ref_id,
             name: job.posted_by,
-            avatar: undefined, // Not in API
+            avatar: undefined,
           },
-          tasker: null, // Not in API
-          offers: 0, // Not in API
-          completedAt: undefined, // Not in API
-          cancelledAt: job.status ? new Date().toISOString() : undefined, // Set if cancelled
-          cancellationReason: undefined, // Not in API
+          tasker: null,
+          offers: 0,
+          completedAt: undefined,
+          cancelledAt: job.status ? new Date().toISOString() : undefined,
+          cancellationReason: undefined,
         }));
         setTasks(mappedTasks);
       } else {
         toast.error(response.data.message || "Failed to fetch tasks");
       }
-    } catch (error) {
+    } catch {
       toast.error("An error occurred while fetching tasks");
     } finally {
       setIsLoading(false);
@@ -159,9 +174,8 @@ export default function TasksPage() {
   const handleUpdateTaskStatus = async (taskId: string, newStatus: Task["status"]) => {
     try {
       setIsLoading(true);
-      // Placeholder endpoint; replace with actual update endpoint
-      const response = await axiosInstance.put(`update-job/${taskId}/`, {
-        status: newStatus === "Cancelled" ? true : false, // Map to API's boolean status
+      const response = await axiosInstance.put(`/api/v1/update-job/${taskId}/`, {
+        status: newStatus === "Cancelled" ? true : false,
       });
 
       if (response.data.status_code === 200) {
@@ -182,7 +196,7 @@ export default function TasksPage() {
       } else {
         toast.error(response.data.message || "Failed to update task status");
       }
-    } catch (error) {
+    } catch {
       toast.error("An error occurred while updating task status");
     } finally {
       setIsLoading(false);
@@ -194,8 +208,7 @@ export default function TasksPage() {
 
     try {
       setIsLoading(true);
-      // Placeholder endpoint; replace with actual update endpoint
-      const response = await axiosInstance.put(`update-job/${editTask.id}/`, {
+      const response = await axiosInstance.put(`/api/v1/update-job/${editTask.id}/`, {
         job_title: editTask.title,
         job_description: editTask.description,
         job_category_name: editTask.category,
@@ -223,7 +236,7 @@ export default function TasksPage() {
       } else {
         toast.error(response.data.message || "Failed to update task");
       }
-    } catch (error) {
+    } catch {
       toast.error("An error occurred while updating task");
     } finally {
       setIsLoading(false);
