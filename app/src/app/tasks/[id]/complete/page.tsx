@@ -1,6 +1,7 @@
+
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, use } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -11,35 +12,45 @@ import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { toast } from "sonner"
 import { CheckCircle, Upload, AlertCircle } from "lucide-react"
+import axiosInstance from "@/lib/axiosInstance"
+import useStore from "@/lib/Zustand"
 
 interface UserType {
-  id: string;
-  name: string;
-  email: string;
-  // Add other user properties as needed
+  id: string
+  name: string
+  email: string
 }
 
 interface TaskCompletionParams {
   params: {
-    id: string;
-  };
+    id: string
+  }
 }
 
 interface ImageType {
-  id: string;
-  name: string;
-  url: string;
+  id: string
+  name: string
+  url: string
+  file: File
 }
 
 interface CompletionDetailsType {
-  notes: string;
-  status: string;
-  images: ImageType[];
+  notes: string
+  status: string
+  images: ImageType[]
 }
 
-export default function CompleteTaskPage({ params }: TaskCompletionParams) {
+
+interface TaskDetailPageProps {
+  params: Promise<{ id: string }>;
+}
+
+
+
+export default function CompleteTaskPage({ params }: TaskDetailPageProps) {
   const router = useRouter()
-  const { id } = params
+  const { id } = use(params);
+  const { userId } = useStore()
   const [user, setUser] = useState<UserType | null>(null)
   const [loading, setLoading] = useState<boolean>(true)
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false)
@@ -71,8 +82,6 @@ export default function CompleteTaskPage({ params }: TaskCompletionParams) {
   }
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // In a real app, you would handle file uploads to your server or cloud storage
-    // For this demo, we'll just simulate adding image references
     if (!e.target.files) return
 
     const files = Array.from(e.target.files)
@@ -81,6 +90,7 @@ export default function CompleteTaskPage({ params }: TaskCompletionParams) {
         id: Math.random().toString(36).substr(2, 9),
         name: file.name,
         url: URL.createObjectURL(file),
+        file, // Store the File object for upload
       }))
 
       setCompletionDetails((prev) => ({
@@ -98,14 +108,49 @@ export default function CompleteTaskPage({ params }: TaskCompletionParams) {
       return
     }
 
+    if (!userId) {
+      toast.error("User ID not found. Please sign in again.")
+      router.push("/signin")
+      return
+    }
+
     setIsSubmitting(true)
 
-    // Simulate API call
-    setTimeout(() => {
-      toast.success("Task has been marked as complete!")
+    try {
+      // Submit feedback
+      const formData = new FormData()
+      formData.append("job_ref_id", id)
+      formData.append("bidder_ref_id", userId)
+      formData.append("task_status", completionDetails.status)
+      formData.append("completion_notes", completionDetails.notes)
+
+      // Append images
+      completionDetails.images.forEach((image) => {
+        formData.append("images", image.file)
+      })
+
+      const feedbackResponse = await axiosInstance.post(
+        `/job-feedback/`,
+        formData,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        }
+      )
+
+      if (feedbackResponse.data.status_code === 200) {
+        toast.success("Feedback submitted successfully!")
+        router.push(`/tasks/${id}`)
+      } else {
+        toast.error(
+          feedbackResponse.data.message || "Failed to submit feedback."
+        )
+      }
+    } catch (error) {
+      console.error("Error submitting feedback:", error)
+      toast.error("An error occurred while submitting feedback.")
+    } finally {
       setIsSubmitting(false)
-      router.push(`/tasks/${id}`)
-    }, 1500)
+    }
   }
 
   if (loading) {
@@ -146,7 +191,7 @@ export default function CompleteTaskPage({ params }: TaskCompletionParams) {
 
           <Card>
             <CardHeader>
-              <CardTitle>Complete Task</CardTitle>
+              <CardTitle>Submit Task Feedback</CardTitle>
               <CardDescription>Provide details about the task completion</CardDescription>
             </CardHeader>
             <form onSubmit={handleSubmit}>
@@ -160,14 +205,14 @@ export default function CompleteTaskPage({ params }: TaskCompletionParams) {
                     className="flex flex-col space-y-1"
                   >
                     <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="completed" id="completed" />
+                      <RadioGroupItem value="completed successfully" id="completed" />
                       <Label htmlFor="completed" className="flex items-center gap-1">
                         <CheckCircle className="h-4 w-4 text-green-500" />
                         Completed successfully
                       </Label>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="partial" id="partial" />
+                      <RadioGroupItem value="partially completed" id="partial" />
                       <Label htmlFor="partial" className="flex items-center gap-1">
                         <AlertCircle className="h-4 w-4 text-yellow-500" />
                         Partially completed
@@ -239,7 +284,7 @@ export default function CompleteTaskPage({ params }: TaskCompletionParams) {
                   Cancel
                 </Button>
                 <Button type="submit" disabled={isSubmitting}>
-                  {isSubmitting ? "Submitting..." : "Mark as Complete"}
+                  {isSubmitting ? "Submitting..." : "Submit Feedback"}
                 </Button>
               </CardFooter>
             </form>
