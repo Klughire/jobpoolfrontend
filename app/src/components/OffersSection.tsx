@@ -173,14 +173,15 @@
 //     );
 //   }
 
-import { FormEvent } from "react";
+import { FormEvent, useState } from "react";
 import { Star } from "lucide-react";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "./ui/card";
 import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
 import { Avatar, AvatarFallback } from "./ui/avatar";
-
+import axiosInstance from '../lib/axiosInstance'
+import { toast } from "sonner";
 interface Image {
   id: string;
   url: string;
@@ -225,7 +226,7 @@ interface OffersSectionProps {
   isTaskPoster: boolean;
   hasSubmittedOffer: boolean;
   handleSubmitOffer: (e: FormEvent) => void;
-  acceptOffer: (offerId: string) => void;
+  // acceptOffer: (offerId: string) => void;
   handleMessageUser: () => void;
   offerAmount: string;
   setOfferAmount: (value: string) => void;
@@ -240,7 +241,7 @@ export function OffersSection({
   isTaskPoster,
   hasSubmittedOffer,
   handleSubmitOffer,
-  acceptOffer,
+  // acceptOffer,
   handleMessageUser,
   offerAmount,
   setOfferAmount,
@@ -248,6 +249,32 @@ export function OffersSection({
   setOfferMessage,
   isSubmitting,
 }: OffersSectionProps) {
+
+  const [isAccepting, setIsAccepting] = useState<string | null>(null);
+
+  const handleAcceptOffer = async (offer: Offer) => {
+    setIsAccepting(offer.id);
+    console.log("Attempting API call to:", `/accept-bid/${task.id}/${offer.tasker.id}/`);
+    try {
+      const response = await axiosInstance.put(`/accept-bid/${task.id}/${offer.tasker.id}/`);
+      
+      if (response.data.status_code === 200) {
+        toast.success(response.data.message || "Bid accepted successfully");
+
+      } else {
+        toast.error(response.data.message || "Failed to accept bid");
+      }
+    } catch (error: any) {
+      console.error("Error accepting bid:", error);
+      toast.error(
+        error.response?.data?.message || "An error occurred while accepting the bid"
+      );
+    } finally {
+      setIsAccepting(null);
+    }
+  };
+
+
   return (
     <Card>
       <CardHeader>
@@ -288,9 +315,10 @@ export function OffersSection({
                   <Button
                     className="w-full"
                     size="sm"
-                    onClick={() => acceptOffer(offer.id)}
+                    onClick={() => handleAcceptOffer(offer)}
+                    //disabled={task.status || isAccepting === offer.id}
                   >
-                    Accept Offer
+                    {isAccepting === offer.id ? "Accepting..." : "Accept Offer"}
                   </Button>
                   <Button
                     variant="outline"

@@ -3735,20 +3735,20 @@ export default function TaskDetailPage({ params }: TaskDetailPageProps) {
     }, 1500);
   };
 
-  const acceptOffer = (offerId: string) => {
-    setTimeout(() => {
-      toast.success("You've accepted the offer!");
-      setTask((prevTask: Task | null) => {
-        if (!prevTask) return prevTask;
-        const acceptedOffer = offers.find((offer) => offer.id === offerId);
-        return {
-          ...prevTask,
-          status: true,
-          assignedTasker: acceptedOffer?.tasker,
-        };
-      });
-    }, 1000);
-  };
+  // const acceptOffer = (offerId: string) => {
+  //   setTimeout(() => {
+  //     toast.success("You've accepted the offer!");
+  //     setTask((prevTask: Task | null) => {
+  //       if (!prevTask) return prevTask;
+  //       const acceptedOffer = offers.find((offer) => offer.id === offerId);
+  //       return {
+  //         ...prevTask,
+  //         status: true,
+  //         assignedTasker: acceptedOffer?.tasker,
+  //       };
+  //     });
+  //   }, 1000);
+  // };
 
   const markAsComplete = () => {
     setTimeout(() => {
@@ -3925,7 +3925,7 @@ export default function TaskDetailPage({ params }: TaskDetailPageProps) {
                 isTaskPoster={isTaskPoster}
                 hasSubmittedOffer={hasSubmittedOffer}
                 handleSubmitOffer={handleSubmitOffer}
-                acceptOffer={acceptOffer}
+                // acceptOffer={acceptOffer}
                 handleMessageUser={handleMessageUser}
                 offerAmount={offerAmount}
                 setOfferAmount={setOfferAmount}

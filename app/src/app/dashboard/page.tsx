@@ -590,22 +590,9 @@ export default function DashboardPage() {
   const [postedTasks, setPostedTasks] = useState<Task[]>([]);
   const [availableTasks, setAvailableTasks] = useState<Task[]>([]);
   const [bids, setBids] = useState<Bid[]>([]);
+  const [assignedTasks, setAssignedTasks] = useState<Task[]>([]);
   
   const { userId } = useStore();
-
-  const assignedTasks: Task[] = [
-    {
-      id: "task6",
-      title: "Lawn mowing",
-      description: "Need lawn mowed and edges trimmed.",
-      budget: 45,
-      location: "Staten Island, NY",
-      status: "in-progress",
-      postedAt: "3 days ago",
-      posted_by: "Robert J.",
-      dueDate: "Tomorrow",
-    },
-  ];
 
   const completedTasks: Task[] = [
     {
@@ -738,6 +725,56 @@ export default function DashboardPage() {
     };
 
     fetchBids();
+  }, [user, userId]);
+
+
+
+  useEffect(() => {
+    if (!user || !userId) return;
+  
+    const fetchAssignedBids = async () => {
+      try {
+        const response = await axiosInstance.get(`/get-user-assigned-bids/${userId}/`);
+        const result = response.data;
+  
+        if (result.status_code === 200 && Array.isArray(result.data?.jobs)) {
+          const tasks: Task[] = result.data.jobs.map((bid: any) => ({
+            id: bid.job_id,
+            title: bid.job_title || "Untitled Task",
+            description: bid.job_description || "No description provided",
+            budget: bid.job_budget || 0,
+            location: bid.job_location || "Unknown",
+            status: bid.status, // Keep as boolean (true for assigned, false for open)
+            postedAt: bid.created_at
+              ? new Date(bid.created_at).toLocaleDateString("en-GB") // Adjust based on API field
+              : "Unknown",
+            dueDate: bid.job_due_date
+              ? new Date(bid.job_due_date).toLocaleDateString("en-GB")
+              : "Unknown",
+            category: bid.job_category || "General", // Default category
+            images: [], // Default empty array; adjust if API provides images
+            poster: {
+              id: bid.posted_by_id || "unknown", // Adjust based on API field
+              name: bid.posted_by || "Unknown User",
+              rating: 0, // Default; adjust if API provides rating
+              taskCount: 0, // Default; adjust if API provides task count
+              joinedDate: "Unknown", // Default; adjust if API provides join date
+            },
+            offers: bid.offers?.length || 0, // Use actual offers if provided by API
+            assignedTasker: undefined, // Set to undefined unless API provides tasker data
+          }));
+          setAssignedTasks(tasks);
+        } else {
+          console.warn("No bids found or API error:", result.message);
+          setAssignedTasks([]); // Clear tasks if no data
+        }
+      } catch (err) {
+        console.error("Error fetching assigned bids:", err);
+        setAssignedTasks([]); // Clear tasks on error
+      }
+    };
+  
+    fetchAssignedBids();
   }, [user, userId]);
 
   const handleSignOut = () => {
