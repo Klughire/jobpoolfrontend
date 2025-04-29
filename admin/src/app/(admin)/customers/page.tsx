@@ -71,7 +71,7 @@ export default function CustomersPage() {
               <TableHead>Name</TableHead>
               <TableHead>Email</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead>Created At</TableHead>
+              {/* <TableHead>Created At</TableHead> */}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -93,7 +93,7 @@ export default function CustomersPage() {
                   <TableCell className="font-medium">{customer.user_fullname}</TableCell>
                   <TableCell>{customer.user_email}</TableCell>
                   <TableCell>{customer.status ? "Inactive" : "Active"}</TableCell>
-                  <TableCell>{new Date(customer.tstamp).toLocaleDateString()}</TableCell>
+                  {/* <TableCell>{new Date(customer.tstamp).toLocaleDateString()}</TableCell> */}
                 </TableRow>
               ))
             )}

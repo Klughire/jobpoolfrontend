@@ -108,7 +108,7 @@ export default function TasksPage() {
   const fetchTasks = async () => {
     try {
       setIsLoading(true);
-      const response = await axiosInstance.get("/api/v1/get-all-jobs/");
+      const response = await axiosInstance.get("get-all-jobs/");
       if (response.data.status_code === 200) {
         const jobs: Job[] = response.data.data.jobs;
         const mappedTasks: Task[] = jobs.map((job: Job) => ({
@@ -174,7 +174,7 @@ export default function TasksPage() {
   const handleUpdateTaskStatus = async (taskId: string, newStatus: Task["status"]) => {
     try {
       setIsLoading(true);
-      const response = await axiosInstance.put(`/api/v1/update-job/${taskId}/`, {
+      const response = await axiosInstance.put(`update-job/${taskId}/`, {
         status: newStatus === "Cancelled" ? true : false,
       });
 
@@ -208,7 +208,7 @@ export default function TasksPage() {
 
     try {
       setIsLoading(true);
-      const response = await axiosInstance.put(`/api/v1/update-job/${editTask.id}/`, {
+      const response = await axiosInstance.put(`update-job/${editTask.id}/`, {
         job_title: editTask.title,
         job_description: editTask.description,
         job_category_name: editTask.category,
