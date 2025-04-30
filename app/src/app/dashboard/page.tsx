@@ -148,11 +148,11 @@ export default function DashboardPage() {
           setPostedTasks(tasks);
         } else {
           console.warn("No jobs found or API error:", result.message);
-          toast.error("Failed to load postted tasks.");
+          //toast.error("Failed to load postted tasks.");
         }
       } catch (err) {
         console.error("Failed to fetch tasks:", err);
-        toast.error("An error occurred while fetching posted tasks.");
+        //toast.error("An error occurred while fetching posted tasks.");
       } finally {
         setLoading(false);
       }
@@ -192,11 +192,11 @@ export default function DashboardPage() {
           setAvailableTasks(tasks);
         } else {
           console.warn("No jobs found or API error:", result.message);
-          toast.error("Failed to load available tasks.");
+          //toast.error("Failed to load available tasks.");
         }
       } catch (err) {
         console.error("Failed to fetch all tasks:", err);
-        toast.error("An error occurred while fetching available tasks.");
+        //toast.error("An error occurred while fetching available tasks.");
       } finally {
         setLoading(false);
       }
@@ -234,11 +234,11 @@ export default function DashboardPage() {
           setBids(userBids);
         } else {
           console.warn("No bids found or API error:", result.message);
-          toast.error("Failed to load bids.");
+          //toast.error("Failed to load bids.");
         }
       } catch (err) {
         console.error("Failed to fetch bids:", err);
-        toast.error("An error occurred while fetching bids.");
+        //toast.error("An error occurred while fetching bids.");
       }
     };
 
@@ -276,11 +276,11 @@ export default function DashboardPage() {
           setAssignedTasks(tasks);
         } else {
           console.warn("No assigned tasks found or API error:", result.message);
-          toast.error("Failed to load assigned tasks.");
+          //toast.error("Failed to load assigned tasks.");
         }
       } catch (err) {
         console.error("Failed to fetch assigned tasks:", err);
-        toast.error("An error occurred while fetching assigned tasks.");
+        //toast.error("An error occurred while fetching assigned tasks.");
       }
     };
 
@@ -323,11 +323,11 @@ export default function DashboardPage() {
           setRequestedTasks(bids);
         } else {
           console.warn("No requested bids found or API error:", result.message);
-          toast.error("Failed to load requested bids.");
+          //toast.error("Failed to load requested bids.");
         }
       } catch (err) {
         console.error("Failed to fetch requested bids:", err);
-        toast.error("An error occurred while fetching requested bids.");
+        //toast.error("An error occurred while fetching requested bids.");
       }
     };
 
@@ -370,11 +370,11 @@ export default function DashboardPage() {
             "No completed tasks found or API error:",
             result.message
           );
-          toast.error("Failed to load completed tasks.");
+          //toast.error("Failed to load completed tasks.");
         }
       } catch (err) {
         console.error("Failed to fetch completed tasks:", err);
-        toast.error("An error occurred while fetching completed tasks.");
+       // toast.error("An error occurred while fetching completed tasks.");
       } finally {
         setLoading(false);
       }
@@ -401,14 +401,17 @@ export default function DashboardPage() {
             completedDate: new Date().toLocaleDateString("en-GB"),
           },
         ]);
+
+        router.push(`/tasks/${jobId}/complete`);
       } else {
-        toast.error(
-          response.data.message || "Failed to mark task as complete."
-        );
+        // toast.error(
+        //   response.data.message || "Failed to mark task as complete."
+        // );
+        console.error("Error marking task as complete:");
       }
     } catch (error) {
       console.error("Error marking task as complete:", error);
-      toast.error("An error occurred while marking the task as complete.");
+      //toast.error("An error occurred while marking the task as complete.");
     }
   };
 
@@ -433,7 +436,7 @@ export default function DashboardPage() {
     <div className="flex min-h-screen flex-col">
       <header className="border-b">
         <div className="container flex h-16 items-center justify-between px-4 md:px-6">
-          <Link href="/" className="flex items-center gap-2 font-bold text-xl">
+          <Link href="/dashboard" className="flex items-center gap-2 font-bold text-xl">
             <span className="text-primary">JobPool</span>
           </Link>
 

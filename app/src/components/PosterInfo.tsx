@@ -15,7 +15,7 @@ interface User {
 interface PosterInfoProps {
     poster: User;
     isTaskPoster: boolean;
-    handleMessageUser: (receiverId?: string) => void;
+    handleMessageUser: () => void;
   }
   
   export function PosterInfo({ poster, isTaskPoster, handleMessageUser }: PosterInfoProps) {
@@ -47,12 +47,12 @@ interface PosterInfoProps {
               <span>{poster.taskCount}</span>
             </div>
           </div>
-          {!isTaskPoster && (
-            <Button variant="outline" className="w-full" onClick={() => handleMessageUser(poster.id)}>
+          {/* {!isTaskPoster && (
+            <Button variant="outline" className="w-full" onClick={handleMessageUser}>
               <MessageSquare className="mr-2 h-4 w-4" />
-              Message Poster
+              Contact
             </Button>
-          )}
+          )} */}
         </CardContent>
       </Card>
     );

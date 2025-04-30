@@ -94,8 +94,8 @@ export default function EmailConfirmationPage() {
         </CardContent>
         <CardFooter className="flex flex-col space-y-2">
           {status === "success" && (
-            <Button className="w-full" onClick={() => router.push("/dashboard")}>
-              Continue to Dashboard
+            <Button className="w-full" onClick={() => router.push("/signin")}>
+              Please login
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           )}
