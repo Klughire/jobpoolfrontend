@@ -61,7 +61,7 @@ export interface Image {
       posted_by: string;
       job_title: string;
       job_description: string;
-      job_category: string;
+      job_category_name: string;
       job_budget: number;
       job_location: string;
       job_due_date: string;
@@ -69,5 +69,6 @@ export interface Image {
       status: boolean;
       job_completion_status: number;
       user_ref_id: string;
+      timestamp: string;
     };
   }

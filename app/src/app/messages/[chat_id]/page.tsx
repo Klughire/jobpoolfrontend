@@ -37,13 +37,18 @@ export default function ChatPage() {
 
   // WebSocket setup
   const { sendMessage } = useWebSocket(currentChatId || '', (message) => {
-    if (!currentChatId || !message.messagesid) return;
+    if (!message.messagesid || !currentChatId) return;
     if (message.error) {
       toast.error(message.error);
       return;
     }
     setMessages((prev) => {
-      const updatedMessages = [...prev, { ...message, tstamp: new Date().toISOString() }];
+      // Avoid duplicating messages
+      if (prev.some((m) => m.messagesid === message.messagesid)) {
+        return prev;
+      }
+      const updatedMessages = [...prev, { ...message, tstamp: message.tstamp || new Date().toISOString() }];
+      // Mark incoming messages as read if not from current user
       if (message.userrefid !== userId) {
         markMessagesAsRead([message]);
       }
@@ -66,61 +71,42 @@ export default function ChatPage() {
     const sender = searchParams.get('sender');
     const receiver = searchParams.get('receiver');
 
-    if (!chat_id && receiver && sender === userId) {
-      // Handle new chat
-      const initializeNewChat = async () => {
-        try {
-          // Fetch receiver's username
-          const userResponse = await axiosInstance.get(`/user/${receiver}`);
-          if (userResponse.data.status_code === 200) {
-            setOtherUser(userResponse.data.data.username || 'Unknown User');
-            setReceiverId(receiver);
-          }
-
-          // Check for existing chat
-          const chatResponse = await axiosInstance.get(`/get-chat-id/?sender=${userId}&receiver=${receiver}`);
-          if (chatResponse.data.status_code === 200 && chatResponse.data.data.chat_id) {
-            setCurrentChatId(chatResponse.data.data.chat_id);
-            router.replace(`/messages/${chatResponse.data.data.chat_id}`);
-          } else {
-            // No chat exists, but allow user to send messages
-            setMessages([]);
-          }
-        } catch (error: any) {
-          console.error('Error initializing chat:', error);
-          toast.error('Failed to initialize chat');
-          router.push('/messages');
-        } finally {
-          setLoading(false);
-        }
-      };
-      initializeNewChat();
-    } else if (chat_id) {
-      // Fetch messages for existing chat
-      const fetchMessages = async () => {
-        try {
+    const initializeChat = async () => {
+      try {
+        if (chat_id) {
+          // Existing chat: fetch messages
           const response = await axiosInstance.get(`/get-messages/${chat_id}`);
           if (response.data.status_code === 200) {
             const fetchedMessages: Message[] = response.data.data || [];
             setMessages(fetchedMessages);
+
+            // Determine other user
             const otherUserMessage = fetchedMessages.find((msg) => msg.userrefid !== userId);
+            let targetReceiverId = receiverId;
+            let targetUsername = 'Unknown User';
+
             if (otherUserMessage) {
-              setOtherUser(otherUserMessage.username || 'Unknown User');
-              setReceiverId(otherUserMessage.userrefid);
+              targetReceiverId = otherUserMessage.userrefid;
+              targetUsername = otherUserMessage.username;
             } else {
-              // Fetch chat details to get other user's ID and username
+              // Fetch chat details to get other user
               const chatResponse = await axiosInstance.get(`/get-chat/${chat_id}`);
               if (chatResponse.data.status_code === 200) {
                 const otherUserId = chatResponse.data.data.userrefid.find((id: string) => id !== userId);
                 if (otherUserId) {
                   const userResponse = await axiosInstance.get(`/user/${otherUserId}`);
                   if (userResponse.data.status_code === 200) {
-                    setOtherUser(userResponse.data.data.username || 'Unknown User');
-                    setReceiverId(otherUserId);
+                    targetUsername = userResponse.data.data.username || 'Unknown User';
+                    targetReceiverId = otherUserId;
                   }
                 }
               }
             }
+
+            setOtherUser(targetUsername);
+            setReceiverId(targetReceiverId);
+
+            // Mark unread messages as read
             const unreadMessages = fetchedMessages.filter(
               (msg) => !msg.readstatus && msg.userrefid !== userId
             );
@@ -130,19 +116,28 @@ export default function ChatPage() {
           } else {
             throw new Error(response.data.message || 'Invalid chat');
           }
-        } catch (error: any) {
-          console.error('Error fetching messages:', error);
-          toast.error('Invalid chat');
-          router.push('/messages');
-        } finally {
-          setLoading(false);
+        } else if (receiver && sender === userId) {
+          // New chat: fetch receiver's details
+          const userResponse = await axiosInstance.get(`/user/${receiver}`);
+          if (userResponse.data.status_code === 200) {
+            setOtherUser(userResponse.data.data.username || 'Unknown User');
+            setReceiverId(receiver);
+          }
+          setMessages([]);
+        } else {
+          throw new Error('Invalid chat parameters');
         }
-      };
-      fetchMessages();
-    } else {
-      router.push('/messages');
-    }
-  }, [chat_id, userId, router, searchParams]);
+      } catch (error: any) {
+        console.error('Error initializing chat:', error);
+        toast.error(error.response?.data?.message || 'Failed to initialize chat');
+        router.push('/messages');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    initializeChat();
+  }, [chat_id, userId, router, searchParams, receiverId]);
 
   // Mark messages as read
   const markMessagesAsRead = async (msgs: Message[]) => {
@@ -150,6 +145,11 @@ export default function ChatPage() {
       for (const msg of msgs) {
         if (!msg.readstatus && msg.userrefid !== userId) {
           await axiosInstance.put(`/mark-as-read/${msg.messagesid}`);
+          setMessages((prev) =>
+            prev.map((m) =>
+              m.messagesid === msg.messagesid ? { ...m, readstatus: true } : m
+            )
+          );
         }
       }
     } catch (error: any) {
@@ -169,23 +169,26 @@ export default function ChatPage() {
       toast.error('No recipient selected');
       return;
     }
+
     setIsSending(true);
     try {
       const payload = {
         sender_id: userId,
         receiver_id: receiverId,
         description: newMessage,
-        chat_id: chat_id,
+        chat_id: currentChatId || undefined,
       };
       const response = await axiosInstance.post('/send-message/', payload);
       if (response.data.status_code === 200) {
         const sentMessage = response.data.data.message;
         const newChatId = response.data.data.chat_id;
-        if (!currentChatId) {
+
+        if (!currentChatId && newChatId) {
           setCurrentChatId(newChatId);
           router.replace(`/messages/${newChatId}`);
         }
-        sendMessage({
+
+        const messageToSend: Message = {
           messagesid: sentMessage.messagesid,
           chat_id: newChatId,
           userrefid: userId,
@@ -193,14 +196,18 @@ export default function ChatPage() {
           description: newMessage,
           readstatus: false,
           tstamp: new Date().toISOString(),
-        });
+        };
+
+        // Update local state
+        setMessages((prev) => [...prev, messageToSend]);
+        sendMessage(messageToSend);
         setNewMessage('');
       } else {
         throw new Error(response.data.message || 'Failed to send message');
       }
     } catch (error: any) {
-      console.error('Error sending message:', error.response?.data || error.message || error);
-      toast.error(error.response?.data?.message || error.message || 'Failed to send message');
+      console.error('Error sending message:', error);
+      toast.error(error.response?.data?.message || 'Failed to send message');
     } finally {
       setIsSending(false);
     }

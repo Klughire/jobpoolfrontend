@@ -460,20 +460,6 @@
 //   )
 // }
 
-interface Message {
-  messagesid: string;
-  chatid: string;
-  userrefid: string;
-  username: string;
-  description: string;
-  readstatus: boolean;
-  tstamp: string;
-}
-
- interface Chat {
-  chatid: string;
-  userrefid: string[]; // Array of user IDs (poster and bidder)
-}
 
 'use client';
 import { useEffect, useState } from 'react';
@@ -486,10 +472,22 @@ import { Toaster } from '@/components/ui/sonner';
 import { toast } from 'sonner';
 import Link from 'next/link';
 
+interface Message {
+  messagesid: string;
+  chatid: string;
+  userrefid: string;
+  username: string;
+  description: string;
+  readstatus: boolean;
+  tstamp: string;
+}
+
 interface ChatSummary {
   chatid: string;
+  otherUserId: string;
   otherUser: string;
   lastMessage: string;
+  lastMessageTime: string;
 }
 
 export default function MessagesPage() {
@@ -503,38 +501,59 @@ export default function MessagesPage() {
       router.push('/signin');
       return;
     }
-  
+
     const fetchChats = async () => {
       try {
-        const response = await axiosInstance.get(`/get-messages/`);
-        const messages: Message[] = response.data.data || [];
-        const chatMap: { [key: string]: ChatSummary } = {};
-  
-        for (const msg of messages) {
-          if (msg.userrefid === userId || messages.some((m) => m.userrefid === userId)) {
-            const otherUserId = msg.userrefid === userId ? messages.find((m) => m.userrefid !== userId)?.userrefid : msg.userrefid;
-            if (otherUserId) {
-              const chatResponse = await axiosInstance.get(`/get-chat-id/?sender=${userId}&receiver=${otherUserId}`);
-              if (chatResponse.data.status_code === 200 && chatResponse.data.data.chat_id) {
-                chatMap[chatResponse.data.data.chat_id] = {
-                  chatid: chatResponse.data.data.chat_id,
-                  otherUser: msg.username,
-                  lastMessage: msg.description,
-                };
-              }
-            }
+        // Fetch all chats for the user
+        const response = await axiosInstance.get(`/get-user-chats/${userId}`);
+        if (response.data.status_code === 200) {
+          const chatData = response.data.data || [];
+          const chatSummaries: ChatSummary[] = [];
+
+          for (const chat of chatData) {
+            const otherUserId = chat.userrefid.find((id: string) => id !== userId);
+            if (!otherUserId) continue;
+
+            // Fetch other user's details
+            const userResponse = await axiosInstance.get(`/user/${otherUserId}`);
+            const otherUserName = userResponse.data.status_code === 200
+              ? userResponse.data.data.username || 'Unknown User'
+              : 'Unknown User';
+
+            // Fetch latest message for the chat
+            const messagesResponse = await axiosInstance.get(`/get-messages/${chat.chatid}`);
+            const messages: Message[] = messagesResponse.data.status_code === 200
+              ? messagesResponse.data.data || []
+              : [];
+            const lastMessage = messages[messages.length - 1];
+
+            chatSummaries.push({
+              chatid: chat.chatid,
+              otherUserId,
+              otherUser: otherUserName,
+              lastMessage: lastMessage ? lastMessage.description : 'No messages yet',
+              lastMessageTime: lastMessage ? lastMessage.tstamp : '',
+            });
           }
+
+          // Sort chats by last message time (newest first)
+          chatSummaries.sort((a, b) => {
+            if (!a.lastMessageTime || !b.lastMessageTime) return 0;
+            return new Date(b.lastMessageTime).getTime() - new Date(a.lastMessageTime).getTime();
+          });
+
+          setChats(chatSummaries);
+        } else {
+          throw new Error(response.data.message || 'Failed to fetch chats');
         }
-  
-        setChats(Object.values(chatMap));
       } catch (error: any) {
         console.error('Error fetching chats:', error);
-        toast.error('Failed to load chats');
+        toast.error(error.response?.data?.message || 'Failed to load chats');
       } finally {
         setLoading(false);
       }
     };
-  
+
     fetchChats();
   }, [userId, router]);
 
@@ -595,6 +614,11 @@ export default function MessagesPage() {
                     <div>
                       <p className="font-medium">{chat.otherUser}</p>
                       <p className="text-sm text-muted-foreground">{chat.lastMessage}</p>
+                      {chat.lastMessageTime && (
+                        <p className="text-xs text-muted-foreground">
+                          {new Date(chat.lastMessageTime).toLocaleString('en-US', { dateStyle: 'short', timeStyle: 'short' })}
+                        </p>
+                      )}
                     </div>
                   </div>
                 </Link>

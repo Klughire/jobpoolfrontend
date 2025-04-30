@@ -92,9 +92,28 @@ export default function TaskDetailPage({ params }: TaskDetailPageProps) {
           budget: job.job_budget,
           location: job.job_location,
           status: job.status,
-          postedAt: "2 days ago",
-          dueDate: job.job_due_date,
-          category: job.job_category,
+          postedAt: job.timestamp
+            ? (() => {
+                const date = new Date(job.timestamp);
+                return isNaN(date.getTime())
+                  ? 'Invalid Date'
+                  : date.toLocaleDateString('en-GB', {
+                      day: '2-digit',
+                      month: '2-digit',
+                      year: 'numeric',
+                      timeZone: 'UTC'
+                    });
+              })()
+            : 'N/A',
+          dueDate: job.job_due_date
+            ? new Date(job.job_due_date).toLocaleDateString('en-GB', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                timeZone: 'UTC'
+              })
+            : 'N/A',
+          category: job.job_category_name,
           images: job.job_images.urls.map((url: string, index: number) => ({
             id: `img${index + 1}`,
             url,
@@ -110,7 +129,6 @@ export default function TaskDetailPage({ params }: TaskDetailPageProps) {
           offers: [],
           assignedTasker: undefined,
         };
-
         setTask(mappedTask);
       } catch (error: any) {
         console.error("Error loading task data:", error);
@@ -335,6 +353,7 @@ export default function TaskDetailPage({ params }: TaskDetailPageProps) {
     }
   
     const senderId = userId;
+    // Determine recipient: use provided receiverId (for specific bidder) or default to poster/tasker
     const targetReceiverId = receiverId || (isTaskPoster ? offers[0]?.tasker.id : task.poster.id);
   
     if (!targetReceiverId) {
@@ -342,20 +361,18 @@ export default function TaskDetailPage({ params }: TaskDetailPageProps) {
       return;
     }
   
-    console.log('Initiating chat with:', { senderId, targetReceiverId });
-  
     try {
+      // Attempt to get existing chat or create a new one
       const response = await axiosInstance.get(`/get-chat-id/?sender=${senderId}&receiver=${targetReceiverId}`);
-      console.log('Get chat ID response:', response.data);
       if (response.data.status_code === 200 && response.data.data.chat_id) {
         router.push(`/messages/${response.data.data.chat_id}`);
       } else {
+        // Navigate to new chat page with sender and receiver IDs
         router.push(`/messages/new?sender=${senderId}&receiver=${targetReceiverId}`);
       }
     } catch (error: any) {
-      console.error('Error checking chat:', error.response?.data || error.message || error);
-      const errorMessage = error.response?.data?.message || error.message || 'Failed to initiate chat';
-      toast.error(errorMessage);
+      console.error('Error initiating chat:', error);
+      toast.error(error.response?.data?.message || 'Failed to initiate chat');
     }
   };
 

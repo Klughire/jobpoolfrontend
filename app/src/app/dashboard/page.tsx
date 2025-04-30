@@ -122,6 +122,7 @@ export default function DashboardPage() {
   // Fetch user's posted tasks
   useEffect(() => {
     if (!user || !userId) return;
+    if (!user || !userId) return;
 
     const fetchTasks = async () => {
       setLoading(true);
@@ -447,12 +448,15 @@ export default function DashboardPage() {
             >
               Browse Tasks
             </Link>
-            <Link
-              href="/post-task"
-              className="text-sm font-medium hover:underline underline-offset-4"
-            >
-              Post a Task
-            </Link>
+            {(user.accountType === "task_manager" ||
+              user.accountType === "both") && (
+              <Link
+                href="/post-task"
+                className="text-sm font-medium hover:underline underline-offset-4"
+              >
+                Post a Task
+              </Link>
+            )}
             <Link
               href="/messages"
               className="text-sm font-medium hover:underline underline-offset-4"

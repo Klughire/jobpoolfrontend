@@ -75,6 +75,7 @@ export default function PostTaskPage() {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [minDate, setMinDate] = useState("");
 
+
   useEffect(() => {
     const today = new Date();
     const yyyy = today.getFullYear();
@@ -87,6 +88,8 @@ export default function PostTaskPage() {
   const [error, setError] = useState("");
 
   const { userId } = useStore();
+
+
 
   useEffect(() => {
     // Check if user is logged in
@@ -170,6 +173,7 @@ export default function PostTaskPage() {
 
     const formDataToSubmit = new FormData();
     formDataToSubmit.append("user_id", userId || "");
+    formDataToSubmit.append("user_id", userId || "");
     formDataToSubmit.append("title", formData.title);
     formDataToSubmit.append("description", formData.description);
     formDataToSubmit.append("category", formData.category); // Ensure this is category_id
@@ -202,7 +206,7 @@ export default function PostTaskPage() {
       }
     } catch (error) {
       handleAxiosError(error);
-    } finally {
+    }  finally {
       setIsSubmitting(false);
     }
   };
@@ -256,6 +260,8 @@ export default function PostTaskPage() {
             <p className="text-muted-foreground">
               Describe what you need done and find the right person for the job
             </p>
+
+            {error && <p className="text-red-500 text-center mb-4">{error}</p>}
 
             {error && <p className="text-red-500 text-center mb-4">{error}</p>}
           </div>
@@ -361,6 +367,7 @@ export default function PostTaskPage() {
                       name="dueDate"
                       type="date"
                       min={minDate}
+                    
                       value={formData.dueDate}
                       onChange={handleChange}
                       className="w-full"
@@ -424,6 +431,11 @@ export default function PostTaskPage() {
                   Cancel
                 </Button>
                 <Button type="submit" disabled={isSubmitting}>
+                  {isSubmitting ? (
+                    <Loader className="animate-spin" />
+                  ) : (
+                    "Post Task"
+                  )}
                   {isSubmitting ? (
                     <Loader className="animate-spin" />
                   ) : (
