@@ -1,5 +1,4 @@
 
-
 'use client'
 import { ImageGalleryModal } from "@/components/ImageGalleryModal";
 import { OffersSection } from "@/components/OffersSection";
@@ -329,8 +328,35 @@ export default function TaskDetailPage({ params }: TaskDetailPageProps) {
     }, 1500);
   };
 
-  const handleMessageUser = () => {
-    router.push("/messages");
+  const handleMessageUser = async (receiverId?: string) => {
+    if (!userId || !task) {
+      toast.error('Please log in to send messages');
+      return;
+    }
+  
+    const senderId = userId;
+    const targetReceiverId = receiverId || (isTaskPoster ? offers[0]?.tasker.id : task.poster.id);
+  
+    if (!targetReceiverId) {
+      toast.error('No recipient available to message');
+      return;
+    }
+  
+    console.log('Initiating chat with:', { senderId, targetReceiverId });
+  
+    try {
+      const response = await axiosInstance.get(`/get-chat-id/?sender=${senderId}&receiver=${targetReceiverId}`);
+      console.log('Get chat ID response:', response.data);
+      if (response.data.status_code === 200 && response.data.data.chat_id) {
+        router.push(`/messages/${response.data.data.chat_id}`);
+      } else {
+        router.push(`/messages/new?sender=${senderId}&receiver=${targetReceiverId}`);
+      }
+    } catch (error: any) {
+      console.error('Error checking chat:', error.response?.data || error.message || error);
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to initiate chat';
+      toast.error(errorMessage);
+    }
   };
 
   const openImageGallery = (index: number) => {

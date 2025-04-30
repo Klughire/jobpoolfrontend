@@ -54,7 +54,7 @@ interface OffersSectionProps {
   hasSubmittedOffer: boolean;
   handleSubmitOffer: (e: FormEvent) => void;
   // acceptOffer: (offerId: string) => void;
-  handleMessageUser: () => void;
+  handleMessageUser: (receiverId?: string) => void;
   offerAmount: string;
   setOfferAmount: (value: string) => void;
   offerMessage: string;
@@ -150,7 +150,7 @@ export function OffersSection({
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={handleMessageUser}
+                    onClick={() => handleMessageUser(offer.tasker.id)}
                   >
                     Message
                   </Button>

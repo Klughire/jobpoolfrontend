@@ -46,7 +46,7 @@ interface User {
 interface TaskInfoProps {
   task: Task;
   openImageGallery: (index: number) => void;
-  handleMessageUser: () => void;
+  handleMessageUser: (receiverId?: string) => void;
   isTaskPoster: boolean;
 }
 
@@ -124,7 +124,7 @@ export function TaskInfo({ task, openImageGallery, handleMessageUser, isTaskPost
       </CardContent>
       {task.status && (
         <CardFooter>
-          <Button className="w-full" onClick={handleMessageUser}>
+          <Button className="w-full" onClick={() => handleMessageUser(task.poster.id)}>
             <MessageSquare className="mr-2 h-4 w-4" />
             Message {isTaskPoster ? task.assignedTasker?.name : task.poster.name}
           </Button>
