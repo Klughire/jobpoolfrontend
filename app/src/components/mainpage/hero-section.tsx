@@ -126,7 +126,7 @@ export function HeroSection() {
               <div className="absolute right-0 top-1/2 -translate-y-1/2 bg-blue-600 rounded-l-3xl h-[300px] w-[50px]" />
               <div className="relative z-10 overflow-hidden rounded-xl border bg-white shadow-xl">
                 <Image
-                  src="images/placeholder.svg?height=500&width=500"
+                  src="/images/image1.jpeg"
                   width={500}
                   height={500}
                   alt="TaskMaster illustration"
