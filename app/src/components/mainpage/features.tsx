@@ -81,7 +81,7 @@ export function Features() {
 
           <motion.div className="relative h-[500px] rounded-xl overflow-hidden shadow-xl" style={{ x: imageX }}>
             <Image
-              src="images/placeholder.svg?height=500&width=500"
+              src="/images/image2.jpeg"
               fill
               alt="TaskMaster features"
               className="object-cover"
