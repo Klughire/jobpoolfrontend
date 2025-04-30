@@ -230,7 +230,7 @@ export default function ChatPage() {
       <Toaster position="top-right" />
       <header className="border-b">
         <div className="container flex h-16 items-center justify-between px-4 md:px-6">
-          <Link href="/" className="flex items-center gap-2 font-bold text-xl">
+          <Link href="/dashboard" className="flex items-center gap-2 font-bold text-xl">
             <span className="text-primary">JobPool</span>
           </Link>
           <nav className="hidden md:flex gap-6">
@@ -254,8 +254,8 @@ export default function ChatPage() {
       <main className="flex-1 container py-6 md:py-10 px-4 md:px-6">
         <div className="max-w-2xl mx-auto">
           <div className="mb-6">
-            <Link href="/messages" className="text-sm text-muted-foreground hover:underline">
-              ← Back to Messages
+            <Link href="/dashboard" className="text-sm text-muted-foreground hover:underline">
+              ← Back to Dashboard
             </Link>
           </div>
           <div className="border rounded-md p-4 h-[500px] flex flex-col">
