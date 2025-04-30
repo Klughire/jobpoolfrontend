@@ -436,11 +436,7 @@ export default function PostTaskPage() {
                   ) : (
                     "Post Task"
                   )}
-                  {isSubmitting ? (
-                    <Loader className="animate-spin" />
-                  ) : (
-                    "Post Task"
-                  )}
+                  
                 </Button>
               </CardFooter>
             </form>

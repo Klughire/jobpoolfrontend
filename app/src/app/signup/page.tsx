@@ -14,7 +14,8 @@ import {
 } from "../../components/ui/card";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
-import { RadioGroup, RadioGroupItem } from "../../components/ui/radio-group";
+import { Eye, EyeOff } from "lucide-react";
+//import { RadioGroup, RadioGroupItem } from "../../components/ui/radio-group";
 import { Toaster } from "../../components/ui/sonner";
 import { toast } from "sonner";
 import axiosInstance from "@/lib/axiosInstance";
@@ -37,9 +38,13 @@ export default function SignUpPage() {
     password: "",
     confirm_password: "",
     // accountType: "both",
-
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+
+  const togglePasswordVisibility = () => {
+    setShowPassword((prev) => !prev);
+  };
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -53,7 +58,7 @@ export default function SignUpPage() {
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    const { user_fullname, user_email, password, confirm_password} = formData;
+    const { user_fullname, user_email, password, confirm_password } = formData;
 
     if (!user_fullname || !user_email || !password || !confirm_password) {
       toast.error("Please fill in all required fields");
@@ -70,8 +75,6 @@ export default function SignUpPage() {
       user_email,
       password,
       confirm_password,
-  
-
 
       // task_manager:
       //   formData.accountType === "poster" || formData.accountType === "both",
@@ -82,7 +85,7 @@ export default function SignUpPage() {
     try {
       setIsLoading(true);
       await axiosInstance.post("/user-registration/", payload);
-      toast.success("Your account has been created!");
+      toast.success("Wuhoo! Account created. Please check your email.");
       setTimeout(() => {
         router.push("/signin");
       }, 1500);
@@ -105,15 +108,16 @@ export default function SignUpPage() {
             Enter your information below to create your account
           </p>
         </div>
-        <Card>
+        <Card className="p-6">
           <form onSubmit={handleSubmit}>
-            <CardHeader>
+            <CardHeader className="mb-4">
               <CardTitle>Sign Up</CardTitle>
               <CardDescription>
-                Join JobPool to start posting or completing tasks
+                Join JobPool to post or complete tasks.
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+
+            <CardContent className="space-y-4 mb-4">
               <div className="space-y-2">
                 <Label htmlFor="user_fullname">Full Name</Label>
                 <Input
@@ -125,6 +129,7 @@ export default function SignUpPage() {
                   required
                 />
               </div>
+
               <div className="space-y-2">
                 <Label htmlFor="user_email">Email</Label>
                 <Input
@@ -137,17 +142,29 @@ export default function SignUpPage() {
                   required
                 />
               </div>
+
               <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>
-                <Input
-                  id="password"
-                  name="password"
-                  type="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  required
-                />
+                <div className="relative">
+                  <Input
+                    id="password"
+                    name="password"
+                    type={showPassword ? "text" : "password"}
+                    value={formData.password}
+                    onChange={handleChange}
+                    required
+                    className="pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={togglePasswordVisibility}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
+                  >
+                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                  </button>
+                </div>
               </div>
+
               <div className="space-y-2">
                 <Label htmlFor="confirm_password">Confirm Password</Label>
                 <Input
@@ -159,31 +176,10 @@ export default function SignUpPage() {
                   required
                 />
               </div>
-              {/* <div className="space-y-2">
-                <Label>I want to:</Label>
-                <RadioGroup
-                  defaultValue="both"
-                  value={formData.accountType}
-                  onValueChange={(value: string) =>
-                    handleRadioChange(value as AccountType)
-                  }
-                  className="flex flex-col space-y-1"
-                >
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="poster" id="poster" />
-                    <Label htmlFor="poster">Post Tasks</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="tasker" id="tasker" />
-                    <Label htmlFor="tasker">Complete Tasks</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="both" id="both" />
-                    <Label htmlFor="both">Both</Label>
-                  </div>
-                </RadioGroup>
-              </div> */}
+
+              {/* Optional radio group removed for clarity */}
             </CardContent>
+
             <CardFooter className="flex flex-col space-y-4">
               <Button type="submit" className="w-full" disabled={isLoading}>
                 {isLoading ? "Creating account..." : "Create account"}

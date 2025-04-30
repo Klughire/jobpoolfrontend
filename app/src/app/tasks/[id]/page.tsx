@@ -173,7 +173,7 @@ export default function TaskDetailPage({ params }: TaskDetailPageProps) {
           id: `bid${index + 1}`,
           tasker: {
             id: bid.bidder_id,
-            name: `User ${bid.bidder_id}`, // TODO: Fetch actual user name
+            name: `${bid.bidder_name}`, // TODO: Fetch actual user name
             rating: 4.5,
             taskCount: 5,
             joinedDate: "Apr 2023",
@@ -189,7 +189,7 @@ export default function TaskDetailPage({ params }: TaskDetailPageProps) {
         console.log("Mapped offers:", newOffers);
       } catch (error: any) {
         console.error("Error loading bids:", error);
-        toast.error(`Failed to load bids: ${error.message || "Unknown error"}`);
+       // toast.error(`Failed to load bids: ${error.message || "Unknown error"}`);
       }
     }
 
@@ -232,6 +232,7 @@ export default function TaskDetailPage({ params }: TaskDetailPageProps) {
           bidder_id: userId,
           bid_amount: offerAmountNumber,
           bid_description: offerMessage,
+          bidder_name:user?.name,
         });
         localStorage.setItem("bids", JSON.stringify(allBids));
 
@@ -257,6 +258,7 @@ export default function TaskDetailPage({ params }: TaskDetailPageProps) {
 
         setOfferAmount("");
         setOfferMessage("");
+       // router.push("/dashboard")
       } else {
         throw new Error(response.data.message || "Failed to submit offer");
       }

@@ -273,6 +273,7 @@ export default function DashboardPage() {
               : "Unknown",
             offers: job.offers?.length || 0,
             posted_by: job.posted_by || "Unknown",
+           
           }));
           setAssignedTasks(tasks);
         } else {

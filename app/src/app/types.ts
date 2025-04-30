@@ -44,6 +44,7 @@ export interface Image {
     bidder_id: string;
     bid_description: string;
     bid_amount: number;
+    bidder_name?: string;
   }
   
   export interface ApiBidResponse {
