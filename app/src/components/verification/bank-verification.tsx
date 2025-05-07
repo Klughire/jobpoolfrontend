@@ -4,7 +4,6 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Upload } from "lucide-react"
 
 interface BankVerificationProps {
   onComplete: () => void
@@ -16,32 +15,15 @@ export default function BankVerification({ onComplete }: BankVerificationProps) 
   const [ifscCode, setIfscCode] = useState("")
   const [accountHolderName, setAccountHolderName] = useState("")
   const [bankName, setBankName] = useState("")
-  const [chequeFile, setChequeFile] = useState<File | null>(null)
-  const [isVerifying, setIsVerifying] = useState(false)
-  const [bankDetails, setBankDetails] = useState<any>(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const handleVerifyIfsc = () => {
-    // In a real application, this would call an API to verify the IFSC code
-    if (ifscCode.length === 11) {
-      // Simulate fetching bank details
-      setTimeout(() => {
-        setBankDetails({
-          bank: "EXAMPLE BANK",
-          branch: "EXAMPLE BRANCH",
-          address: "123 Example Street, City, State, PIN",
-        })
-        setBankName("EXAMPLE BANK")
-      }, 500)
-    }
-  }
-
-  const handleVerify = () => {
-    // In a real application, this would call an API to verify the bank details
-    setIsVerifying(true)
+  const handleSubmit = () => {
+    // In a real application, this would call an API to save the bank details
+    setIsSubmitting(true)
     setTimeout(() => {
-      setIsVerifying(false)
+      setIsSubmitting(false)
       onComplete()
-    }, 1500)
+    }, 1000)
   }
 
   const isIfscValid = (ifsc: string) => {
@@ -56,8 +38,7 @@ export default function BankVerification({ onComplete }: BankVerificationProps) 
     accountNumber === confirmAccountNumber &&
     ifscCode &&
     isIfscValid(ifscCode) &&
-    accountHolderName &&
-    bankName
+    accountHolderName
 
   return (
     <div className="space-y-6">
@@ -72,10 +53,8 @@ export default function BankVerification({ onComplete }: BankVerificationProps) 
           </div>
         </div>
         <div className="w-full md:w-2/3">
-          <h3 className="text-lg font-medium">Bank Account Verification</h3>
-          <p className="text-sm text-gray-500">
-            Linking your bank account enables secure transactions and withdrawals.
-          </p>
+          <h3 className="text-lg font-medium">Bank Account Details</h3>
+          <p className="text-sm text-gray-500">Please provide your bank account details for future transactions.</p>
         </div>
       </div>
 
@@ -116,70 +95,18 @@ export default function BankVerification({ onComplete }: BankVerificationProps) 
 
         <div className="space-y-2">
           <Label htmlFor="ifsc-code">IFSC Code</Label>
-          <div className="flex gap-2">
-            <Input
-              id="ifsc-code"
-              placeholder="XXXX0XXXXXX"
-              value={ifscCode}
-              onChange={(e) => setIfscCode(e.target.value.toUpperCase())}
-              maxLength={11}
-              className="flex-1"
-            />
-            <Button variant="outline" onClick={handleVerifyIfsc} disabled={!ifscCode || !isIfscValid(ifscCode)}>
-              Verify
-            </Button>
-          </div>
-          {ifscCode && !isIfscValid(ifscCode) && <p className="text-xs text-red-500">Please enter a valid IFSC code</p>}
-          {bankDetails && (
-            <div className="mt-2 rounded-md bg-gray-50 p-2 text-xs">
-              <p>
-                <strong>Bank:</strong> {bankDetails.bank}
-              </p>
-              <p>
-                <strong>Branch:</strong> {bankDetails.branch}
-              </p>
-              <p>
-                <strong>Address:</strong> {bankDetails.address}
-              </p>
-            </div>
-          )}
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="bank-name">Bank Name</Label>
           <Input
-            id="bank-name"
-            placeholder="Bank Name"
-            value={bankName}
-            onChange={(e) => setBankName(e.target.value)}
-            readOnly={!!bankDetails}
+            id="ifsc-code"
+            placeholder="XXXX0XXXXXX"
+            value={ifscCode}
+            onChange={(e) => setIfscCode(e.target.value.toUpperCase())}
+            maxLength={11}
           />
+          {ifscCode && !isIfscValid(ifscCode) && <p className="text-xs text-red-500">Please enter a valid IFSC code</p>}
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="cheque-upload">Upload Cancelled Cheque (Optional)</Label>
-          <div className="flex items-center gap-2">
-            <Input
-              id="cheque-upload"
-              type="file"
-              accept="image/png, image/jpeg, image/jpg, application/pdf"
-              className="hidden"
-              onChange={(e) => setChequeFile(e.target.files?.[0] || null)}
-            />
-            <Button
-              variant="outline"
-              className="w-full"
-              onClick={() => document.getElementById("cheque-upload")?.click()}
-            >
-              <Upload className="mr-2 h-4 w-4" />
-              {chequeFile ? chequeFile.name : "Choose file"}
-            </Button>
-          </div>
-          {chequeFile && <p className="text-xs text-green-500">File uploaded: {chequeFile.name}</p>}
-        </div>
-
-        <Button className="w-full" onClick={handleVerify} disabled={!isFormValid || isVerifying}>
-          {isVerifying ? "Verifying..." : "Verify Bank Account"}
+        <Button className="w-full" onClick={handleSubmit} disabled={!isFormValid || isSubmitting}>
+          {isSubmitting ? "Submitting..." : "Submit Bank Details"}
         </Button>
       </div>
     </div>

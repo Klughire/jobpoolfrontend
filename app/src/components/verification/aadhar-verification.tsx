@@ -1,13 +1,11 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Upload } from "lucide-react"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { CheckCircle } from "lucide-react"
 
 interface AadharVerificationProps {
   onComplete: () => void
@@ -16,23 +14,45 @@ interface AadharVerificationProps {
 export default function AadharVerification({ onComplete }: AadharVerificationProps) {
   const [aadharNumber, setAadharNumber] = useState("")
   const [otp, setOtp] = useState("")
-  const [aadharFile, setAadharFile] = useState<File | null>(null)
   const [isVerifying, setIsVerifying] = useState(false)
   const [otpSent, setOtpSent] = useState(false)
-  const [verificationMethod, setVerificationMethod] = useState("otp")
+  const [isVerified, setIsVerified] = useState(false)
+  const [error, setError] = useState("")
 
   const handleSendOtp = () => {
-    // In a real application, this would call an API to send OTP
-    setOtpSent(true)
-  }
-
-  const handleVerify = () => {
-    // In a real application, this would call an API to verify the Aadhar details
+    // Reset error state
+    setError("")
     setIsVerifying(true)
+
+    // Simulate API call to send OTP
     setTimeout(() => {
       setIsVerifying(false)
-      onComplete()
-    }, 1500)
+      if (isAadharNumberValid(aadharNumber.replace(/-/g, ""))) {
+        setOtpSent(true)
+      } else {
+        setError("Unable to send OTP. Please check your Aadhar number and try again.")
+      }
+    }, 1000)
+  }
+
+  const handleVerifyOtp = () => {
+    // Reset error state
+    setError("")
+    setIsVerifying(true)
+
+    // Simulate API call to verify OTP
+    setTimeout(() => {
+      setIsVerifying(false)
+      if (otp.length === 6) {
+        setIsVerified(true)
+      } else {
+        setError("Invalid OTP. Please try again.")
+      }
+    }, 1000)
+  }
+
+  const handleContinue = () => {
+    onComplete()
   }
 
   const isAadharNumberValid = (aadhar: string) => {
@@ -51,10 +71,8 @@ export default function AadharVerification({ onComplete }: AadharVerificationPro
   const handleAadharChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const formattedValue = formatAadharNumber(e.target.value)
     setAadharNumber(formattedValue)
+    setError("")
   }
-
-  const isOtpFormValid = aadharNumber && isAadharNumberValid(aadharNumber.replace(/-/g, "")) && otp.length === 6
-  const isDocumentFormValid = aadharNumber && isAadharNumberValid(aadharNumber.replace(/-/g, "")) && aadharFile
 
   return (
     <div className="space-y-6">
@@ -71,100 +89,90 @@ export default function AadharVerification({ onComplete }: AadharVerificationPro
         <div className="w-full md:w-2/3">
           <h3 className="text-lg font-medium">Aadhar Verification</h3>
           <p className="text-sm text-gray-500">
-            Aadhar verification helps confirm your identity and address details securely.
+            Verify your Aadhar number with OTP sent to your registered mobile number.
           </p>
         </div>
       </div>
 
-      <Tabs defaultValue="otp" onValueChange={setVerificationMethod}>
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="otp">Verify with OTP</TabsTrigger>
-          <TabsTrigger value="document">Upload Document</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="otp" className="space-y-4 pt-4">
-          <div className="space-y-2">
-            <Label htmlFor="aadhar-number">Aadhar Number</Label>
-            <Input
-              id="aadhar-number"
-              placeholder="XXXX-XXXX-XXXX"
-              value={aadharNumber}
-              onChange={handleAadharChange}
-              maxLength={14}
-            />
-            {aadharNumber && !isAadharNumberValid(aadharNumber.replace(/-/g, "")) && (
-              <p className="text-xs text-red-500">Please enter a valid 12-digit Aadhar number</p>
-            )}
-          </div>
-
-          {!otpSent ? (
-            <Button
-              className="w-full"
-              onClick={handleSendOtp}
-              disabled={!aadharNumber || !isAadharNumberValid(aadharNumber.replace(/-/g, ""))}
-            >
-              Send OTP
-            </Button>
-          ) : (
-            <>
-              <div className="space-y-2">
-                <Label htmlFor="otp">Enter OTP</Label>
-                <Input
-                  id="otp"
-                  placeholder="6-digit OTP"
-                  value={otp}
-                  onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
-                  maxLength={6}
-                />
-                <p className="text-xs text-gray-500">OTP sent to registered mobile number</p>
-              </div>
-
-              <Button className="w-full" onClick={handleVerify} disabled={!isOtpFormValid || isVerifying}>
-                {isVerifying ? "Verifying..." : "Verify Aadhar"}
-              </Button>
-            </>
-          )}
-        </TabsContent>
-
-        <TabsContent value="document" className="space-y-4 pt-4">
-          <div className="space-y-2">
-            <Label htmlFor="aadhar-number-doc">Aadhar Number</Label>
-            <Input
-              id="aadhar-number-doc"
-              placeholder="XXXX-XXXX-XXXX"
-              value={aadharNumber}
-              onChange={handleAadharChange}
-              maxLength={14}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="aadhar-upload">Upload Aadhar Card (Front & Back)</Label>
-            <div className="flex items-center gap-2">
+      <div className="space-y-4">
+        {!isVerified ? (
+          <>
+            <div className="space-y-2">
+              <Label htmlFor="aadhar-number">Aadhar Number</Label>
               <Input
-                id="aadhar-upload"
-                type="file"
-                accept="image/png, image/jpeg, image/jpg, application/pdf"
-                className="hidden"
-                onChange={(e) => setAadharFile(e.target.files?.[0] || null)}
+                id="aadhar-number"
+                placeholder="XXXX-XXXX-XXXX"
+                value={aadharNumber}
+                onChange={handleAadharChange}
+                maxLength={14}
+                disabled={otpSent}
               />
-              <Button
-                variant="outline"
-                className="w-full"
-                onClick={() => document.getElementById("aadhar-upload")?.click()}
-              >
-                <Upload className="mr-2 h-4 w-4" />
-                {aadharFile ? aadharFile.name : "Choose file"}
-              </Button>
+              {aadharNumber && !isAadharNumberValid(aadharNumber.replace(/-/g, "")) && (
+                <p className="text-xs text-red-500">Please enter a valid 12-digit Aadhar number</p>
+              )}
             </div>
-            {aadharFile && <p className="text-xs text-green-500">File uploaded: {aadharFile.name}</p>}
-          </div>
 
-          <Button className="w-full" onClick={handleVerify} disabled={!isDocumentFormValid || isVerifying}>
-            {isVerifying ? "Verifying..." : "Verify Aadhar"}
-          </Button>
-        </TabsContent>
-      </Tabs>
+            {!otpSent ? (
+              <Button
+                className="w-full"
+                onClick={handleSendOtp}
+                disabled={!aadharNumber || !isAadharNumberValid(aadharNumber.replace(/-/g, "")) || isVerifying}
+              >
+                {isVerifying ? "Sending OTP..." : "Send OTP"}
+              </Button>
+            ) : (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="otp">Enter OTP</Label>
+                  <Input
+                    id="otp"
+                    placeholder="6-digit OTP"
+                    value={otp}
+                    onChange={(e) => {
+                      setOtp(e.target.value.replace(/\D/g, ""))
+                      setError("")
+                    }}
+                    maxLength={6}
+                  />
+                  <p className="text-xs text-gray-500">OTP sent to registered mobile number</p>
+                  {error && <p className="text-xs text-red-500">{error}</p>}
+                </div>
+
+                <Button className="w-full" onClick={handleVerifyOtp} disabled={otp.length !== 6 || isVerifying}>
+                  {isVerifying ? "Verifying..." : "Verify OTP"}
+                </Button>
+              </>
+            )}
+          </>
+        ) : (
+          <>
+            <div className="rounded-md bg-green-50 p-4">
+              <div className="flex">
+                <div className="flex-shrink-0">
+                  <CheckCircle className="h-5 w-5 text-green-500" />
+                </div>
+                <div className="ml-3">
+                  <h3 className="text-sm font-medium text-green-800">Aadhar Verified Successfully</h3>
+                  <div className="mt-2 text-sm text-green-700">
+                    <p>Your Aadhar has been verified successfully via OTP.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="rounded-md border p-4">
+              <div>
+                <p className="text-sm font-medium text-gray-500">Aadhar Number</p>
+                <p className="font-medium">{aadharNumber}</p>
+              </div>
+            </div>
+
+            <Button className="w-full" onClick={handleContinue}>
+              Continue to Next Step
+            </Button>
+          </>
+        )}
+      </div>
     </div>
   )
 }
