@@ -59,7 +59,11 @@ export default function SignInPage() {
         login(token, user);
 
         toast.success('Login successful!');
-        router.push('/dashboard'); // Redirect to the dashboard
+
+        if(user.verification_status === 0)
+        router.push('/verification'); 
+        else
+        router.push('/dashboard');
       } else {
         toast.error(response.data.message || "Login failed");
       }

@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { CheckCircle } from "lucide-react"
+import axiosInstance from "../../lib/axiosInstance"
+import useStore from "../../lib/Zustand";
 
 interface PanVerificationProps {
   onComplete: () => void
@@ -17,25 +19,40 @@ export default function PanVerification({ onComplete }: PanVerificationProps) {
   const [panName, setPanName] = useState("")
   const [error, setError] = useState("")
 
-  const handleVerify = () => {
+  const { userId } = useStore();
+
+  const handleVerify = async () => {
     // Reset states
     setError("")
     setIsVerifying(true)
 
-    // Simulate API call to verify PAN
-    setTimeout(() => {
+    if (!userId) {
+      setIsVerifying(false)
+      setError("User ID not found. Please log in and try again.")
+      return
+    }
+
+    try {
+      const response = await axiosInstance.post(`/verify-pan/?user_id=${userId}&pan=${panNumber}`);
+
+      const data = response.data
+
       setIsVerifying(false)
 
-      // Simulate successful verification
-      if (isPanNumberValid(panNumber)) {
+      if (data.status_code === 200 && data.data.valid) {
         setIsVerified(true)
-        // Simulate name returned from API
-        setPanName("John Doe")
+        setPanName(data.data.registered_name || "Name not provided") 
       } else {
-        setError("Unable to verify PAN. Please check the number and try again.")
+        setError(data.message || "Unable to verify PAN. Please check the number and try again.")
       }
-    }, 1500)
+    } catch (err: any) {
+      setIsVerifying(false)
+      setError(
+        err.response?.data?.message || "Failed to connect to the server. Please try again later."
+      )
+    }
   }
+
 
   const handleContinue = () => {
     onComplete()

@@ -78,9 +78,9 @@ export default function VerificationIntro({ onStart }: VerificationIntroProps) {
       </div>
 
       <div className="flex justify-center">
-        <Button onClick={onStart} className="px-8">
+        {/* <Button onClick={onStart} className="px-8">
           Begin Verification
-        </Button>
+        </Button> */}
       </div>
     </div>
   )
