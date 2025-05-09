@@ -42,6 +42,8 @@ export default function PanVerification({ onComplete }: PanVerificationProps) {
       if (data.status_code === 200 && data.data.valid) {
         setIsVerified(true)
         setPanName(data.data.registered_name || "Name not provided") 
+
+        localStorage.setItem("registered_name", data.data.registered_name || "Name not provided")
       } else {
         setError(data.message || "Unable to verify PAN. Please check the number and try again.")
       }
