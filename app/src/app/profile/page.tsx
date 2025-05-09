@@ -17,7 +17,7 @@ export default function ProfilePage() {
     address: "123 Main Street, Bangalore, Karnataka",
     company: "Tech Solutions Pvt Ltd",
     joinDate: "January 15, 2023",
-    avatar: "/placeholder.svg?height=128&width=128",
+    avatar: "/images/placeholder.svg?height=128&width=128",
   })
 
   const [verificationStatus, setVerificationStatus] = useState({
@@ -60,7 +60,7 @@ export default function ProfilePage() {
         <Card className="md:col-span-1">
           <CardHeader className="flex flex-col items-center space-y-2 text-center">
             <Avatar className="h-24 w-24">
-              <AvatarImage src={user.avatar || "/placeholder.svg"} alt={user.name} />
+              <AvatarImage src={user.avatar || "/images/placeholder.svg"} alt={user.name} />
               <AvatarFallback>
                 {user.name
                   .split(" ")
@@ -182,7 +182,7 @@ export default function ProfilePage() {
                   <div className="w-full md:w-1/3">
                     <div className="rounded-lg border bg-card p-4 text-card-foreground shadow-sm">
                       <img
-                        src="/placeholder.svg?height=160&width=240"
+                        src="/images/placeholder.svg?height=160&width=240"
                         alt="PAN Card"
                         className="mx-auto h-40 w-60 rounded-md object-cover"
                       />
@@ -249,7 +249,7 @@ export default function ProfilePage() {
                   <div className="w-full md:w-1/3">
                     <div className="rounded-lg border bg-card p-4 text-card-foreground shadow-sm">
                       <img
-                        src="/placeholder.svg?height=160&width=240"
+                        src="/images/placeholder.svg?height=160&width=240"
                         alt="Aadhar Card"
                         className="mx-auto h-40 w-60 rounded-md object-cover"
                       />
@@ -310,7 +310,7 @@ export default function ProfilePage() {
                   <div className="w-full md:w-1/3">
                     <div className="rounded-lg border bg-card p-4 text-card-foreground shadow-sm">
                       <img
-                        src="/placeholder.svg?height=160&width=240"
+                        src="/images/placeholder.svg?height=160&width=240"
                         alt="Bank Details"
                         className="mx-auto h-40 w-60 rounded-md object-cover"
                       />

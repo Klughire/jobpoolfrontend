@@ -60,7 +60,7 @@
 //       user: {
 //         id: "user2",
 //         name: "Alex Johnson",
-//         avatar: "/placeholder.svg",
+//         avatar: "/images/placeholder.svg",
 //       },
 //       task: {
 //         id: "task1",
@@ -80,7 +80,7 @@
 //       user: {
 //         id: "user3",
 //         name: "Sarah Williams",
-//         avatar: "/placeholder.svg",
+//         avatar: "/images/placeholder.svg",
 //       },
 //       task: {
 //         id: "task2",
@@ -100,7 +100,7 @@
 //       user: {
 //         id: "user4",
 //         name: "Mike Smith",
-//         avatar: "/placeholder.svg",
+//         avatar: "/images/placeholder.svg",
 //       },
 //       task: {
 //         id: "task3",
@@ -343,7 +343,7 @@
 //                       >
 //                         <div className="flex items-start gap-3">
 //                           <Avatar className="h-10 w-10">
-//                             <AvatarImage src={conv.user.avatar || "/placeholder.svg"} alt={conv.user.name} />
+//                             <AvatarImage src={conv.user.avatar || "/images/placeholder.svg"} alt={conv.user.name} />
 //                             <AvatarFallback>{conv.user.name.charAt(0)}</AvatarFallback>
 //                           </Avatar>
 //                           <div className="flex-1 min-w-0">
@@ -383,7 +383,7 @@
 //                   <div className="flex items-center gap-3">
 //                     <Avatar className="h-10 w-10">
 //                       <AvatarImage
-//                         src={getCurrentConversation()?.user.avatar || "/placeholder.svg"}
+//                         src={getCurrentConversation()?.user.avatar || "/images/placeholder.svg"}
 //                         alt={getCurrentConversation()?.user.name || "User"}
 //                       />
 //                       <AvatarFallback>

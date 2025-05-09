@@ -468,7 +468,7 @@ export default function DashboardPage() {
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
               <Avatar className="h-8 w-8">
-                <AvatarImage src="/placeholder.svg" alt={user.name} />
+                <AvatarImage src="/images/placeholder.svg" alt={user.name} />
                 <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
               </Avatar>
               <span className="text-sm font-medium hidden md:inline-block">

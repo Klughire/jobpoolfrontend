@@ -78,7 +78,7 @@
 //         <div className="flex w-full items-center justify-center md:w-1/3">
 //           <div className="rounded-lg bg-primary/10 p-4">
 //             <img
-//               src="/placeholder.svg?height=120&width=120"
+//               src="/images/placeholder.svg?height=120&width=120"
 //               alt="Bank Verification"
 //               className="h-24 w-24 object-contain"
 //             />
@@ -322,7 +322,7 @@ export default function BankVerification({ onComplete }: BankVerificationProps) 
         <div className="flex w-full items-center justify-center md:w-1/3">
           <div className="rounded-lg bg-primary/10 p-4">
             <img
-              src="/placeholder.svg?height=120&width=120"
+              src="/images/placeholder.svg?height=120&width=120"
               alt="Bank Verification"
               className="h-24 w-24 object-contain"
             />

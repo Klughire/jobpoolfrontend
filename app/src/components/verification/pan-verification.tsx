@@ -70,7 +70,7 @@ export default function PanVerification({ onComplete }: PanVerificationProps) {
         <div className="flex w-full items-center justify-center md:w-1/3">
           <div className="rounded-lg bg-primary/10 p-4">
             <img
-              src="/placeholder.svg?height=120&width=120"
+              src="/images/placeholder.svg?height=120&width=120"
               alt="PAN Card Verification"
               className="h-24 w-24 object-contain"
             />

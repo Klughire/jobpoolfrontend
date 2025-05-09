@@ -464,7 +464,7 @@ export function CategoriesPage() {
               className="relative h-[400px]"
             >
               <Image
-                src="images/placeholder.svg?height=400&width=600"
+                src="images/images/placeholder.svg?height=400&width=600"
                 fill
                 alt="TaskMaster categories"
                 className="object-cover rounded-xl"

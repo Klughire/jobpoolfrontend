@@ -11,7 +11,7 @@ export function Testimonials() {
     {
       name: "Alex Johnson",
       role: "Homeowner",
-      avatar: "/placeholder.svg?height=40&width=40",
+      avatar: "/images/placeholder.svg?height=40&width=40",
       content:
         "TaskMaster made moving to my new apartment so much easier. I found reliable movers within minutes and at a great price!",
       rating: 5,
@@ -19,7 +19,7 @@ export function Testimonials() {
     {
       name: "Sarah Williams",
       role: "Busy Professional",
-      avatar: "/placeholder.svg?height=40&width=40",
+      avatar: "/images/placeholder.svg?height=40&width=40",
       content:
         "As someone with a packed schedule, TaskMaster has been a lifesaver. I can outsource my errands and focus on what matters most.",
       rating: 5,
@@ -27,7 +27,7 @@ export function Testimonials() {
     {
       name: "Michael Chen",
       role: "Small Business Owner",
-      avatar: "/placeholder.svg?height=40&width=40",
+      avatar: "/images/placeholder.svg?height=40&width=40",
       content:
         "I use TaskMaster for all my business delivery needs. The platform is reliable, and the Taskers are always professional.",
       rating: 4,
@@ -35,7 +35,7 @@ export function Testimonials() {
     {
       name: "Emily Rodriguez",
       role: "Tasker",
-      avatar: "/placeholder.svg?height=40&width=40",
+      avatar: "/images/placeholder.svg?height=40&width=40",
       content:
         "Being a Tasker has given me the flexibility to earn extra income on my own schedule. The platform is easy to use and the support is great!",
       rating: 5,
@@ -100,7 +100,7 @@ export function Testimonials() {
                 <p className="text-xl mb-6 italic">"{testimonials[current].content}"</p>
                 <Avatar className="h-16 w-16 mb-4">
                   <AvatarImage
-                    src={testimonials[current].avatar || "/placeholder.svg"}
+                    src={testimonials[current].avatar || "/images/placeholder.svg"}
                     alt={testimonials[current].name}
                   />
                   <AvatarFallback>{testimonials[current].name.charAt(0)}</AvatarFallback>

@@ -16,7 +16,7 @@ export function TaskExamples() {
       category: "Moving",
       user: {
         name: "Jessica K.",
-        avatar: "/placeholder.svg?height=40&width=40",
+        avatar: "/images/placeholder.svg?height=40&width=40",
       },
     },
     {
@@ -27,7 +27,7 @@ export function TaskExamples() {
       category: "Cleaning",
       user: {
         name: "Michael T.",
-        avatar: "/placeholder.svg?height=40&width=40",
+        avatar: "/images/placeholder.svg?height=40&width=40",
       },
     },
     {
@@ -38,7 +38,7 @@ export function TaskExamples() {
       category: "Handyman",
       user: {
         name: "Robert L.",
-        avatar: "/placeholder.svg?height=40&width=40",
+        avatar: "/images/placeholder.svg?height=40&width=40",
       },
     },
     {
@@ -49,7 +49,7 @@ export function TaskExamples() {
       category: "Delivery",
       user: {
         name: "Sarah M.",
-        avatar: "/placeholder.svg?height=40&width=40",
+        avatar: "/images/placeholder.svg?height=40&width=40",
       },
     },
   ]
@@ -126,7 +126,7 @@ export function TaskExamples() {
                 <CardFooter className="p-6 pt-0 border-t">
                   <div className="flex items-center">
                     <Avatar className="h-8 w-8 mr-2">
-                      <AvatarImage src={task.user.avatar || "/placeholder.svg"} alt={task.user.name} />
+                      <AvatarImage src={task.user.avatar || "/images/placeholder.svg"} alt={task.user.name} />
                       <AvatarFallback>{task.user.name.charAt(0)}</AvatarFallback>
                     </Avatar>
                     <span className="text-sm font-medium">{task.user.name}</span>

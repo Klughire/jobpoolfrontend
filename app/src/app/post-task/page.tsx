@@ -404,7 +404,7 @@ export default function PostTaskPage() {
                         <div key={image.id} className="relative group">
                           <div className="aspect-square rounded-md overflow-hidden border bg-muted">
                             <img
-                              src={image.url || "/placeholder.svg"}
+                              src={image.url || "/images/placeholder.svg"}
                               alt={image.name}
                               className="w-full h-full object-cover"
                             />

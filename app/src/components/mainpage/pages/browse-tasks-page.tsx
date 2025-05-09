@@ -35,7 +35,7 @@ export function BrowseTasksPage() {
       postedAt: "2 hours ago",
       user: {
         name: "Jessica K.",
-        avatar: "images/placeholder.svg?height=40&width=40",
+        avatar: "images/images/placeholder.svg?height=40&width=40",
         rating: 4.8,
         taskCompleted: 12,
       },
@@ -53,7 +53,7 @@ export function BrowseTasksPage() {
       postedAt: "5 hours ago",
       user: {
         name: "Michael T.",
-        avatar: "images/placeholder.svg?height=40&width=40",
+        avatar: "images/images/placeholder.svg?height=40&width=40",
         rating: 4.9,
         taskCompleted: 28,
       },
@@ -70,7 +70,7 @@ export function BrowseTasksPage() {
       postedAt: "1 day ago",
       user: {
         name: "Robert L.",
-        avatar: "images/placeholder.svg?height=40&width=40",
+        avatar: "images/images/placeholder.svg?height=40&width=40",
         rating: 4.7,
         taskCompleted: 8,
       },
@@ -88,7 +88,7 @@ export function BrowseTasksPage() {
       postedAt: "3 hours ago",
       user: {
         name: "Sarah M.",
-        avatar: "images/placeholder.svg?height=40&width=40",
+        avatar: "images/images/placeholder.svg?height=40&width=40",
         rating: 4.6,
         taskCompleted: 15,
       },
@@ -106,7 +106,7 @@ export function BrowseTasksPage() {
       postedAt: "2 days ago",
       user: {
         name: "David W.",
-        avatar: "images/placeholder.svg?height=40&width=40",
+        avatar: "images/images/placeholder.svg?height=40&width=40",
         rating: 4.9,
         taskCompleted: 7,
       },
@@ -123,7 +123,7 @@ export function BrowseTasksPage() {
       postedAt: "6 hours ago",
       user: {
         name: "Emily R.",
-        avatar: "images/placeholder.svg?height=40&width=40",
+        avatar: "images/images/placeholder.svg?height=40&width=40",
         rating: 4.8,
         taskCompleted: 19,
       },
@@ -141,7 +141,7 @@ export function BrowseTasksPage() {
       postedAt: "1 day ago",
       user: {
         name: "Thomas H.",
-        avatar: "images/placeholder.svg?height=40&width=40",
+        avatar: "images/images/placeholder.svg?height=40&width=40",
         rating: 4.7,
         taskCompleted: 11,
       },
@@ -159,7 +159,7 @@ export function BrowseTasksPage() {
       postedAt: "4 hours ago",
       user: {
         name: "Olivia P.",
-        avatar: "images/placeholder.svg?height=40&width=40",
+        avatar: "images/images/placeholder.svg?height=40&width=40",
         rating: 4.9,
         taskCompleted: 5,
       },
@@ -408,7 +408,7 @@ export function BrowseTasksPage() {
                           <div className="bg-slate-50 p-6 flex flex-col justify-between">
                             <div className="flex items-center mb-4">
                               <Avatar className="h-10 w-10 mr-3">
-                                <AvatarImage src={task.user.avatar || "images/placeholder.svg"} alt={task.user.name} />
+                                <AvatarImage src={task.user.avatar || "images/images/placeholder.svg"} alt={task.user.name} />
                                 <AvatarFallback>{task.user.name.charAt(0)}</AvatarFallback>
                               </Avatar>
                               <div>
@@ -478,7 +478,7 @@ export function BrowseTasksPage() {
               className="relative h-[400px]"
             >
               <Image
-                src="images/placeholder.svg?height=400&width=600"
+                src="images/images/placeholder.svg?height=400&width=600"
                 fill
                 alt="Post a task"
                 className="object-cover rounded-xl"

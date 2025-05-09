@@ -120,7 +120,7 @@
 //         <div className="flex w-full items-center justify-center md:w-1/3">
 //           <div className="rounded-lg bg-primary/10 p-4">
 //             <img
-//               src="/placeholder.svg?height=120&width=120"
+//               src="/images/placeholder.svg?height=120&width=120"
 //               alt="Aadhar Verification"
 //               className="h-24 w-24 object-contain"
 //             />
@@ -273,6 +273,7 @@ export default function AadharVerification({ onComplete }: AadharVerificationPro
       if (data.status_code === 200) {
         setOtpSent(true)
         setRefId(data.data.ref_id)
+        // setAadharNumber(sanitizedAadhaar)
       } else {
         setError(data.message || "Unable to send OTP. Please check your Aadhar number and try again.")
       }
@@ -295,7 +296,9 @@ export default function AadharVerification({ onComplete }: AadharVerificationPro
     }
 
     try {
-      const response = await axiosInstance.post(`/verify-aadhaar/otp/?user_id=${userId}&ref_id=${refId}&otp=${otp}`)
+      const sanitizedAadhaar = aadharNumber.replace(/-/g, "")
+
+      const response = await axiosInstance.post(`/verify-aadhaar/otp/?user_id=${userId}&ref_id=${refId}&otp=${otp}&aadhaar_number=${sanitizedAadhaar}`)
       const data = response.data
 
       setIsVerifying(false)
@@ -342,7 +345,7 @@ export default function AadharVerification({ onComplete }: AadharVerificationPro
         <div className="flex w-full items-center justify-center md:w-1/3">
           <div className="rounded-lg bg-primary/10 p-4">
             <img
-              src="/placeholder.svg?height=120&width=120"
+              src="/images/placeholder.svg?height=120&width=120"
               alt="Aadhar Verification"
               className="h-24 w-24 object-contain"
             />

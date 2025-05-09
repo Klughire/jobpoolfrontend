@@ -134,7 +134,7 @@ export default function AdminProfilePage() {
           </CardHeader>
           <CardContent className="flex flex-col items-center text-center">
             <Avatar className="h-24 w-24 mb-4">
-              <AvatarImage src={admin.avatar || "/placeholder.svg"} alt={admin.name} />
+              <AvatarImage src={admin.avatar || "/images/placeholder.svg"} alt={admin.name} />
               <AvatarFallback>
                 {admin.name
                   .split(" ")

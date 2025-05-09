@@ -110,7 +110,7 @@ export default function SignInPage() {
                 <div className="flex items-center justify-between">
                   <Label htmlFor="password">Password</Label>
                   <Link
-                    href="/forgot-password"
+                    href="/forgotpassword"
                     className="text-xs text-muted-foreground underline-offset-4 hover:underline"
                   >
                     Forgot password?

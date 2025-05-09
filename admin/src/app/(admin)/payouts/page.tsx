@@ -228,7 +228,7 @@ export default function PayoutsPage() {
                   <TableCell>
                     <div className="flex items-center gap-3">
                       <Avatar>
-                        <AvatarImage src={`/placeholder.svg`} alt={payout.tasker.name} />
+                        <AvatarImage src={`/images/placeholder.svg`} alt={payout.tasker.name} />
                         <AvatarFallback>
                           {payout.tasker.name.split(" ").map((n) => n[0]).join("")}
                         </AvatarFallback>
@@ -318,7 +318,7 @@ export default function PayoutsPage() {
                           <div className="grid gap-4 py-4">
                             <div className="flex items-center gap-4">
                               <Avatar className="h-12 w-12">
-                                <AvatarImage src={`/placeholder.svg`} alt={selectedPayout.tasker.name} />
+                                <AvatarImage src={`/images/placeholder.svg`} alt={selectedPayout.tasker.name} />
                                 <AvatarFallback>
                                   {selectedPayout.tasker.name
                                     .split(" ")
