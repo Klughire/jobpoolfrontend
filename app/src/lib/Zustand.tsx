@@ -25,6 +25,7 @@ interface UserData {
   email: string;
   accountType: string;
   isLoggedIn: boolean;
+  verification_status: number;
 }
 
 interface AuthState {
@@ -94,6 +95,7 @@ const useStore = create<StoreState>((set) => ({
             email: user.email,
             accountType: user.accountType,
             isLoggedIn: user.isLoggedIn,
+            verification_status: user.verification_status,
           },
         });
         if (typeof window !== "undefined") {
@@ -140,6 +142,7 @@ const useStore = create<StoreState>((set) => ({
               email: parsedUser.email,
               accountType: parsedUser.accountType,
               isLoggedIn: parsedUser.isLoggedIn,
+              verification_status: parsedUser.verification_status,
             },
           });
         } else {

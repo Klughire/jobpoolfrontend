@@ -19,6 +19,7 @@ import { Eye, EyeOff } from "lucide-react";
 import { Toaster } from "../../components/ui/sonner";
 import { toast } from "sonner";
 import axiosInstance from "@/lib/axiosInstance";
+import axios, { AxiosError } from "axios";
 
 type AccountType = "tasker" | "poster" | "both";
 
@@ -89,8 +90,19 @@ export default function SignUpPage() {
       setTimeout(() => {
         router.push("/signin");
       }, 1500);
-    } catch (error) {
-      toast.error("An error occurred while creating your account");
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        const axiosError = err as AxiosError<{ message: string }>;
+        if (axiosError.response?.status === 409) {
+          toast.error(
+            axiosError.response.data?.message || "User already exists."
+          );
+        } else {
+          toast.error("An error occurred while creating your account");
+        }
+      } else {
+        toast.error("Something went wrong");
+      }
     } finally {
       setIsLoading(false);
     }

@@ -18,6 +18,7 @@ import { Toaster } from "../../components/ui/sonner";
 import { toast } from "sonner";
 import axiosInstance from "../../lib/axiosInstance";
 import useStore from "../../lib/Zustand";
+import axios, { AxiosError } from "axios";
 
 export default function SignInPage() {
   const { login } = useStore();
@@ -35,45 +36,54 @@ export default function SignInPage() {
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-  
+
     // Basic validation
     if (!formData.email || !formData.password) {
       toast.error("Please fill in all required fields");
       return;
     }
-  
+
     try {
       setIsLoading(true);
       const response = await axiosInstance.post("/login/", formData);
-  
+
       if (response.data.status_code === 200 && response.data.data) {
         const { token, user } = response.data.data;
-        console.log(user); 
+        console.log(user);
 
-        // Validate token and user data
         if (!token || !user) {
-          throw new Error('Invalid response: Missing token or user data');
+          throw new Error("Invalid response: Missing token or user data");
         }
 
-        // Call Zustand store's login function (handles localStorage internally)
         login(token, user);
 
-        toast.success('Login successful!');
+        toast.success("Login successful!");
 
-        if(user.verification_status === 0)
-        router.push('/verification'); 
-        else
-        router.push('/dashboard');
+        if (user.verification_status === 0) router.push("/verification");
+        else router.push("/dashboard");
       } else {
         toast.error(response.data.message || "Login failed");
       }
-    } catch (error) {
-      toast.error("An error occurred while logging in");
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        const axiosError = err as AxiosError<{ message?: string }>;
+        const status = axiosError.response?.status;
+
+        if (status === 404) {
+          toast.error(axiosError.response?.data?.message || "User not found.");
+        } else {
+          toast.error(
+            axiosError.response?.data?.message ||
+              "An error occurred while logging in"
+          );
+        }
+      } else {
+        toast.error("Something went wrong");
+      }
     } finally {
       setIsLoading(false);
     }
   };
-  
 
   return (
     <div className="container flex h-screen w-screen flex-col items-center justify-center">
