@@ -75,7 +75,6 @@ export default function PostTaskPage() {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [minDate, setMinDate] = useState("");
 
-
   useEffect(() => {
     const today = new Date();
     const yyyy = today.getFullYear();
@@ -88,8 +87,6 @@ export default function PostTaskPage() {
   const [error, setError] = useState("");
 
   const { userId } = useStore();
-
-
 
   useEffect(() => {
     // Check if user is logged in
@@ -169,6 +166,12 @@ export default function PostTaskPage() {
       return;
     }
 
+    // Validate at least one image is uploaded
+    if (images.length === 0) {
+      toast.error("Please upload at least one image");
+      return;
+    }
+
     setIsSubmitting(true);
 
     const formDataToSubmit = new FormData();
@@ -206,7 +209,7 @@ export default function PostTaskPage() {
       }
     } catch (error) {
       handleAxiosError(error);
-    }  finally {
+    } finally {
       setIsSubmitting(false);
     }
   };
@@ -367,7 +370,6 @@ export default function PostTaskPage() {
                       name="dueDate"
                       type="date"
                       min={minDate}
-                    
                       value={formData.dueDate}
                       onChange={handleChange}
                       className="w-full"
@@ -436,7 +438,6 @@ export default function PostTaskPage() {
                   ) : (
                     "Post Task"
                   )}
-                  
                 </Button>
               </CardFooter>
             </form>
