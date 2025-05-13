@@ -13,6 +13,7 @@ interface ReviewSectionProps {
     reviewComment: string;
     setReviewComment: (comment: string) => void;
     isSubmitting: boolean;
+    taskerId: string | null;
   }
   
   export function ReviewSection({
@@ -24,8 +25,9 @@ interface ReviewSectionProps {
     reviewComment,
     setReviewComment,
     isSubmitting,
+    taskerId,
   }: ReviewSectionProps) {
-    if (!taskStatus || !isTaskPoster) return null;
+    if (!taskStatus || !isTaskPoster || !taskerId) return null;
   
     return (
       <Card>

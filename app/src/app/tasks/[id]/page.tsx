@@ -40,6 +40,7 @@ export default function TaskDetailPage({ params }: TaskDetailPageProps) {
   const [showImageGallery, setShowImageGallery] = useState<boolean>(false);
   const [currentImageIndex, setCurrentImageIndex] = useState<number>(0);
   const { userId } = useStore();
+  const taskerId = offers.length > 0 ? offers[0].tasker.id : null;
 
   // Load user and sync bids
   useEffect(() => {
@@ -297,34 +298,44 @@ export default function TaskDetailPage({ params }: TaskDetailPageProps) {
     }
   };
 
-  const handleSubmitReview = (e: FormEvent) => {
-    e.preventDefault();
-    if (!reviewComment) {
-      toast.error("Please provide a review comment");
-      return;
-    }
-    setIsSubmitting(true);
-    setTimeout(() => {
-      toast.success("Your review has been submitted!");
-      setIsSubmitting(false);
-      router.push("/dashboard");
-    }, 1500);
-  };
+const handleSubmitReview = async (e: FormEvent) => {
+  e.preventDefault();
+  if (!reviewComment) {
+    toast.error("Please provide a review comment");
+    return;
+  }
+  if (!taskerId) {
+    toast.error("No tasker assigned to this task");
+    return;
+  }
 
-  // const acceptOffer = (offerId: string) => {
-  //   setTimeout(() => {
-  //     toast.success("You've accepted the offer!");
-  //     setTask((prevTask: Task | null) => {
-  //       if (!prevTask) return prevTask;
-  //       const acceptedOffer = offers.find((offer) => offer.id === offerId);
-  //       return {
-  //         ...prevTask,
-  //         status: true,
-  //         assignedTasker: acceptedOffer?.tasker,
-  //       };
-  //     });
-  //   }, 1000);
-  // };
+  setIsSubmitting(true);
+
+  try {
+    const payload = {
+      job_ref_id: id,
+      reviewer_id: userId,
+      user_id : taskerId, // Include tasker ID
+      rating: reviewRating,
+      comment: reviewComment,
+    };
+
+    const response = await axiosInstance.put("/submit-review/", payload); // Adjust endpoint as needed
+
+    if (response.data.status_code === 200) {
+      toast.success("Your review has been submitted!");
+      router.push("/dashboard");
+    } else {
+      throw new Error(response.data.message || "Failed to submit review");
+    }
+  } catch (error: any) {
+    console.error("Error submitting review:", error);
+    toast.error(error.response?.data?.message || "Failed to submit review");
+  } finally {
+    setIsSubmitting(false);
+  }
+};
+
 
   const markAsComplete = () => {
     setTimeout(() => {
@@ -515,12 +526,13 @@ export default function TaskDetailPage({ params }: TaskDetailPageProps) {
                 reviewComment={reviewComment}
                 setReviewComment={setReviewComment}
                 isSubmitting={isSubmitting}
+                taskerId={taskerId}
               />
-              <TaskProgress
+              {/* <TaskProgress
                 taskStatus={task.status}
                 isTaskPoster={isTaskPoster}
                 markAsComplete={markAsComplete}
-              />
+              /> */}
               <OffersSection
                 task={task}
                 offers={offers}

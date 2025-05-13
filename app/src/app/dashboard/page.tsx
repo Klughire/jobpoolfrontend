@@ -959,6 +959,8 @@ export default function DashboardPage() {
   const [requestedTasks, setRequestedTasks] = useState<BidRequest[]>([]);
   const [completedTasks, setCompletedTasks] = useState<Task[]>([]);
 
+  
+
   // Check authentication and fetch user from localStorage
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
@@ -996,7 +998,7 @@ export default function DashboardPage() {
         });
       } catch (err: any) {
         console.error("Failed to fetch profile:", err);
-        toast.error("Failed to load profile data.");
+        //toast.error("Failed to load profile data.");
         if (err.response?.status === 401) {
           logout();
           router.push("/signin");
@@ -1041,7 +1043,7 @@ export default function DashboardPage() {
         }
       } catch (err) {
         console.error("Failed to fetch tasks:", err);
-        toast.error("An error occurred while fetching posted tasks.");
+        //toast.error("An error occurred while fetching posted tasks.");
       } finally {
         setLoading(false);
       }
@@ -1084,7 +1086,7 @@ export default function DashboardPage() {
         }
       } catch (err) {
         console.error("Failed to fetch all tasks:", err);
-        toast.error("An error occurred while fetching available tasks.");
+        //toast.error("An error occurred while fetching available tasks.");
       } finally {
         setLoading(false);
       }
@@ -1125,7 +1127,7 @@ export default function DashboardPage() {
         }
       } catch (err) {
         console.error("Failed to fetch bids:", err);
-        toast.error("An error occurred while fetching bids.");
+        //toast.error("An error occurred while fetching bids.");
       }
     };
 
@@ -1166,7 +1168,7 @@ export default function DashboardPage() {
         }
       } catch (err) {
         console.error("Failed to fetch assigned tasks:", err);
-        toast.error("An error occurred while fetching assigned tasks.");
+        //toast.error("An error occurred while fetching assigned tasks.");
       }
     };
 
@@ -1212,7 +1214,7 @@ export default function DashboardPage() {
         }
       } catch (err) {
         console.error("Failed to fetch requested bids:", err);
-        toast.error("An error occurred while fetching requested bids.");
+        //toast.error("An error occurred while fetching requested bids.");
       }
     };
 
@@ -1258,7 +1260,7 @@ export default function DashboardPage() {
         }
       } catch (err) {
         console.error("Failed to fetch completed tasks:", err);
-        toast.error("An error occurred while fetching completed tasks.");
+        //toast.error("An error occurred while fetching completed tasks.");
       } finally {
         setLoading(false);
       }
@@ -1291,7 +1293,7 @@ export default function DashboardPage() {
       }
     } catch (error) {
       console.error("Error marking task as complete:", error);
-      toast.error("An error occurred while marking the task as complete.");
+     // toast.error("An error occurred while marking the task as complete.");
     }
   };
 
