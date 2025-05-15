@@ -359,35 +359,69 @@ const handleSubmitReview = async (e: FormEvent) => {
     }, 1500);
   };
 
-  const handleMessageUser = async (receiverId?: string) => {
-    if (!userId || !task) {
-      toast.error('Please log in to send messages');
-      return;
-    }
-  
-    const senderId = userId;
-    // Determine recipient: use provided receiverId (for specific bidder) or default to poster/tasker
-    const targetReceiverId = receiverId || (isTaskPoster ? offers[0]?.tasker.id : task.poster.id);
-  
-    if (!targetReceiverId) {
-      toast.error('No recipient available to message');
-      return;
-    }
-  
-    try {
-      // Attempt to get existing chat or create a new one
-      const response = await axiosInstance.get(`/get-chat-id/?sender=${senderId}&receiver=${targetReceiverId}`);
-      if (response.data.status_code === 200 && response.data.data.chat_id) {
-        router.push(`/messages/${response.data.data.chat_id}`);
-      } else {
-        // Navigate to new chat page with sender and receiver IDs
-        router.push(`/messages/new?sender=${senderId}&receiver=${targetReceiverId}`);
+const handleMessageUser = async (receiverId?: string) => {
+  if (!userId || !task) {
+    console.error('handleMessageUser - Missing userId or task', { userId, task });
+    toast.error('Please log in to send messages');
+    return;
+  }
+
+  const senderId = userId;
+  let targetReceiverId: string | undefined;
+
+  console.log('handleMessageUser - Inputs:', {
+    userId,
+    receiverId,
+    isTaskPoster,
+    taskPosterId: task.poster.id,
+    offersLength: offers.length,
+    firstOfferTaskerId: offers[0]?.tasker.id,
+  });
+
+  if (receiverId) {
+    targetReceiverId = receiverId;
+  } else if (isTaskPoster) {
+    targetReceiverId = offers.length > 0 ? offers[0].tasker.id : undefined;
+  } else {
+    targetReceiverId = task.poster.id;
+  }
+
+  if (!targetReceiverId) {
+    console.error('handleMessageUser - No recipient available', { offers, isTaskPoster });
+    toast.error('No recipient available to message');
+    return;
+  }
+
+  if (targetReceiverId === senderId) {
+    console.error('handleMessageUser - Invalid recipient: sender and receiver are the same', { senderId, targetReceiverId });
+    toast.error('Cannot message yourself');
+    return;
+  }
+
+  console.log('handleMessageUser - Initiating chat with:', { senderId, targetReceiverId });
+
+  try {
+    const response = await axiosInstance.get(`/get-chat-id/?sender=${senderId}&receiver=${targetReceiverId}`);
+    console.log('handleMessageUser - API Response:', response.data);
+    if (response.data.status_code === 200 && response.data.data.chat_id) {
+      const chatId = response.data.data.chat_id;
+      const storedChats = localStorage.getItem('userChats');
+      const chatIds: string[] = storedChats ? JSON.parse(storedChats) : [];
+      if (!chatIds.includes(chatId)) {
+        chatIds.push(chatId);
+        localStorage.setItem('userChats', JSON.stringify(chatIds));
       }
-    } catch (error: any) {
-      console.error('Error initiating chat:', error);
-      toast.error(error.response?.data?.message || 'Failed to initiate chat');
+      console.log('handleMessageUser - Navigating to chat:', { chatId });
+      router.push(`/messages/${chatId}`);
+    } else {
+      console.log('handleMessageUser - No existing chat, starting new chat:', { senderId, targetReceiverId });
+      router.push(`/messages/new?sender=${senderId}&receiver=${targetReceiverId}`);
     }
-  };
+  } catch (error: any) {
+    console.error('handleMessageUser - Error initiating chat:', error.response?.data || error);
+    toast.error(error.response?.data?.message || 'Failed to initiate chat');
+  }
+};
 
   const openImageGallery = (index: number) => {
     setCurrentImageIndex(index);
@@ -475,12 +509,12 @@ const handleSubmitReview = async (e: FormEvent) => {
             >
               Post a Task
             </Link>
-            <Link
+            {/* <Link
               href="/messages"
               className="text-sm font-medium hover:underline underline-offset-4"
             >
               Messages
-            </Link>
+            </Link> */}
           </nav>
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">

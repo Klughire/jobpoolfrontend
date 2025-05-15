@@ -218,9 +218,9 @@ export default function BrowseTasksPage() {
             <Link href="/post-task" className="text-sm font-medium hover:underline underline-offset-4">
               Post a Task
             </Link>
-            <Link href="/messages" className="text-sm font-medium hover:underline underline-offset-4">
+            {/* <Link href="/messages" className="text-sm font-medium hover:underline underline-offset-4">
               Messages
-            </Link>
+            </Link> */}
           </nav>
           <div className="flex items-center gap-4">
             {user ? (

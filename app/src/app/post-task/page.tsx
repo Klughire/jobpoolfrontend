@@ -247,12 +247,12 @@ export default function PostTaskPage() {
             >
               Browse Tasks
             </Link>
-            <Link
+            {/* <Link
               href="/messages"
               className="text-sm font-medium hover:underline underline-offset-4"
             >
               Messages
-            </Link>
+            </Link> */}
           </nav>
         </div>
       </header>

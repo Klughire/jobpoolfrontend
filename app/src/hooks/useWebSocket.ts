@@ -1,57 +1,106 @@
+import { useEffect, useRef, useState } from "react";
+import useStore from '@/lib/Zustand';
 
+interface WebSocketMessage {
+  messagesid: string;
+  chat_id: string;
+  userrefid: string;
+  username: string;
+  description: string;
+  readstatus: boolean;
+  tstamp: string;
+}
 
-import { useEffect, useRef } from 'react';
+interface WebSocketError {
+  error: string;
+}
 
-export default function useWebSocket(chatId: string, onMessage: (message: any) => void) {
-  const socketRef = useRef<WebSocket | null>(null);
+type WebSocketResponse = { message: WebSocketMessage } | { error: string };
 
-  useEffect(() => {
-    if (!chatId) {
-      console.warn('No chatId provided, WebSocket connection not established.');
+const useWebSocket = (chatId: string, onMessage: (message: WebSocketMessage) => void) => {
+  const { userId } = useStore();
+  const wsRef = useRef<WebSocket | null>(null);
+  const [reconnectAttempts, setReconnectAttempts] = useState(0);
+  const maxReconnectAttempts = 5;
+  const reconnectInterval = useRef<NodeJS.Timeout | null>(null);
+
+  const connectWebSocket = () => {
+    if (!chatId || !userId) {
+      console.warn('useWebSocket - Missing chatId or userId');
       return;
     }
 
-    const url = `ws://127.0.0.1:8000/ws/chat/${chatId}`;
-    // const url = `wss://api.jobpool.in:8000/ws/chat/${chatId}`;
-    console.log('Connecting to Chat WebSocket at URL:', url);
+    const wsUrl = `${process.env.NEXT_PUBLIC_WEBSOCKET_URL}/ws/chat/${chatId}?user_id=${userId}`;
+    console.log('useWebSocket - Connecting to:', wsUrl);
+    wsRef.current = new WebSocket(wsUrl);
 
-    socketRef.current = new WebSocket(url);
-
-    socketRef.current.onopen = () => {
-      console.log('Chat WebSocket connected');
+    wsRef.current.onopen = () => {
+      console.log('useWebSocket - WebSocket connected for chat:', chatId);
+      setReconnectAttempts(0); // Reset reconnect attempts on successful connection
     };
 
-    socketRef.current.onmessage = (event) => {
-      const message = JSON.parse(event.data);
-      if (onMessage) {
-        // Add incoming message and then trigger re-sorting via onMessage callback
-        onMessage(message);
+    wsRef.current.onmessage = (event) => {
+      console.log('useWebSocket - Received message at:', new Date().toISOString(), event.data);
+      try {
+        const data: WebSocketResponse = JSON.parse(event.data);
+        if ('error' in data) {
+          console.error('useWebSocket - Error in message:', data.error);
+          return;
+        }
+        onMessage(data.message);
+      } catch (error) {
+        console.error('useWebSocket - Error parsing message:', error);
       }
     };
 
-    socketRef.current.onerror = (event) => {
-      console.error('Chat WebSocket error:', event);
+    wsRef.current.onclose = (event) => {
+      console.log('useWebSocket - WebSocket closed for chat:', chatId, 'Code:', event.code, 'Reason:', event.reason);
+      if (reconnectAttempts < maxReconnectAttempts) {
+        const delay = Math.min(1000 * 2 ** reconnectAttempts, 30000); // Exponential backoff, max 30s
+        console.log(`useWebSocket - Attempting to reconnect in ${delay}ms...`);
+        reconnectInterval.current = setTimeout(() => {
+          setReconnectAttempts((prev) => prev + 1);
+          connectWebSocket();
+        }, delay);
+      } else {
+        console.error('useWebSocket - Max reconnect attempts reached');
+      }
     };
 
-    socketRef.current.onclose = (event) => {
-      console.log('Chat WebSocket disconnected', event);
+    wsRef.current.onerror = (error) => {
+      console.error('useWebSocket - WebSocket error:', error);
     };
+  };
+
+  useEffect(() => {
+    connectWebSocket();
 
     return () => {
-      if (socketRef.current) {
-        socketRef.current.close();
+      if (reconnectInterval.current) {
+        clearTimeout(reconnectInterval.current);
+      }
+      if (wsRef.current) {
+        wsRef.current.close();
       }
     };
-  }, [chatId, onMessage]);
+  }, [chatId, userId]);
 
-  // Function to send a message through WebSocket
-  const sendMessage = (message: any) => {
-    if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
-      socketRef.current.send(JSON.stringify(message));
+  const sendMessage = (message: WebSocketMessage) => {
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+      console.log('useWebSocket - Sending message:', message);
+      wsRef.current.send(JSON.stringify({ message }));
     } else {
-      console.warn('Chat WebSocket is not open. Unable to send message:', message);
+      console.error('useWebSocket - WebSocket not open, queuing message');
+      // Optionally queue the message and retry after reconnection
+      setTimeout(() => {
+        if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+          wsRef.current.send(JSON.stringify({ message }));
+        }
+      }, 1000);
     }
   };
 
   return { sendMessage };
-}
+};
+
+export default useWebSocket;

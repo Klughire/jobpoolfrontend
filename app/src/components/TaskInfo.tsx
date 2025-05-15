@@ -122,14 +122,14 @@ export function TaskInfo({ task, openImageGallery, handleMessageUser, isTaskPost
           </div>
         </div>
       </CardContent>
-      {task.status && (
+      {/* {task.status && (
         <CardFooter>
           <Button className="w-full" onClick={() => handleMessageUser(task.poster.id)}>
             <MessageSquare className="mr-2 h-4 w-4" />
             Message {isTaskPoster ? task.assignedTasker?.name : task.poster.name}
           </Button>
         </CardFooter>
-      )}
+      )} */}
     </Card>
   );
 }

@@ -190,9 +190,9 @@ export default function PaymentsPage() {
             <Link href="/browse" className="text-sm font-medium hover:underline underline-offset-4">
               Browse Tasks
             </Link>
-            <Link href="/messages" className="text-sm font-medium hover:underline underline-offset-4">
+            {/* <Link href="/messages" className="text-sm font-medium hover:underline underline-offset-4">
               Messages
-            </Link>
+            </Link> */}
           </nav>
         </div>
       </header>
