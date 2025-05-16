@@ -273,7 +273,7 @@
 //               : "Unknown",
 //             offers: job.offers?.length || 0,
 //             posted_by: job.posted_by || "Unknown",
-           
+
 //           }));
 //           setAssignedTasks(tasks);
 //         } else {
@@ -834,8 +834,6 @@
 //   );
 // }
 
-
-
 // working one
 
 // "use client";
@@ -958,8 +956,6 @@
 //   const [assignedTasks, setAssignedTasks] = useState<Task[]>([]);
 //   const [requestedTasks, setRequestedTasks] = useState<BidRequest[]>([]);
 //   const [completedTasks, setCompletedTasks] = useState<Task[]>([]);
-
-  
 
 //   // Check authentication and fetch user from localStorage
 //   useEffect(() => {
@@ -1720,9 +1716,16 @@ import {
   CheckCircle,
   Search,
   Filter,
+  Trash2,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 
 import axiosInstance from "@/lib/axiosInstance";
@@ -1867,8 +1870,11 @@ export default function DashboardPage() {
           name: data.name || "",
           email: data.email || "",
           phone: data.phone_number || "",
-          avatar: data.profile_img || "/images/placeholder.svg?height=128&width=128",
-          joinDate: data.tstamp ? new Date(data.tstamp).toLocaleDateString() : "",
+          avatar:
+            data.profile_img || "/images/placeholder.svg?height=128&width=128",
+          joinDate: data.tstamp
+            ? new Date(data.tstamp).toLocaleDateString()
+            : "",
         });
       } catch (err: any) {
         console.error("Failed to fetch profile:", err);
@@ -2196,6 +2202,28 @@ export default function DashboardPage() {
     }
   };
 
+  const handleDelete = async (jobId: string) => {
+    if (!confirm("Are you sure you want to delete this task?")) return;
+
+    try {
+      const response = await axiosInstance.delete<
+        APIResponse<{ job_id: string }>
+      >(`/delete-job/${jobId}/`);
+
+      if (response.data.status_code === 200) {
+        toast.success("Task deleted successfully!");
+
+        setPostedTasks((prev) => prev.filter((task) => task.id !== jobId));
+      } else {
+        toast.error(response.data.message || "Failed to delete task");
+      }
+    } catch (error) {
+      console.error("Error deleting task:", error);
+
+      toast.error("An error occurred while deleting the task");
+    }
+  };
+
   const handleSignOut = () => {
     localStorage.removeItem("user");
     logout();
@@ -2210,8 +2238,11 @@ export default function DashboardPage() {
       task.description.toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchesCategory = category === "all" || task.category === category;
-    const matchesPrice = task.budget >= priceRange[0] && task.budget <= priceRange[1];
-    const matchesLocation = location === "" || task.location.toLowerCase().includes(location.toLowerCase());
+    const matchesPrice =
+      task.budget >= priceRange[0] && task.budget <= priceRange[1];
+    const matchesLocation =
+      location === "" ||
+      task.location.toLowerCase().includes(location.toLowerCase());
 
     console.log(`Task ${task.id} filter check:`, {
       matchesSearch,
@@ -2252,11 +2283,17 @@ export default function DashboardPage() {
     <div className="flex min-h-screen flex-col">
       <header className="border-b">
         <div className="container flex h-16 items-center justify-between px-4 md:px-6">
-          <Link href="/dashboard" className="flex items-center gap-2 font-bold text-xl">
+          <Link
+            href="/dashboard"
+            className="flex items-center gap-2 font-bold text-xl"
+          >
             <span className="text-primary">JobPool</span>
           </Link>
           <div className="flex items-center gap-4">
-            <Link href="/profile" className="text-sm font-medium hover:underline underline-offset-4">
+            <Link
+              href="/profile"
+              className="text-sm font-medium hover:underline underline-offset-4"
+            >
               <span className="text-primary">Profile</span>
             </Link>
             <div className="flex items-center gap-2">
@@ -2310,7 +2347,14 @@ export default function DashboardPage() {
             ) : (
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {postedTasks.map((task) => (
-                  <Card key={task.id}>
+                  <Card key={task.id} className="relative">
+                    <button
+                      onClick={() => handleDelete(task.id)}
+                      className="absolute top-2 right-2 text-red-500 hover:text-red-700"
+                      aria-label="Delete task"
+                    >
+                      <Trash2 className="h-5 w-5" />
+                    </button>
                     <CardHeader className="pb-2">
                       <div className="flex justify-between items-start">
                         <CardTitle className="text-lg">{task.title}</CardTitle>
@@ -2474,7 +2518,9 @@ export default function DashboardPage() {
                         </Select>
                       </div>
                       <div className="space-y-2">
-                        <label className="text-sm font-medium">Price Range</label>
+                        <label className="text-sm font-medium">
+                          Price Range
+                        </label>
                         <div className="pt-4">
                           <Slider
                             defaultValue={[0, 2000]}
@@ -2502,7 +2548,9 @@ export default function DashboardPage() {
                 )}
 
                 <div className="flex justify-between items-center">
-                  <p className="text-sm text-muted-foreground">{filteredTasks.length} tasks found</p>
+                  <p className="text-sm text-muted-foreground">
+                    {filteredTasks.length} tasks found
+                  </p>
                   <Select defaultValue="newest">
                     <SelectTrigger className="w-[180px]">
                       <SelectValue placeholder="Sort by" />
@@ -2540,7 +2588,9 @@ export default function DashboardPage() {
                       <Card key={task.id} className="flex flex-col">
                         <CardHeader className="pb-2">
                           <div className="flex justify-between items-start">
-                            <CardTitle className="text-lg">{task.title}</CardTitle>
+                            <CardTitle className="text-lg">
+                              {task.title}
+                            </CardTitle>
                             <Badge variant="outline">
                               {task.status.charAt(0).toUpperCase() +
                                 task.status.slice(1)}

@@ -1,5 +1,4 @@
-
-'use client'
+"use client";
 import { ImageGalleryModal } from "@/components/ImageGalleryModal";
 import { OffersSection } from "@/components/OffersSection";
 import { PaymentModal } from "@/components/PaymentModal";
@@ -14,10 +13,18 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, use, useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Task, User, Bid, Offer, ApiBidResponse, ApiJobResponse } from "../../types";
+import {
+  Task,
+  User,
+  Bid,
+  Offer,
+  ApiBidResponse,
+  ApiJobResponse,
+} from "../../types";
 import { TaskProgress } from "@/components/TaskProgress";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { SquarePen } from "lucide-react";
 
 interface TaskDetailPageProps {
   params: Promise<{ id: string }>;
@@ -39,6 +46,7 @@ export default function TaskDetailPage({ params }: TaskDetailPageProps) {
   const [showPaymentModal, setShowPaymentModal] = useState<boolean>(false);
   const [showImageGallery, setShowImageGallery] = useState<boolean>(false);
   const [currentImageIndex, setCurrentImageIndex] = useState<number>(0);
+  const [isEditing, setIsEditing] = useState<boolean>(false);
   const { userId } = useStore();
   const taskerId = offers.length > 0 ? offers[0].tasker.id : null;
 
@@ -97,23 +105,23 @@ export default function TaskDetailPage({ params }: TaskDetailPageProps) {
             ? (() => {
                 const date = new Date(job.timestamp);
                 return isNaN(date.getTime())
-                  ? 'Invalid Date'
-                  : date.toLocaleDateString('en-GB', {
-                      day: '2-digit',
-                      month: '2-digit',
-                      year: 'numeric',
-                      timeZone: 'UTC'
+                  ? "Invalid Date"
+                  : date.toLocaleDateString("en-GB", {
+                      day: "2-digit",
+                      month: "2-digit",
+                      year: "numeric",
+                      timeZone: "UTC",
                     });
               })()
-            : 'N/A',
+            : "N/A",
           dueDate: job.job_due_date
-            ? new Date(job.job_due_date).toLocaleDateString('en-GB', {
-                day: '2-digit',
-                month: '2-digit',
-                year: 'numeric',
-                timeZone: 'UTC'
+            ? new Date(job.job_due_date).toLocaleDateString("en-GB", {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric",
+                timeZone: "UTC",
               })
-            : 'N/A',
+            : "N/A",
           category: job.job_category_name,
           images: job.job_images.urls.map((url: string, index: number) => ({
             id: `img${index + 1}`,
@@ -190,7 +198,7 @@ export default function TaskDetailPage({ params }: TaskDetailPageProps) {
         console.log("Mapped offers:", newOffers);
       } catch (error: any) {
         console.error("Error loading bids:", error);
-       // toast.error(`Failed to load bids: ${error.message || "Unknown error"}`);
+        // toast.error(`Failed to load bids: ${error.message || "Unknown error"}`);
       }
     }
 
@@ -233,7 +241,7 @@ export default function TaskDetailPage({ params }: TaskDetailPageProps) {
           bidder_id: userId,
           bid_amount: offerAmountNumber,
           bid_description: offerMessage,
-          bidder_name:user?.name,
+          bidder_name: user?.name,
         });
         localStorage.setItem("bids", JSON.stringify(allBids));
 
@@ -259,34 +267,39 @@ export default function TaskDetailPage({ params }: TaskDetailPageProps) {
 
         setOfferAmount("");
         setOfferMessage("");
-       // router.push("/dashboard")
+        // router.push("/dashboard")
       } else {
         throw new Error(response.data.message || "Failed to submit offer");
       }
     } catch (error: any) {
       console.error("Error submitting offer:", error);
-      const errorMessage = error.response?.data?.message || "Failed to submit offer";
+      const errorMessage =
+        error.response?.data?.message || "Failed to submit offer";
       toast.error(errorMessage);
       if (error.response?.status === 400 && userId) {
         // Sync bids
-        const bidsResponse = await axiosInstance.get(`/get-user-bids/${userId}/`);
+        const bidsResponse = await axiosInstance.get(
+          `/get-user-bids/${userId}/`
+        );
         const bidsData: ApiBidResponse = bidsResponse.data;
         if (bidsData.status_code === 200) {
           localStorage.setItem("bids", JSON.stringify(bidsData.data));
           const taskBids = bidsData.data.filter((bid) => bid.job_id === id);
-          const newOffers: Offer[] = taskBids.map((bid: Bid, index: number) => ({
-            id: `bid${index + 1}`,
-            tasker: {
-              id: bid.bidder_id,
-              name: `User ${bid.bidder_id}`,
-              rating: 4.5,
-              taskCount: 5,
-              joinedDate: "Apr 2023",
-            },
-            amount: bid.bid_amount,
-            message: bid.bid_description,
-            createdAt: "Just now",
-          }));
+          const newOffers: Offer[] = taskBids.map(
+            (bid: Bid, index: number) => ({
+              id: `bid${index + 1}`,
+              tasker: {
+                id: bid.bidder_id,
+                name: `User ${bid.bidder_id}`,
+                rating: 4.5,
+                taskCount: 5,
+                joinedDate: "Apr 2023",
+              },
+              amount: bid.bid_amount,
+              message: bid.bid_description,
+              createdAt: "Just now",
+            })
+          );
           setOffers(newOffers);
           setBids(taskBids);
           console.log("Updated bids after 400 error:", taskBids);
@@ -298,44 +311,43 @@ export default function TaskDetailPage({ params }: TaskDetailPageProps) {
     }
   };
 
-const handleSubmitReview = async (e: FormEvent) => {
-  e.preventDefault();
-  if (!reviewComment) {
-    toast.error("Please provide a review comment");
-    return;
-  }
-  if (!taskerId) {
-    toast.error("No tasker assigned to this task");
-    return;
-  }
-
-  setIsSubmitting(true);
-
-  try {
-    const payload = {
-      job_ref_id: id,
-      reviewer_id: userId,
-      user_id : taskerId, // Include tasker ID
-      rating: reviewRating,
-      comment: reviewComment,
-    };
-
-    const response = await axiosInstance.put("/submit-review/", payload); // Adjust endpoint as needed
-
-    if (response.data.status_code === 200) {
-      toast.success("Your review has been submitted!");
-      router.push("/dashboard");
-    } else {
-      throw new Error(response.data.message || "Failed to submit review");
+  const handleSubmitReview = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!reviewComment) {
+      toast.error("Please provide a review comment");
+      return;
     }
-  } catch (error: any) {
-    console.error("Error submitting review:", error);
-    toast.error(error.response?.data?.message || "Failed to submit review");
-  } finally {
-    setIsSubmitting(false);
-  }
-};
+    if (!taskerId) {
+      toast.error("No tasker assigned to this task");
+      return;
+    }
 
+    setIsSubmitting(true);
+
+    try {
+      const payload = {
+        job_ref_id: id,
+        reviewer_id: userId,
+        user_id: taskerId, // Include tasker ID
+        rating: reviewRating,
+        comment: reviewComment,
+      };
+
+      const response = await axiosInstance.put("/submit-review/", payload); // Adjust endpoint as needed
+
+      if (response.data.status_code === 200) {
+        toast.success("Your review has been submitted!");
+        router.push("/dashboard");
+      } else {
+        throw new Error(response.data.message || "Failed to submit review");
+      }
+    } catch (error: any) {
+      console.error("Error submitting review:", error);
+      toast.error(error.response?.data?.message || "Failed to submit review");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const markAsComplete = () => {
     setTimeout(() => {
@@ -359,69 +371,91 @@ const handleSubmitReview = async (e: FormEvent) => {
     }, 1500);
   };
 
-const handleMessageUser = async (receiverId?: string) => {
-  if (!userId || !task) {
-    console.error('handleMessageUser - Missing userId or task', { userId, task });
-    toast.error('Please log in to send messages');
-    return;
-  }
-
-  const senderId = userId;
-  let targetReceiverId: string | undefined;
-
-  console.log('handleMessageUser - Inputs:', {
-    userId,
-    receiverId,
-    isTaskPoster,
-    taskPosterId: task.poster.id,
-    offersLength: offers.length,
-    firstOfferTaskerId: offers[0]?.tasker.id,
-  });
-
-  if (receiverId) {
-    targetReceiverId = receiverId;
-  } else if (isTaskPoster) {
-    targetReceiverId = offers.length > 0 ? offers[0].tasker.id : undefined;
-  } else {
-    targetReceiverId = task.poster.id;
-  }
-
-  if (!targetReceiverId) {
-    console.error('handleMessageUser - No recipient available', { offers, isTaskPoster });
-    toast.error('No recipient available to message');
-    return;
-  }
-
-  if (targetReceiverId === senderId) {
-    console.error('handleMessageUser - Invalid recipient: sender and receiver are the same', { senderId, targetReceiverId });
-    toast.error('Cannot message yourself');
-    return;
-  }
-
-  console.log('handleMessageUser - Initiating chat with:', { senderId, targetReceiverId });
-
-  try {
-    const response = await axiosInstance.get(`/get-chat-id/?sender=${senderId}&receiver=${targetReceiverId}`);
-    console.log('handleMessageUser - API Response:', response.data);
-    if (response.data.status_code === 200 && response.data.data.chat_id) {
-      const chatId = response.data.data.chat_id;
-      const storedChats = localStorage.getItem('userChats');
-      const chatIds: string[] = storedChats ? JSON.parse(storedChats) : [];
-      if (!chatIds.includes(chatId)) {
-        chatIds.push(chatId);
-        localStorage.setItem('userChats', JSON.stringify(chatIds));
-      }
-      console.log('handleMessageUser - Navigating to chat:', { chatId });
-      router.push(`/messages/${chatId}`);
-    } else {
-      console.log('handleMessageUser - No existing chat, starting new chat:', { senderId, targetReceiverId });
-      router.push(`/messages/new?sender=${senderId}&receiver=${targetReceiverId}`);
+  const handleMessageUser = async (receiverId?: string) => {
+    if (!userId || !task) {
+      console.error("handleMessageUser - Missing userId or task", {
+        userId,
+        task,
+      });
+      toast.error("Please log in to send messages");
+      return;
     }
-  } catch (error: any) {
-    console.error('handleMessageUser - Error initiating chat:', error.response?.data || error);
-    toast.error(error.response?.data?.message || 'Failed to initiate chat');
-  }
-};
+
+    const senderId = userId;
+    let targetReceiverId: string | undefined;
+
+    console.log("handleMessageUser - Inputs:", {
+      userId,
+      receiverId,
+      isTaskPoster,
+      taskPosterId: task.poster.id,
+      offersLength: offers.length,
+      firstOfferTaskerId: offers[0]?.tasker.id,
+    });
+
+    if (receiverId) {
+      targetReceiverId = receiverId;
+    } else if (isTaskPoster) {
+      targetReceiverId = offers.length > 0 ? offers[0].tasker.id : undefined;
+    } else {
+      targetReceiverId = task.poster.id;
+    }
+
+    if (!targetReceiverId) {
+      console.error("handleMessageUser - No recipient available", {
+        offers,
+        isTaskPoster,
+      });
+      toast.error("No recipient available to message");
+      return;
+    }
+
+    if (targetReceiverId === senderId) {
+      console.error(
+        "handleMessageUser - Invalid recipient: sender and receiver are the same",
+        { senderId, targetReceiverId }
+      );
+      toast.error("Cannot message yourself");
+      return;
+    }
+
+    console.log("handleMessageUser - Initiating chat with:", {
+      senderId,
+      targetReceiverId,
+    });
+
+    try {
+      const response = await axiosInstance.get(
+        `/get-chat-id/?sender=${senderId}&receiver=${targetReceiverId}`
+      );
+      console.log("handleMessageUser - API Response:", response.data);
+      if (response.data.status_code === 200 && response.data.data.chat_id) {
+        const chatId = response.data.data.chat_id;
+        const storedChats = localStorage.getItem("userChats");
+        const chatIds: string[] = storedChats ? JSON.parse(storedChats) : [];
+        if (!chatIds.includes(chatId)) {
+          chatIds.push(chatId);
+          localStorage.setItem("userChats", JSON.stringify(chatIds));
+        }
+        console.log("handleMessageUser - Navigating to chat:", { chatId });
+        router.push(`/messages/${chatId}`);
+      } else {
+        console.log(
+          "handleMessageUser - No existing chat, starting new chat:",
+          { senderId, targetReceiverId }
+        );
+        router.push(
+          `/messages/new?sender=${senderId}&receiver=${targetReceiverId}`
+        );
+      }
+    } catch (error: any) {
+      console.error(
+        "handleMessageUser - Error initiating chat:",
+        error.response?.data || error
+      );
+      toast.error(error.response?.data?.message || "Failed to initiate chat");
+    }
+  };
 
   const openImageGallery = (index: number) => {
     setCurrentImageIndex(index);
@@ -440,7 +474,8 @@ const handleMessageUser = async (receiverId?: string) => {
   const prevImage = (e: React.MouseEvent) => {
     e.stopPropagation();
     setCurrentImageIndex(
-      (prev) => (prev - 1 + (task?.images.length || 1)) % (task?.images.length || 1)
+      (prev) =>
+        (prev - 1 + (task?.images.length || 1)) % (task?.images.length || 1)
     );
   };
 
@@ -496,7 +531,7 @@ const handleMessageUser = async (receiverId?: string) => {
           <Link href="/" className="flex items-center gap-2 font-bold text-xl">
             <span className="text-primary">JobPool</span>
           </Link>
-          <nav className="hidden md:flex gap-6">
+          {/* <nav className="hidden md:flex gap-6">
             <Link
               href="/browse"
               className="text-sm font-medium hover:underline underline-offset-4"
@@ -509,13 +544,13 @@ const handleMessageUser = async (receiverId?: string) => {
             >
               Post a Task
             </Link>
-            {/* <Link
+            <Link
               href="/messages"
               className="text-sm font-medium hover:underline underline-offset-4"
             >
               Messages
-            </Link> */}
-          </nav>
+            </Link>
+          </nav> */}
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
               <Avatar className="h-8 w-8">
@@ -534,13 +569,25 @@ const handleMessageUser = async (receiverId?: string) => {
       </header>
       <main className="flex-1 container py-6 md:py-10 px-4 md:px-6">
         <div className="max-w-4xl mx-auto">
-          <div className="mb-6">
+          <div className="mb-6 flex justify-between items-center">
             <Link
               href="/dashboard"
               className="text-sm text-muted-foreground hover:underline"
             >
               ← Back to Dashboard
             </Link>
+
+            {/* <Link
+
+              href={`/tasks/${id}/edit`}
+
+              className="text-muted-foreground hover:text-primary"
+
+            >
+
+              <SquarePen />
+
+            </Link> */}
           </div>
 
           <div className="grid gap-6 md:grid-cols-3">
@@ -550,6 +597,8 @@ const handleMessageUser = async (receiverId?: string) => {
                 openImageGallery={openImageGallery}
                 handleMessageUser={handleMessageUser}
                 isTaskPoster={isTaskPoster}
+                isEditing={isEditing}
+                setIsEditing={setIsEditing}
               />
               <ReviewSection
                 isTaskPoster={isTaskPoster}
