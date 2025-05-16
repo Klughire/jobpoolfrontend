@@ -33,7 +33,7 @@ export default function VerticalStepIndicator({ currentStep, steps }: VerticalSt
                     className={cn(
                       "flex h-7 w-7 items-center justify-center rounded-full border-2",
                       currentStep === index
-                        ? "border-primary bg-primary text-primary-foreground"
+                        ? "border-blue-800 bg-blue-600 text-primary-foreground"
                         : "border-gray-300 bg-white text-gray-500",
                     )}
                   >
