@@ -2885,6 +2885,7 @@ import axiosInstance from "@/lib/axiosInstance";
 import useStore from "@/lib/Zustand";
 import { toast } from "sonner";
 import Header from "@/components/Header"; // Import the Header component
+import { ConfirmDialog } from "@/components/ConfirmDialog"; // Import the ConfirmDialog component
 
 // Interfaces
 interface User {
@@ -2982,6 +2983,8 @@ export default function DashboardPage() {
   const [assignedTasks, setAssignedTasks] = useState<Task[]>([]);
   const [requestedTasks, setRequestedTasks] = useState<BidRequest[]>([]);
   const [completedTasks, setCompletedTasks] = useState<Task[]>([]);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
 
   // Available Tasks Filters State
   const [searchTerm, setSearchTerm] = useState("");
@@ -3356,28 +3359,31 @@ export default function DashboardPage() {
     }
   };
 
-  const handleDelete = async (jobId: string) => {
-    if (!confirm("Are you sure you want to delete this task?")) return;
-
-    try {
-      const response = await axiosInstance.delete<
-        APIResponse<{ job_id: string }>
-      >(`/delete-job/${jobId}/`);
-
-      if (response.data.status_code === 200) {
-        toast.success("Task deleted successfully!");
-
-        setPostedTasks((prev) => prev.filter((task) => task.id !== jobId));
-      } else {
-        toast.error(response.data.message || "Failed to delete task");
-      }
-    } catch (error) {
-      console.error("Error deleting task:", error);
-
-      toast.error("An error occurred while deleting the task");
-    }
+  const handleDeleteClick = (jobId: string) => {
+    setSelectedJobId(jobId);
+    setConfirmOpen(true);
   };
 
+  const handleConfirmDelete = async () => {
+  if (!selectedJobId) return;
+
+  setConfirmOpen(false);
+
+  try {
+    const response = await axiosInstance.delete(`/delete-job/${selectedJobId}/`);
+    if (response.data.status_code === 200) {
+      toast.success("Task deleted successfully!");
+      // Remove the deleted task from postedTasks
+      setPostedTasks((prev) => prev.filter((task) => task.id !== selectedJobId));
+    } else {
+      toast.error(response.data.message || "Failed to delete task");
+    }
+  } catch (error) {
+    toast.error("An error occurred while deleting the task");
+  } finally {
+    setSelectedJobId(null); // Clear selectedJobId
+  }
+};
   const handleSignOut = () => {
     localStorage.removeItem("user");
     logout();
@@ -3474,7 +3480,7 @@ export default function DashboardPage() {
                 {postedTasks.map((task) => (
                   <Card key={task.id} className="relative">
                     <button
-                      onClick={() => handleDelete(task.id)}
+                      onClick={() => handleDeleteClick(task.id)}
                       className="absolute top-2 right-2 text-red-500 hover:text-red-700"
                       aria-label="Delete task"
                     >
@@ -3960,6 +3966,15 @@ export default function DashboardPage() {
             )}
           </TabsContent>
         </Tabs>
+        <ConfirmDialog
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        onConfirm={handleConfirmDelete}
+        title="Delete Task"
+        description="Are you sure you want to delete this task? This action cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
+      />
       </main>
     </div>
   );

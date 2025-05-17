@@ -61,6 +61,7 @@
 
 // components/PosterInfo.tsx
 import { Button } from '@/components/ui/button';
+import Link from 'next/link';
 
 interface User {
     id: string;
@@ -81,7 +82,10 @@ export function PosterInfo({ poster, isTaskPoster, handleMessageUser }: PosterIn
   return (
     <div className="border p-4 rounded-md">
       <h2 className="text-lg font-semibold">Posted By</h2>
-      <p className="font-medium">{poster.name}</p>
+      
+      <Link href={`/profilepage/${poster.id}`} className="font-medium">
+        {poster.name}
+      </Link>
       <p className="text-sm">Rating: {poster.rating} ★</p>
       <p className="text-sm">Tasks Completed: {poster.taskCount}</p>
       <p className="text-sm">Joined: {poster.joinedDate}</p>

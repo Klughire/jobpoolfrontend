@@ -1090,10 +1090,10 @@ export default function TaskDetailPage({ params }: TaskDetailPageProps) {
       senderId,
       targetReceiverId,
     });
-
+// /api/v1/get-chat-id/?sender=bptemt&receiver=apbori&job_id=task_2
     try {
       const response = await axiosInstance.get(
-        `/get-chat-id/?sender=${senderId}&receiver=${targetReceiverId}`
+        `/get-chat-id/?sender=${senderId}&receiver=${targetReceiverId}&job_id=${id}`
       );
       console.log("handleMessageUser - API Response:", response.data);
       if (response.data.status_code === 200 && response.data.data.chat_id) {

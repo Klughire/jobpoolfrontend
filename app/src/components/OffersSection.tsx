@@ -1,5 +1,3 @@
-
-
 // import { FormEvent, useState } from "react";
 // import { Star } from "lucide-react";
 // import { Button } from "./ui/button";
@@ -84,7 +82,7 @@
 //     console.log("Attempting API call to:", `/accept-bid/${task.id}/${offer.tasker.id}/`);
 //     try {
 //       const response = await axiosInstance.put(`/accept-bid/${task.id}/${offer.tasker.id}/`);
-      
+
 //       if (response.data.status_code === 200) {
 //         toast.success(response.data.message || "Bid accepted successfully");
 
@@ -100,7 +98,6 @@
 //       setIsAccepting(null);
 //     }
 //   };
-
 
 //   return (
 //     <Card>
@@ -209,16 +206,23 @@
 //   );
 // }
 
-
 import { FormEvent, useState } from "react";
 import { Star } from "lucide-react";
 import { Button } from "./ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "./ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "./ui/card";
 import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
 import { Avatar, AvatarFallback } from "./ui/avatar";
-import axiosInstance from '../lib/axiosInstance';
+import axiosInstance from "../lib/axiosInstance";
 import { toast } from "sonner";
+import Link from "next/link";
 
 interface Image {
   id: string;
@@ -286,19 +290,21 @@ export function OffersSection({
   isSubmitting,
 }: OffersSectionProps) {
   const [isAccepting, setIsAccepting] = useState<string | null>(null);
-  console.log("task status", task.status)
+  console.log("task status", task.status);
 
-  console.log(task.assignedTasker?.id)
-  
-
-
+  console.log(task.assignedTasker?.id);
 
   const handleAcceptOffer = async (offer: Offer) => {
     setIsAccepting(offer.id);
-    console.log("Attempting API call to:", `/accept-bid/${task.id}/${offer.tasker.id}/`);
+    console.log(
+      "Attempting API call to:",
+      `/accept-bid/${task.id}/${offer.tasker.id}/`
+    );
     try {
-      const response = await axiosInstance.put(`/accept-bid/${task.id}/${offer.tasker.id}/`);
-      
+      const response = await axiosInstance.put(
+        `/accept-bid/${task.id}/${offer.tasker.id}/`
+      );
+
       if (response.data.status_code === 200) {
         toast.success(response.data.message || "Bid accepted successfully");
       } else {
@@ -307,7 +313,8 @@ export function OffersSection({
     } catch (error: any) {
       console.error("Error accepting bid:", error);
       toast.error(
-        error.response?.data?.message || "An error occurred while accepting the bid"
+        error.response?.data?.message ||
+          "An error occurred while accepting the bid"
       );
     } finally {
       setIsAccepting(null);
@@ -319,37 +326,50 @@ export function OffersSection({
       <CardHeader>
         <CardTitle>Offers ({offers.length})</CardTitle>
         <CardDescription>
-          {isTaskPoster ? "Choose the best offer for your task" : "View offers from other taskers"}
+          {isTaskPoster
+            ? "Choose the best offer for your task"
+            : "View offers from other taskers"}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {offers.length === 0 ? (
-          <p className="text-center text-muted-foreground py-4">No offers yet</p>
+          <p className="text-center text-muted-foreground py-4">
+            No offers yet
+          </p>
         ) : (
           offers.map((offer) => (
             <div key={offer.id} className="border rounded-lg p-4 space-y-3">
               <div className="flex justify-between items-start">
                 <div className="flex items-center gap-2">
-                  <Avatar className="h-8 w-8">
-                    <AvatarFallback>{offer.tasker.name.charAt(0)}</AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <p className="font-medium">{offer.tasker.name}</p>
-                    <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                      <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                      <span>
-                        {offer.tasker.rating} • {offer.tasker.taskCount} tasks
-                      </span>
+                  <Link
+                    href={`/profilepage/${offer.tasker.id}`}
+                    className="flex items-center gap-2 hover:underline"
+                  >
+                    <Avatar className="h-8 w-8">
+                      <AvatarFallback>
+                        {offer.tasker.name.charAt(0)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <p className="font-medium">{offer.tasker.name}</p>
+                      <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                        <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                        <span>
+                          {offer.tasker.rating} • {offer.tasker.taskCount} tasks
+                        </span>
+                      </div>
                     </div>
-                  </div>
+                  </Link>
                 </div>
                 <div className="text-right">
                   <p className="font-bold">${offer.amount.toFixed(2)}</p>
-                  <p className="text-xs text-muted-foreground">{offer.createdAt}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {offer.createdAt}
+                  </p>
                 </div>
               </div>
               <p className="text-sm">{offer.message}</p>
-              
+
               {isTaskPoster && (
                 <div className="flex gap-2">
                   {!task.status && (
@@ -359,10 +379,12 @@ export function OffersSection({
                       onClick={() => handleAcceptOffer(offer)}
                       disabled={isAccepting === offer.id}
                     >
-                      {isAccepting === offer.id ? "Accepting..." : "Accept Offer"}
+                      {isAccepting === offer.id
+                        ? "Accepting..."
+                        : "Accept Offer"}
                     </Button>
                   )}
-                  {task.status  || !task.status ? (
+                  {task.status || !task.status ? (
                     <Button
                       variant="outline"
                       size="sm"
