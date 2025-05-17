@@ -29,8 +29,8 @@ import axiosInstance from "../../lib/axiosInstance";
 import useStore from "../../lib/Zustand";
 import { handleAxiosError } from "../../lib/handleAxiosError";
 import LocationDetector from "../../components/LocationDetector";
+import Header from "@/components/Header";
 
-// Define types for our data structures
 interface User {
   // Add user properties as needed
   id: string;
@@ -226,37 +226,30 @@ export default function PostTaskPage() {
     return null; // Will redirect in useEffect
   }
 
+  const handleSignOut = () => {
+    localStorage.removeItem("user");
+
+    localStorage.removeItem("token");
+
+    localStorage.removeItem("bids");
+
+    router.push("/");
+  };
+
   return (
     <div className="flex min-h-screen flex-col">
       <Toaster />
-      <header className="border-b">
-        <div className="container flex h-16 items-center justify-between px-4 md:px-6">
-          <Link href="/" className="flex items-center gap-2 font-bold text-xl">
-            <span className="text-primary">JobPool</span>
-          </Link>
-          <nav className="hidden md:flex gap-6">
-            <Link
-              href="/dashboard"
-              className="text-sm font-medium hover:underline underline-offset-4"
-            >
-              Dashboard
-            </Link>
-            <Link
-              href="/browse"
-              className="text-sm font-medium hover:underline underline-offset-4"
-            >
-              Browse Tasks
-            </Link>
-            {/* <Link
-              href="/messages"
-              className="text-sm font-medium hover:underline underline-offset-4"
-            >
-              Messages
-            </Link> */}
-          </nav>
-        </div>
-      </header>
+      <Header
+        user={{ name: user.name, avatar: "/images/placeholder.svg" }}
+        onSignOut={handleSignOut}
+      />
       <main className="flex-1 container py-6 md:py-10 px-4 md:px-6">
+        <Link
+          href="/dashboard"
+          className="text-sm text-muted-foreground hover:underline mb-4 inline-block"
+        >
+          ← Back to Dashboard
+        </Link>
         <div className="max-w-2xl mx-auto">
           <div className="mb-8">
             <h1 className="text-3xl font-bold tracking-tight">Post a Task</h1>
