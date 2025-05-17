@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/select";
 import { Toaster } from "../../components/ui/sonner";
 import { toast } from "sonner";
-import { Loader, Upload, X } from "lucide-react";
+import { IndianRupee, Loader, Upload, X } from "lucide-react";
 import axiosInstance from "../../lib/axiosInstance";
 import useStore from "../../lib/Zustand";
 import { handleAxiosError } from "../../lib/handleAxiosError";
@@ -331,7 +331,12 @@ export default function PostTaskPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="budget">Budget ($)</Label>
+                    <Label htmlFor="budget">
+                      Budget{" "}
+                      <span>
+                        <IndianRupee className="w-4 h-4" />
+                      </span>
+                    </Label>
                     <Input
                       id="budget"
                       name="budget"

@@ -137,7 +137,7 @@
 
 
 "use client";
-import { Calendar, Clock, DollarSign, MapPin, MessageSquare, SquarePen } from "lucide-react";
+import { Calendar, Clock, IndianRupee, MapPin, MessageSquare, SquarePen } from "lucide-react";
 import Image from "next/image";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "./ui/card";
@@ -396,7 +396,7 @@ export function TaskInfo({ task, openImageGallery, handleMessageUser, isTaskPost
               />
             ) : (
               <p className="flex items-center gap-1">
-                <DollarSign className="h-4 w-4" />
+                <IndianRupee  className="h-4 w-4" />
                 {task.budget}
               </p>
             )}

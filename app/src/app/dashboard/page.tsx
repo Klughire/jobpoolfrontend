@@ -2870,6 +2870,7 @@ import {
   Search,
   Filter,
   Trash2,
+  IndianRupee,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
@@ -3509,8 +3510,8 @@ export default function DashboardPage() {
                       </p>
                       <div className="flex flex-col gap-2 text-sm">
                         <div className="flex items-center gap-2">
-                          <DollarSign className="h-4 w-4 text-muted-foreground" />
-                          <span>${task.budget}</span>
+                          <IndianRupee  className="h-4 w-4 text-muted-foreground" />
+                          <span>{task.budget}</span>
                         </div>
                         <div className="flex items-center gap-2">
                           <MapPin className="h-4 w-4 text-muted-foreground" />
@@ -3738,8 +3739,8 @@ export default function DashboardPage() {
                           </p>
                           <div className="flex flex-col gap-2 text-sm">
                             <div className="flex items-center gap-2">
-                              <DollarSign className="h-4 w-4 text-muted-foreground" />
-                              <span>${task.budget}</span>
+                              <IndianRupee className="h-4 w-4 text-muted-foreground" />
+                              <span>{task.budget}</span>
                             </div>
                             <div className="flex items-center gap-2">
                               <MapPin className="h-4 w-4 text-muted-foreground" />
@@ -3798,8 +3799,8 @@ export default function DashboardPage() {
                       </p>
                       <div className="flex flex-col gap-2 text-sm">
                         <div className="flex items-center gap-2">
-                          <DollarSign className="h-4 w-4 text-muted-foreground" />
-                          <span>${task.budget}</span>
+                          <IndianRupee  className="h-4 w-4 text-muted-foreground" />
+                          <span>{task.budget}</span>
                         </div>
                         <div className="flex items-center gap-2">
                           <MapPin className="h-4 w-4 text-muted-foreground" />
@@ -3864,8 +3865,8 @@ export default function DashboardPage() {
                       </p>
                       <div className="flex flex-col gap-2 text-sm">
                         <div className="flex items-center gap-2">
-                          <DollarSign className="h-4 w-4 text-muted-foreground" />
-                          <span>${task.budget}</span>
+                          <IndianRupee  className="h-4 w-4 text-muted-foreground" />
+                          <span>{task.budget}</span>
                         </div>
                         <div className="flex items-center gap-2">
                           <MapPin className="h-4 w-4 text-muted-foreground" />
@@ -3936,8 +3937,8 @@ export default function DashboardPage() {
                       </p>
                       <div className="flex flex-col gap-2 text-sm">
                         <div className="flex items-center gap-2">
-                          <DollarSign className="h-4 w-4 text-muted-foreground" />
-                          <span>Your bid: ${bid.bid_amount}</span>
+                          <IndianRupee  className="h-4 w-4 text-muted-foreground" />
+                          <span>Your bid: {bid.bid_amount}</span>
                         </div>
                         <div className="flex items-center gap-2">
                           <MapPin className="h-4 w-4 text-muted-foreground" />
