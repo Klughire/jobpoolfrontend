@@ -29,8 +29,8 @@ export function Footer() {
     {
       title: "Legal",
       links: [
-        { name: "Terms of Service", href: "#" },
-        { name: "Privacy Policy", href: "#" },
+        { name: "Terms of Service", href: "/termsandconditions" },
+        { name: "Privacy Policy", href: "/privacy-policy" },
         { name: "Cookie Policy", href: "#" },
         { name: "Accessibility", href: "#" },
       ],

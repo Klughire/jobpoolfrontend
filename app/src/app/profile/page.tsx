@@ -31,6 +31,7 @@ import {
   Briefcase,
 } from "lucide-react";
 import useStore from "../../lib/Zustand";
+import Header from "@/components/Header"; // Import the Header component
 
 interface Address {
   id: number;
@@ -95,7 +96,7 @@ export default function ProfilePage() {
     avatar: "/images/placeholder.svg?height=128&width=128",
     joinDate: "",
     isEditing: false,
-    job_title: "", // Initialize job_title
+    job_title: "",
   });
 
   const [verificationStatus, setVerificationStatus] = useState({
@@ -107,14 +108,14 @@ export default function ProfilePage() {
   const [reviews, setReviews] = useState<Review[]>([]);
 
   const formatDate = (dateString: string): string => {
-  if (!dateString) return "";
-  const date = new Date(dateString);
-  if (isNaN(date.getTime())) return ""; // Handle invalid dates
-  const day = String(date.getDate()).padStart(2, "0");
-  const month = String(date.getMonth() + 1).padStart(2, "0"); // Months are 0-based
-  const year = date.getFullYear();
-  return `${day}/${month}/${year}`;
-};
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return "";
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+  };
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
@@ -176,10 +177,9 @@ export default function ProfilePage() {
                 swift_code: data.bank_info.swift_code || "",
               }
             : undefined,
-          job_title: data.job_title || "", // Set job_title from response
+          job_title: data.job_title || "",
         });
 
-        // Set reviews from response
         if (Array.isArray(data.reviews)) {
           setReviews(
             data.reviews.map((review: any, index: number) => ({
@@ -353,30 +353,7 @@ export default function ProfilePage() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="border-b">
-        <div className="container flex h-16 items-center justify-between px-4 md:px-6">
-          <Link
-            href="/dashboard"
-            className="flex items-center gap-2 font-bold text-xl"
-          >
-            <span className="text-primary">JobPool</span>
-          </Link>
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              <Avatar className="h-8 w-8">
-                <AvatarImage src={profileuser.avatar} alt={profileuser.name} />
-                <AvatarFallback>{profileuser.name.charAt(0)}</AvatarFallback>
-              </Avatar>
-              <span className="text-sm font-medium hidden md:inline-block">
-                {profileuser.name}
-              </span>
-            </div>
-            <Button variant="outline" size="sm" onClick={handleSignOut}>
-              Sign Out
-            </Button>
-          </div>
-        </div>
-      </header>
+      <Header user={profileuser} onSignOut={handleSignOut} />
       <main className="flex-1 container py-6 md:py-10 px-4 md:px-6">
         <Link
           href="/dashboard"
@@ -771,11 +748,6 @@ export default function ProfilePage() {
                 <TabsContent value="reviews" className="space-y-4 pt-4">
                   <div className="space-y-4">
                     <div className="flex justify-between items-center">
-                      {/* <h3 className="text-lg font-medium">Your Reviews</h3> */}
-                      {/* <Button variant="outline" size="sm">
-        <Edit className="mr-2 h-4 w-4" />
-        Add Review
-      </Button> */}
                     </div>
                     {reviews.length > 0 ? (
                       reviews.map((review) => (

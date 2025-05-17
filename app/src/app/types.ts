@@ -5,6 +5,7 @@ export interface Image {
   }
   
   export interface User {
+    avatar: string;
     id: string; // Strictly string, as expected in OffersSection, TaskInfo, PosterInfo
     name: string;
     rating: number;
