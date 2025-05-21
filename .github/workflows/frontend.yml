@@ -29,7 +29,7 @@ jobs:
       - name: Deploy application
         run: |
           ssh -i ~/.ssh/id_ed25519 root@${{ secrets.DO_FRONTEND_IP }} \
-            NEXT_PUBLIC_API_BASE_URL=${{ secrets.NEXT_PUBLIC_API_BASE_URL }} 'bash -s' << 'EOF'
+            NEXT_PUBLIC_API_BASE_URL=${{ secrets.NEXT_PUBLIC_API_BASE_URL }} 
             NEXT_PUBLIC_WEBSOCKET_URL=${{ secrets.NEXT_PUBLIC_WEBSOCKET_URL }} 'bash -s' << 'EOF'
               set -e
       
