@@ -27,35 +27,26 @@ jobs:
         run: ssh-keyscan github.com >> ~/.ssh/known_hosts
 
       - name: Deploy application
-        env:
-          NEXT_PUBLIC_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_API_BASE_URL }}
-          NEXT_PUBLIC_WEBSOCKET_URL: ${{ secrets.NEXT_PUBLIC_WEBSOCKET_URL }}
         run: |
-          ssh -i ~/.ssh/id_ed25519 root@${{ secrets.DO_FRONTEND_IP }} 'sh' << 'EOF'
-            set -e
-            
-            # Debug: Check shell and bash availability
-            echo "Current shell: $SHELL"
-            if command -v bash >/dev/null 2>&1; then
-              echo "Bash is available"
-            else
-              echo "Bash is not available"
-            fi
+          ssh -i ~/.ssh/id_ed25519 root@${{ secrets.DO_FRONTEND_IP }} \
+            NEXT_PUBLIC_API_BASE_URL=${{ secrets.NEXT_PUBLIC_API_BASE_URL }} 'bash -s' << 'EOF'
+            NEXT_PUBLIC_WEBSOCKET_URL=${{ secrets.NEXT_PUBLIC_WEBSOCKET_URL }} 'bash -s' << 'EOF'
+              set -e
       
-            mkdir -p /root/frontend
-            cd /root/frontend
+              mkdir -p /root/frontend
+              cd /root/frontend
       
-            if [ ! -d .git ]; then
-               git clone git@github.com:Klughire/jobpoolfrontend.git .
-            else
-              git pull origin main
-            fi
+              if [ ! -d .git ]; then
+                git clone git@github.com:Klughire/jobpoolfrontend.git .
+              else
+                git pull origin main
+              fi
       
-            echo "NEXT_PUBLIC_API_BASE_URL=${NEXT_PUBLIC_API_BASE_URL}" > app/.env.production
-            echo "NEXT_PUBLIC_WEBSOCKET_URL=${NEXT_PUBLIC_WEBSOCKET_URL}" >> app/.env.production
-            echo "NEXT_PUBLIC_API_BASE_URL=${NEXT_PUBLIC_API_BASE_URL}" > admin/.env.production
-            echo "NEXT_PUBLIC_API_BASE_URL=${NEXT_PUBLIC_API_BASE_URL}" > .env.production
-            echo "NEXT_PUBLIC_WEBSOCKET_URL=${NEXT_PUBLIC_WEBSOCKET_URL}" >> .env.production
+              echo "NEXT_PUBLIC_API_BASE_URL=${NEXT_PUBLIC_API_BASE_URL}" > app/.env.production
+              echo "NEXT_PUBLIC_WEBSOCKET_URL=${NEXT_PUBLIC_WEBSOCKET_URL}" > app/.env.production
+              echo "NEXT_PUBLIC_API_BASE_URL=${NEXT_PUBLIC_API_BASE_URL}" > admin/.env.production
+              echo "NEXT_PUBLIC_API_BASE_URL=${NEXT_PUBLIC_API_BASE_URL}" > .env.production
+              echo "NEXT_PUBLIC_WEBSOCKET_URL=${NEXT_PUBLIC_WEBSOCKET_URL}" > .env.production
 
               # 🔍 DEBUG: Output contents of .env.production
               echo "Contents of root .env.production:"
