@@ -306,12 +306,8 @@
 //     </div>
 //   );
 // }
-
-
-
-
 'use client';
-import { useEffect, useState, FormEvent, useRef } from 'react';
+import { useEffect, useState, FormEvent, useRef, JSX } from 'react';
 import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import axiosInstance from '@/lib/axiosInstance';
 import useStore from '@/lib/Zustand';
@@ -323,8 +319,8 @@ import { Toaster } from '@/components/ui/sonner';
 import { toast } from 'sonner';
 import Link from 'next/link';
 
-interface Message {
-  messagesid: string;
+export interface Message {
+  messagesid: number;
   chat_id: string;
   userrefid: string;
   username: string;
@@ -333,7 +329,7 @@ interface Message {
   tstamp: string;
 }
 
-export default function ChatPage() {
+export default function ChatPage(): JSX.Element {
   const router = useRouter();
   const { chat_id } = useParams();
   const searchParams = useSearchParams();
@@ -348,27 +344,38 @@ export default function ChatPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // WebSocket setup
-  const { sendMessage } = useWebSocket(currentChatId || '', (message) => {
-  if (!message.messagesid || !currentChatId) return;
-  setMessages((prev) => {
-    if (prev.some((m) => m.messagesid === message.messagesid)) {
-      return prev;
+  useWebSocket(currentChatId || '', (data: { message: Message }) => {
+    console.log(`ChatPage - Received WebSocket message at ${new Date().toISOString()}:`, data);
+    const message = {
+      ...data.message,
+      messagesid: Number(data.message.messagesid), // Ensure number
+    };
+    if (!message.messagesid || !currentChatId || message.chat_id !== currentChatId) {
+      console.warn('ChatPage - Invalid or mismatched message:', message);
+      return;
     }
-    const updatedMessages = [...prev, { ...message, tstamp: message.tstamp || new Date().toISOString() }];
-    if (message.userrefid !== userId) {
-      markMessagesAsRead([message]);
-    }
-    return updatedMessages;
+    setMessages((prev: Message[]): Message[] => {
+      if (prev.some((m) => m.messagesid === message.messagesid)) {
+        console.log('ChatPage - Duplicate message ignored:', message.messagesid);
+        return prev;
+      }
+      const updatedMessages = [...prev, message].sort(
+        (a: Message, b: Message): number => new Date(a.tstamp).getTime() - new Date(b.tstamp).getTime()
+      );
+      if (message.userrefid !== userId) {
+        void markMessagesAsRead([message]);
+      }
+      return updatedMessages;
+    });
   });
-});
 
   // Scroll to latest message
-  useEffect(() => {
+  useEffect((): void => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
   // Fetch messages or initialize new chat
-  useEffect(() => {
+  useEffect((): void => {
     if (!userId) {
       router.push('/signin');
       return;
@@ -377,22 +384,22 @@ export default function ChatPage() {
     const sender = searchParams.get('sender');
     const receiver = searchParams.get('receiver');
 
-    const initializeChat = async () => {
+    const initializeChat = async (): Promise<void> => {
       try {
         if (chat_id) {
-          // Existing chat: fetch messages
           const response = await axiosInstance.get(`/get-messages/${chat_id}`);
           if (response.data.status_code === 200) {
-            const fetchedMessages: Message[] = response.data.data || [];
+            const fetchedMessages: Message[] = (response.data.data || []).sort(
+              (a: Message, b: Message): number => new Date(a.tstamp).getTime() - new Date(b.tstamp).getTime()
+            );
+            console.log('Fetched messages:', fetchedMessages);
             setMessages(fetchedMessages);
 
-            // Determine other user from messages
             const otherUserMessage = fetchedMessages.find((msg) => msg.userrefid !== userId);
             if (otherUserMessage) {
               setOtherUser(otherUserMessage.username || 'Unknown User');
               setReceiverId(otherUserMessage.userrefid);
             } else {
-              // If no messages, fetch receiver's details from query params or fallback
               if (receiver && sender === userId) {
                 const userResponse = await axiosInstance.get(`/user/${receiver}`);
                 if (userResponse.data.status_code === 200) {
@@ -404,18 +411,16 @@ export default function ChatPage() {
               }
             }
 
-            // Mark unread messages as read
             const unreadMessages = fetchedMessages.filter(
               (msg) => !msg.readstatus && msg.userrefid !== userId
             );
             if (unreadMessages.length > 0) {
-              markMessagesAsRead(unreadMessages);
+              await markMessagesAsRead(unreadMessages);
             }
           } else {
             throw new Error(response.data.message || 'Invalid chat');
           }
         } else if (receiver && sender === userId) {
-          // New chat: fetch receiver's details
           const userResponse = await axiosInstance.get(`/user/${receiver}`);
           if (userResponse.data.status_code === 200) {
             setOtherUser(userResponse.data.data.username || 'Unknown User');
@@ -425,100 +430,84 @@ export default function ChatPage() {
         } else {
           throw new Error('Invalid chat parameters');
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error('Error initializing chat:', error);
-        toast.error(error.response?.data?.message || 'Failed to initialize chat');
-        //router.push('/messages');
+        toast.error((error as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Failed to initialize chat');
       } finally {
         setLoading(false);
       }
     };
 
-    initializeChat();
+    void initializeChat();
   }, [chat_id, userId, router, searchParams]);
 
   // Mark messages as read
-  const markMessagesAsRead = async (msgs: Message[]) => {
+  const markMessagesAsRead = async (msgs: Message[]): Promise<void> => {
     try {
       for (const msg of msgs) {
         if (!msg.readstatus && msg.userrefid !== userId) {
+          console.log(`Attempting to mark message ${msg.messagesid} as read, type: ${typeof msg.messagesid}`);
           await axiosInstance.put(`/mark-as-read/${msg.messagesid}`);
-          setMessages((prev) =>
+          setMessages((prev: Message[]): Message[] =>
             prev.map((m) =>
               m.messagesid === msg.messagesid ? { ...m, readstatus: true } : m
             )
           );
         }
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error marking messages as read:', error);
       toast.error('Failed to update message status');
     }
   };
 
   // Send a new message
-const handleSendMessage = async (e: FormEvent) => {
-  e.preventDefault();
-  if (!newMessage.trim() || !userId || isSending) {
-    console.error('handleSendMessage - Invalid input', { newMessage, userId, isSending });
-    toast.error('Please enter a message');
-    return;
-  }
-  if (!receiverId) {
-    console.error('handleSendMessage - No receiverId', { receiverId });
-    toast.error('No recipient selected');
-    return;
-  }
-
-  setIsSending(true);
-  try {
-    const payload = {
-      sender_id: userId,
-      receiver_id: receiverId,
-      description: newMessage,
-      chat_id: currentChatId || undefined,
-    };
-    console.log('handleSendMessage - Sending payload:', payload);
-    const response = await axiosInstance.post('/send-message/', payload);
-    console.log('handleSendMessage - API Response:', response.data);
-
-    if (response.data.status_code === 200) {
-      const sentMessage = response.data.data.message;
-      const newChatId = response.data.data.chat_id;
-
-      if (!currentChatId && newChatId) {
-        console.log('handleSendMessage - New chat created:', { newChatId });
-        setCurrentChatId(newChatId);
-        router.replace(`/messages/${newChatId}`);
-      }
-
-      const messageToSend: Message = {
-        messagesid: sentMessage.messagesid,
-        chat_id: newChatId,
-        userrefid: userId,
-        username: sentMessage.username || 'You',
-        description: newMessage,
-        readstatus: false,
-        tstamp: new Date().toISOString(),
-      };
-
-      console.log('handleSendMessage - Adding message to state:', messageToSend);
-      setMessages((prev) => [...prev, messageToSend]);
-      sendMessage(messageToSend);
-      setNewMessage('');
-    } else {
-      throw new Error(response.data.message || 'Failed to send message');
+  const handleSendMessage = async (e: FormEvent): Promise<void> => {
+    e.preventDefault();
+    if (!newMessage.trim() || !userId || isSending) {
+      console.error('handleSendMessage - Invalid input', { newMessage, userId, isSending });
+      toast.error('Please enter a message');
+      return;
     }
-  } catch (error: any) {
-    console.error('handleSendMessage - Error sending message:', error.response?.data || error);
-    toast.error(error.response?.data?.message || 'Failed to send message');
-  } finally {
-    setIsSending(false);
-  }
-};
+    if (!receiverId) {
+      console.error('handleSendMessage - No receiverId', { receiverId });
+      toast.error('No recipient selected');
+      return;
+    }
+
+    setIsSending(true);
+    try {
+      const payload = {
+        sender_id: userId,
+        receiver_id: receiverId,
+        description: newMessage,
+        chat_id: currentChatId || undefined,
+      };
+      console.log('handleSendMessage - Sending payload:', payload);
+      const response = await axiosInstance.post('/send-message/', payload);
+      console.log('handleSendMessage - API Response:', response.data);
+
+      if (response.data.status_code === 200) {
+        const newChatId = response.data.data.chat_id;
+        if (!currentChatId && newChatId) {
+          console.log('handleSendMessage - New chat created:', { newChatId });
+          setCurrentChatId(newChatId);
+          router.replace(`/messages/${newChatId}`);
+        }
+        setNewMessage('');
+      } else {
+        throw new Error(response.data.message || 'Failed to send message');
+      }
+    } catch (error: unknown) {
+      console.error('handleSendMessage - Error sending message:', (error as { response?: { data?: unknown } })?.response?.data || error);
+      toast.error((error as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Failed to send message');
+    } finally {
+      setIsSending(false);
+    }
+  };
 
   // Sign out
-  const handleSignOut = () => {
+  const handleSignOut = (): void => {
     localStorage.removeItem('user');
     localStorage.removeItem('token');
     localStorage.removeItem('bids');
@@ -544,9 +533,6 @@ const handleSendMessage = async (e: FormEvent) => {
             <Link href="/post-task" className="text-sm font-medium hover:underline underline-offset-4">
               Post a Task
             </Link>
-            {/* <Link href="/messages" className="text-sm font-medium hover:underline underline-offset-4">
-              Messages
-            </Link> */}
           </nav>
           <div className="flex items-center gap-4">
             <Button variant="outline" size="sm" onClick={handleSignOut}>
