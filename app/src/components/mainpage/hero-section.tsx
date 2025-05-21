@@ -70,7 +70,7 @@ export function HeroSection() {
                 DONE
               </motion.h1>
               <motion.p className="max-w-[600px] text-gray-700 md:text-xl" variants={itemVariants}>
-                Post any task. Pick the best person. Get it done.
+                Post any task. Pick the best person. Get it done now.
               </motion.p>
             </motion.div>
 
