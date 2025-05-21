@@ -30,6 +30,7 @@ jobs:
         run: |
           ssh -i ~/.ssh/id_ed25519 root@${{ secrets.DO_FRONTEND_IP }} \
             NEXT_PUBLIC_API_BASE_URL=${{ secrets.NEXT_PUBLIC_API_BASE_URL }} 'bash -s' << 'EOF'
+            NEXT_PUBLIC_WEBSOCKET_URL: ${{ secrets.NEXT_PUBLIC_WEBSOCKET_URL }} 'bash -s' << 'EOF'
               set -e
       
               mkdir -p /root/frontend
@@ -42,8 +43,10 @@ jobs:
               fi
       
               echo "NEXT_PUBLIC_API_BASE_URL=${NEXT_PUBLIC_API_BASE_URL}" > app/.env.production
-              echo "NEXT_PUBLIC_API_BASE_URL=${NEXT_PUBLIC_API_BASE_URL}" > admin/.env.production
-              echo "NEXT_PUBLIC_API_BASE_URL=${NEXT_PUBLIC_API_BASE_URL}" > .env.production
+            echo "NEXT_PUBLIC_WEBSOCKET_URL=${NEXT_PUBLIC_WEBSOCKET_URL}" >> app/.env.production
+            echo "NEXT_PUBLIC_API_BASE_URL=${NEXT_PUBLIC_API_BASE_URL}" > admin/.env.production
+            echo "NEXT_PUBLIC_API_BASE_URL=${NEXT_PUBLIC_API_BASE_URL}" > .env.production
+            echo "NEXT_PUBLIC_WEBSOCKET_URL=${NEXT_PUBLIC_WEBSOCKET_URL}" >> .env.production
 
               # 🔍 DEBUG: Output contents of .env.production
               echo "Contents of root .env.production:"
