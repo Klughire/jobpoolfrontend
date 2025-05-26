@@ -1,12 +1,4 @@
-/**
- * The LocationDetector component in JavaScript uses Geolocation API and OpenStreetMap to detect and
- * suggest locations based on user input.
- * @returns The `LocationDetector` component is being returned. It consists of an input field for
- * entering location names, a "Detect" button to get the user's current location, a dropdown for
- * selecting location suggestions, and an error message display area. The component allows users to
- * input location names, fetch suggestions based on input, select a location from suggestions, and
- * detect their current location using the Geolocation API.
- */
+
 // "use client";
 // import { useState } from "react";
 // import axios from "axios";
@@ -20,8 +12,7 @@
 //   const [error, setError] = useState("");
 
 //   // Function to get user's current location using Geolocation API
-//   const getCurrentLocation = (e) => {
-//     e.preventDefault();
+//   const getCurrentLocation = () => {
 //     if (navigator.geolocation) {
 //       navigator.geolocation.getCurrentPosition(
 //         async (position) => {
@@ -92,14 +83,14 @@
 //           placeholder="Enter location name"
 //           className="border rounded-md p-2 flex-1 text-sm"
 //         />
-//        <Button
-//   type="button" // Explicitly set type to prevent form submission
-//   onClick={getCurrentLocation}
-//   variant="outline"
-//   className="text-sm whitespace-nowrap"
-// >
-//   Detect
-// </Button>
+//         <Button
+//           type="button" // Prevent form submission
+//           onClick={getCurrentLocation}
+//           variant="outline"
+//           className="text-sm whitespace-nowrap"
+//         >
+//           Detect
+//         </Button>
 //       </div>
 //       {suggestions.length > 0 && (
 //         <div className="relative w-full">
@@ -140,12 +131,12 @@
 
 
 
-
 "use client";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import axios from "axios";
 import Select from "react-select";
 import { Button } from "@/components/ui/button";
+import { debounce } from "lodash"; // Install lodash for debouncing
 
 const LocationDetector = ({ onLocationChange }) => {
   const [location, setLocation] = useState(null);
@@ -153,50 +144,59 @@ const LocationDetector = ({ onLocationChange }) => {
   const [suggestions, setSuggestions] = useState([]);
   const [error, setError] = useState("");
 
-  // Function to get user's current location using Geolocation API
-  const getCurrentLocation = () => {
+  // Debounced function to fetch suggestions
+  const fetchSuggestions = useCallback(
+    debounce(async (query) => {
+      if (query.length < 3) {
+        setSuggestions([]);
+        return;
+      }
+      try {
+        const response = await axios.get(
+          `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
+            query
+          )}&addressdetails=1&limit=5`
+        );
+        const options = response.data.map((item) => ({
+          value: item,
+          label: item.display_name,
+        }));
+        setSuggestions(options);
+      } catch (err) {
+        setError("Error fetching suggestions");
+      }
+    }, 300),
+    []
+  );
+
+  // Function to get user's current location
+  const getCurrentLocation = async () => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         async (position) => {
           const { latitude, longitude } = position.coords;
           try {
             const response = await axios.get(
-              `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
+              `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&addressdetails=1&zoom=18`
             );
+            const displayName = response.data.display_name;
             setLocation(response.data);
-            setInput(response.data.display_name);
-            onLocationChange(response.data.display_name);
+            setInput(displayName);
+            onLocationChange(displayName);
             setError("");
+            // Fetch suggestions for the autofilled location to allow refinement
+            fetchSuggestions(displayName);
           } catch (err) {
             setError("Error fetching location details");
           }
         },
         (err) => {
           setError("Permission denied or location unavailable");
-        }
+        },
+        { enableHighAccuracy: true } // Request high-accuracy location
       );
     } else {
       setError("Geolocation is not supported by this browser");
-    }
-  };
-
-  // Fetch location suggestions based on user input
-  const fetchSuggestions = async (query) => {
-    if (query.length < 3) {
-      setSuggestions([]);
-      return;
-    }
-    try {
-      const response = await axios.get(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${query}`
-      );
-      const options = response.data.map((item) => ({
-        value: item,
-        label: item.display_name,
-      }));
-      setSuggestions(options);
-    } catch (err) {
-      setError("Error fetching suggestions");
     }
   };
 
@@ -204,7 +204,9 @@ const LocationDetector = ({ onLocationChange }) => {
   const handleInputChange = (e) => {
     const value = e.target.value;
     setInput(value);
+    setLocation(null); // Clear location to allow new selection
     fetchSuggestions(value);
+    onLocationChange(value); // Update parent with raw input
   };
 
   // Handle suggestion selection
@@ -215,18 +217,39 @@ const LocationDetector = ({ onLocationChange }) => {
     setSuggestions([]);
   };
 
+  // Clear input field
+  const clearInput = () => {
+    setInput("");
+    setLocation(null);
+    setSuggestions([]);
+    setError("");
+    onLocationChange("");
+  };
+
   return (
     <div className="flex flex-col gap-2 w-full max-w-[250px]">
       <div className="flex items-center gap-2">
-        <input
-          type="text"
-          value={input}
-          onChange={handleInputChange}
-          placeholder="Enter location name"
-          className="border rounded-md p-2 flex-1 text-sm"
-        />
+        <div className="relative flex-1">
+          <input
+            type="text"
+            value={input}
+            onChange={handleInputChange}
+            placeholder="Enter or edit location"
+            className="border rounded-md p-2 w-full text-sm pr-8"
+            title="Type to edit or search for a new location"
+          />
+          {input && (
+            <button
+              type="button"
+              onClick={clearInput}
+              className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+            >
+              ✕
+            </button>
+          )}
+        </div>
         <Button
-          type="button" // Prevent form submission
+          type="button"
           onClick={getCurrentLocation}
           variant="outline"
           className="text-sm whitespace-nowrap"

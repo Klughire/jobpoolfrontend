@@ -59,6 +59,11 @@ const Header: React.FC<HeaderProps> = ({ user, onSignOut }) => {
                   Profile
                 </Link>
               </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/support" className="w-full">
+                  Contact Support
+                </Link>
+              </DropdownMenuItem>
               <DropdownMenuItem onClick={onSignOut}>Sign Out</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

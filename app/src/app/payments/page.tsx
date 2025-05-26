@@ -481,6 +481,7 @@ const mockTask: Task = {
   budget: 1000,
   location: "Remote",
   status: true,
+  job_completion_status: 0,
   postedAt: "2025-05-26",
   dueDate: "2025-06-01",
   category: "General",

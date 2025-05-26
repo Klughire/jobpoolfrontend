@@ -31,6 +31,7 @@ export interface Image {
     budget: number;
     location: string;
     status: boolean;
+    job_completion_status: number;
     postedAt: string;
     dueDate: string;
     category: string;

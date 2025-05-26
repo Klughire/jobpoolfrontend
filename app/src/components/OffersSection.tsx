@@ -453,8 +453,6 @@
 //   );
 // }
 
-
-
 import { FormEvent, useState } from "react";
 import { IndianRupee, Star } from "lucide-react";
 import { Button } from "./ui/button";
@@ -472,6 +470,7 @@ import { Avatar, AvatarFallback } from "./ui/avatar";
 import axiosInstance from "../lib/axiosInstance";
 import { toast } from "sonner";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 interface Image {
   id: string;
@@ -541,6 +540,21 @@ export function OffersSection({
   currentUserId,
 }: OffersSectionProps) {
   const [isAccepting, setIsAccepting] = useState<string | null>(null);
+  const [error, setError] = useState("");
+  const router = useRouter();
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const input = e.target.value;
+
+    if (/\d/.test(input)) {
+      setError("Numbers are not allowed in the message.");
+    } else {
+      setError("");
+      setOfferMessage(input);
+    }
+  };
 
   // Filter offers: task posters see all, taskers see only their own if they have submitted
   const visibleOffers = isTaskPoster
@@ -560,6 +574,7 @@ export function OffersSection({
 
       if (response.data.status_code === 200) {
         toast.success(response.data.message || "Bid accepted successfully");
+        router.push('/payments'); // Redirect to payments page after accepting the bid
       } else {
         toast.error(response.data.message || "Failed to accept bid");
       }
@@ -634,16 +649,18 @@ export function OffersSection({
               {isTaskPoster && (
                 <div className="flex gap-2">
                   {!task.status && (
-                    <Button
-                      className="w-full"
-                      size="sm"
-                      onClick={() => handleAcceptOffer(offer)}
-                      disabled={isAccepting === offer.id}
-                    >
-                      {isAccepting === offer.id
-                        ? "Accepting..."
-                        : "Accept Offer"}
-                    </Button>
+                    
+                      <Button
+                        className="w-full"
+                        size="sm"
+                        onClick={() => handleAcceptOffer(offer)}
+                        disabled={isAccepting === offer.id}
+                      >
+                        {isAccepting === offer.id
+                          ? "Accepting..."
+                          : "Accept Offer"}
+                      </Button>
+                
                   )}
                   <Button
                     variant="outline"
@@ -692,10 +709,11 @@ export function OffersSection({
                 id="offerMessage"
                 placeholder="Introduce yourself and explain why you're a good fit for this task..."
                 value={offerMessage}
-                onChange={(e) => setOfferMessage(e.target.value)}
+                onChange={handleChange}
                 rows={4}
                 required
               />
+              {error && <p className="text-red-500 text-sm">{error}</p>}
             </div>
             <Button type="submit" className="w-full" disabled={isSubmitting}>
               {isSubmitting ? "Submitting..." : "Submit Offer"}
