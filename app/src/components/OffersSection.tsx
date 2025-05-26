@@ -574,7 +574,8 @@ export function OffersSection({
 
       if (response.data.status_code === 200) {
         toast.success(response.data.message || "Bid accepted successfully");
-        router.push('/payments'); // Redirect to payments page after accepting the bid
+        router.push(`/payments?taskId=${task.id}&amount=${offer.amount}`);
+
       } else {
         toast.error(response.data.message || "Failed to accept bid");
       }

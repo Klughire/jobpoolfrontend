@@ -164,12 +164,13 @@ interface PaymentModalProps {
   handlePayment: () => void
   closeModal: () => void
   isSubmitting: boolean
+  bidAmount: number
 }
 
-export function PaymentModal({ show, task, handlePayment, closeModal, isSubmitting }: PaymentModalProps) {
+export function PaymentModal({ show, task, handlePayment, closeModal, isSubmitting, bidAmount }: PaymentModalProps) {
   if (!show) return null
 
-  const bidAmount = task.budget
+
   const commission = bidAmount * 0.05 // 5% commission
   const gst = (bidAmount + commission) * 0.18 // 18% GST on bid amount + commission
   const totalAmount = bidAmount + commission + gst

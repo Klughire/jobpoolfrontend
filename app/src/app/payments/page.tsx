@@ -465,7 +465,7 @@
 
 import { useState, useEffect } from "react";
 import Script from "next/script";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams, useSearchParams } from "next/navigation";
 import { PaymentModal } from "@/components/PaymentModal"; // Adjust path
 import { PaymentFailed } from "@/components/payment-failed"; // Adjust path
 import { Task } from "../types"; // Adjust path to your types
@@ -506,6 +506,25 @@ export default function PaymentPage() {
   const [paymentStatus, setPaymentStatus] = useState<string | null>(null);
   const [razorpayLoaded, setRazorpayLoaded] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const taskId = searchParams.get("taskId");
+  const amountParam = searchParams.get("amount");
+
+  // Ensure amountParam is a valid number
+  const parsedAmount = amountParam && !isNaN(parseFloat(amountParam)) 
+    ? parseFloat(amountParam) 
+    : null;
+
+  const bidAmount = parsedAmount !== null ? parsedAmount : mockTask.budget;
+
+  console.log("Query param amount:", amountParam);
+  console.log("Parsed bidAmount:", bidAmount);
+
+
+
+  console.log("PaymentPage mounted with params:", { taskId, amountParam });
+
 
   // Check if Razorpay is loaded
   useEffect(() => {
@@ -521,8 +540,8 @@ export default function PaymentPage() {
     setErrorMessage("");
     setPaymentStatus(null);
 
-    // Calculate amounts
-    const bidAmount = mockTask.budget;
+
+
     const commissionAmount = bidAmount * 0.05; // 5% commission
     const gstAmount = (bidAmount + commissionAmount) * 0.18; // 18% GST
     const payableAmount = bidAmount + commissionAmount + gstAmount;
@@ -530,14 +549,14 @@ export default function PaymentPage() {
     try {
       // Create order via FastAPI
       console.log("Sending request to /api/v1/create-order/", {
-        postId: mockTask.id,
+        postId: taskId,
         bid_amount: bidAmount,
         gst_amount: Number(gstAmount.toFixed(2)),
         commission_amount: Number(commissionAmount.toFixed(2)),
         payable_amount: Number(payableAmount.toFixed(2)),
       });
       const response = await axiosInstance.post("/create-order/", {
-        postId: mockTask.id,
+        postId: taskId,
         bid_amount: bidAmount,
         gst_amount: Number(gstAmount.toFixed(2)),
         commission_amount: Number(commissionAmount.toFixed(2)),
@@ -685,6 +704,7 @@ export default function PaymentPage() {
       <PaymentModal
         show={showPaymentModal}
         task={mockTask}
+        bidAmount={bidAmount} 
         handlePayment={handlePayment}
         closeModal={closeModal}
         isSubmitting={isSubmitting}
