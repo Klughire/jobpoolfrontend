@@ -3,7 +3,6 @@
 import type React from "react";
 import { useState, Suspense } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import {
   ArrowLeft,
   Eye,
