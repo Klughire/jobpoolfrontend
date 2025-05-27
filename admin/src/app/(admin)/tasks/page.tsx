@@ -67,6 +67,8 @@ interface Job {
   job_description: string;
   job_category: string;
   job_category_name: string;
+  tasker_id?: string;
+  tasker_name?: string;
   job_budget: number;
   job_location: string;
   job_due_date: string;
@@ -85,6 +87,7 @@ interface Task {
   budget: number;
   remote: boolean;
   createdAt: string;
+  tasker_name?: string;
   taskmaster: User;
   tasker: User | null;
   offers: number;
@@ -108,7 +111,7 @@ export default function TasksPage() {
   const fetchTasks = async () => {
     try {
       setIsLoading(true);
-      const response = await axiosInstance.get("get-all-jobs/");
+      const response = await axiosInstance.get("/get-all-jobs-admin/");
       if (response.data.status_code === 200) {
         const jobs: Job[] = response.data.data.jobs;
         const mappedTasks: Task[] = jobs.map((job: Job) => ({
@@ -116,7 +119,7 @@ export default function TasksPage() {
           title: job.job_title,
           description: job.job_description,
           category: job.job_category_name,
-          status: job.status ? "Cancelled" : "Open",
+          status: job.status ? "Assigned" : "Open",
           location: job.job_location,
           dueDate: job.job_due_date,
           budget: job.job_budget,
@@ -127,7 +130,14 @@ export default function TasksPage() {
             name: job.posted_by,
             avatar: undefined,
           },
-          tasker: null,
+          
+          tasker: job.tasker_id
+            ? {
+                id: job.tasker_id,
+                name: job.tasker_name || "Unknown",
+                avatar: undefined,
+              }
+            : null,
           offers: 0,
           completedAt: undefined,
           cancelledAt: job.status ? new Date().toISOString() : undefined,

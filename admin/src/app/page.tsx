@@ -51,21 +51,24 @@ export default function AdminLoginPage() {
       setIsLoading(true);
       const response = await axiosInstance.post("/admin-login/", formData);
 
-      if (response.data.status_code === 200 && response.data.data) {
-        const { token, user } = response.data.data;
-        console.log(user);
+      const { status_code, message, data } = response.data;
+
+      if (status_code === 200 && data) {
+        const { token, user } = data;
 
         if (!token || !user) {
           throw new Error("Invalid response: Missing token or user data");
         }
 
-        login(token, user);
+        login(token, user); // Presumably sets auth context or localStorage
 
         toast.success("Login successful!");
-
         router.push("/dashboard");
+      } else if (status_code === 201) {
+        toast.warning("Login successful, please reset your default password");
+        router.push(`/resetpassword?email=${encodeURIComponent(formData.user_email)}`);
       } else {
-        toast.error(response.data.message || "Login failed");
+        toast.error(message || "Login failed");
       }
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
@@ -124,7 +127,7 @@ export default function AdminLoginPage() {
                 <div className="flex items-center justify-between">
                   <Label htmlFor="password">Password</Label>
                   <Link
-                    href="/admin/forgot-password"
+                    href="/forgotpassword"
                     className="text-xs text-primary hover:underline"
                   >
                     Forgot password?

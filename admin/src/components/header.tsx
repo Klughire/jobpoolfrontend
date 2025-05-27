@@ -1,10 +1,10 @@
-"use client"
+"use client";
 
-import Link from "next/link"
-import { Settings, LogOut, User } from "lucide-react"
-import { Button } from "../components/ui/button"
-import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/avatar"
-import { Sheet, SheetContent, SheetTrigger } from "../components/ui/sheet"
+import Link from "next/link";
+import { Settings, LogOut, User } from "lucide-react";
+import { Button } from "../components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/avatar";
+import { Sheet, SheetContent, SheetTrigger } from "../components/ui/sheet";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,17 +12,25 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "../components/ui/dropdown-menu"
-import { MobileNav } from "../components/mobile-nav"
+} from "../components/ui/dropdown-menu";
+import { MobileNav } from "../components/mobile-nav";
+import useStore from "../lib/Zustand";
 
 interface HeaderProps {
-  isMobileNavOpen: boolean
-  setIsMobileNavOpen: (open: boolean) => void
-  pathname: string
-  handleLogout: () => void
+  isMobileNavOpen: boolean;
+
+  setIsMobileNavOpen: (open: boolean) => void;
+  pathname: string;
+  handleLogout: () => void;
 }
 
-export function Header({ isMobileNavOpen, setIsMobileNavOpen, pathname, handleLogout }: HeaderProps) {
+export function Header({
+  isMobileNavOpen,
+  setIsMobileNavOpen,
+  pathname,
+  handleLogout,
+}: HeaderProps) {
+  const user = useStore((state) => state.user);
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
       <Sheet open={isMobileNavOpen} onOpenChange={setIsMobileNavOpen}>
@@ -48,7 +56,11 @@ export function Header({ isMobileNavOpen, setIsMobileNavOpen, pathname, handleLo
           </Button>
         </SheetTrigger>
         <SheetContent side="left" className="w-72 pr-0">
-          <MobileNav pathname={pathname} setIsMobileNavOpen={setIsMobileNavOpen} handleLogout={handleLogout} />
+          <MobileNav
+            pathname={pathname}
+            setIsMobileNavOpen={setIsMobileNavOpen}
+            handleLogout={handleLogout}
+          />
         </SheetContent>
       </Sheet>
       <Link href="/admin" className="flex items-center gap-2 font-semibold">
@@ -56,12 +68,15 @@ export function Header({ isMobileNavOpen, setIsMobileNavOpen, pathname, handleLo
       </Link>
       <div className="ml-auto flex items-center gap-3">
         <div className="hidden md:flex items-center gap-3">
-          <span className="text-sm font-medium">Alex Johnson</span>
+          <span className="text-sm font-medium">{user?.name}</span>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                 <Avatar className="h-8 w-8">
-                  <AvatarImage src="/images/placeholder.svg?height=32&width=32" alt="Admin" />
+                  <AvatarImage
+                    src="/images/placeholder.svg?height=32&width=32"
+                    alt="Admin"
+                  />
                   <AvatarFallback>AD</AvatarFallback>
                 </Avatar>
               </Button>
@@ -69,8 +84,12 @@ export function Header({ isMobileNavOpen, setIsMobileNavOpen, pathname, handleLo
             <DropdownMenuContent className="w-56" align="end" forceMount>
               <DropdownMenuLabel className="font-normal">
                 <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium leading-none">Alex Johnson</p>
-                  <p className="text-xs leading-none text-muted-foreground">alex.johnson@taskmaster.com</p>
+                  <p className="text-sm font-medium leading-none">
+                    {user?.name}
+                  </p>
+                  <p className="text-xs leading-none text-muted-foreground">
+                    {user?.email}
+                  </p>
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
@@ -80,7 +99,7 @@ export function Header({ isMobileNavOpen, setIsMobileNavOpen, pathname, handleLo
                   <span>Profile</span>
                 </Link>
               </DropdownMenuItem>
-              
+
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleLogout}>
                 <LogOut className="mr-2 h-4 w-4" />
@@ -96,7 +115,10 @@ export function Header({ isMobileNavOpen, setIsMobileNavOpen, pathname, handleLo
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                 <Avatar className="h-8 w-8">
-                  <AvatarImage src="/images/placeholder.svg?height=32&width=32" alt="Admin" />
+                  <AvatarImage
+                    src="/images/placeholder.svg?height=32&width=32"
+                    alt="Admin"
+                  />
                   <AvatarFallback>AD</AvatarFallback>
                 </Avatar>
               </Button>
@@ -104,8 +126,12 @@ export function Header({ isMobileNavOpen, setIsMobileNavOpen, pathname, handleLo
             <DropdownMenuContent className="w-56" align="end" forceMount>
               <DropdownMenuLabel className="font-normal">
                 <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium leading-none">Alex Johnson</p>
-                  <p className="text-xs leading-none text-muted-foreground">alex.johnson@taskmaster.com</p>
+                  <p className="text-sm font-medium leading-none">
+                    {user?.name}
+                  </p>
+                  <p className="text-xs leading-none text-muted-foreground">
+                    {user?.email}
+                  </p>
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
@@ -131,5 +157,5 @@ export function Header({ isMobileNavOpen, setIsMobileNavOpen, pathname, handleLo
         </div>
       </div>
     </header>
-  )
+  );
 }

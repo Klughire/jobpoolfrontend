@@ -23,11 +23,14 @@ interface JwtPayload {
 interface UserData {
   status: boolean;
   user_fullname: string;
+  user_email: string;
 }
 
 interface NormalizedUser {
   name: string;
   status: boolean;
+  email: string
+  
 }
 
 interface AuthState {
@@ -92,6 +95,7 @@ const useStore = create<StoreState>((set) => ({
         const normalizedUser = {
           name: user.user_fullname,
           status: user.status,
+          email: user.user_email,
         };
 
         set({
@@ -145,6 +149,7 @@ const useStore = create<StoreState>((set) => ({
             user: {
               name: parsedUser.user_fullname,
               status: parsedUser.status,
+              email: parsedUser.user_email,
             },
           });
         } else {

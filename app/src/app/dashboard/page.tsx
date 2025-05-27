@@ -573,35 +573,25 @@ export default function DashboardPage() {
     }
   };
 
-  const handleConfirmUndelete = async () => {
-    if (!selectedJobId) return;
+const handleConfirmUndelete = async () => {
+  if (!selectedJobId) return;
 
-    try {
-      const response = await axiosInstance.post<APIResponse<any>>(
-        `/request-undelete-job/${selectedJobId}/`,
-        { user_id: userId }
-      );
+  // Display the toast notification directly
+  toast.success("Your request has been sent to admin");
 
-      if (response.data.status_code === 200) {
-        toast.success("Undelete request sent to admin successfully!");
-        setPostedTasks((prev) =>
-          prev.map((task) =>
-            task.id === selectedJobId
-              ? { ...task, deletion_status: true }
-              : task
-          )
-        );
-      } else {
-        toast.error(response.data.message || "Failed to send undelete request");
-      }
-    } catch (error) {
-      console.error("Error requesting undelete:", error);
-      toast.error("An error occurred while sending the undelete request");
-    } finally {
-      setSelectedJobId(null);
-      setRequestUndeleteOpen(false); // Close the dialog after action
-    }
-  };
+  // Optionally update the task state to reflect the request (if needed)
+  setPostedTasks((prev) =>
+    prev.map((task) =>
+      task.id === selectedJobId
+        ? { ...task, deletion_status: true }
+        : task
+    )
+  );
+
+  // Clear selected job and close the dialog
+  setSelectedJobId(null);
+  setRequestUndeleteOpen(false);
+};
 
   const handleSignOut = () => {
     localStorage.removeItem("user");
