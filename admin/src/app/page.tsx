@@ -1,76 +1,122 @@
-"use client"
+"use client";
 
-import type React from "react"
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import Link from "next/link"
-import { Eye, EyeOff, Loader2 } from "lucide-react"
-import { Button } from "../components/ui/button"
-import { Input } from "../components/ui/input"
-import { Label } from "../components/ui/label"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../components/ui/card"
-import { Checkbox } from "../components/ui/checkbox"
+import type React from "react";
+import { ChangeEvent, FormEvent, useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/input";
+import { Label } from "../components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "../components/ui/card";
+import { Checkbox } from "../components/ui/checkbox";
+import { Toaster } from "../components/ui/sonner";
+import { toast } from "sonner";
+import axiosInstance from "../lib/axiosInstance";
+import useStore from "../lib/Zustand";
+import axios, { AxiosError } from "axios";
 
 export default function AdminLoginPage() {
-  const router = useRouter()
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [showPassword, setShowPassword] = useState(false)
-  const [rememberMe, setRememberMe] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState("")
+  const { login } = useStore();
+  const router = useRouter();
+  const [formData, setFormData] = useState({
+    user_email: "",
+    password: "",
+  });
+  const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError("")
-    setIsLoading(true)
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    // Basic validation
+    if (!formData.user_email || !formData.password) {
+      toast.error("Please fill in all required fields");
+      return;
+    }
 
     try {
-      // Simulate API authentication call
-      await new Promise((resolve) => setTimeout(resolve, 1500))
-      
-      // In a real application, this would be an API call like:
-      // const response = await fetch("/api/auth/login", {
-      //   method: "POST",
-      //   headers: { "Content-Type": "application/json" },
-      //   body: JSON.stringify({ email, password, rememberMe }),
-      // })
-      // if (!response.ok) throw new Error("Invalid credentials")
+      setIsLoading(true);
+      const response = await axiosInstance.post("/admin-login/", formData);
 
-      // On successful login, redirect to dashboard
-      router.push("/dashboard")
-    } catch {
-      setError("Invalid email or password")
+      if (response.data.status_code === 200 && response.data.data) {
+        const { token, user } = response.data.data;
+        console.log(user);
+
+        if (!token || !user) {
+          throw new Error("Invalid response: Missing token or user data");
+        }
+
+        login(token, user);
+
+        toast.success("Login successful!");
+
+        router.push("/dashboard");
+      } else {
+        toast.error(response.data.message || "Login failed");
+      }
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        const axiosError = err as AxiosError<{ message?: string }>;
+        const status = axiosError.response?.status;
+
+        if (status === 404) {
+          toast.error(axiosError.response?.data?.message || "User not found.");
+        } else {
+          toast.error(
+            axiosError.response?.data?.message ||
+              "An error occurred while logging in"
+          );
+        }
+      } else {
+        toast.error("Something went wrong");
+      }
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-muted/40 p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold">Jobpool Admin</h1>
-          <p className="text-muted-foreground">Login to access the admin portal</p>
+          <p className="text-muted-foreground">
+            Login to access the admin portal
+          </p>
         </div>
 
         <Card>
           <CardHeader>
             <CardTitle>Admin Login</CardTitle>
-            <CardDescription>Enter your credentials to access the admin dashboard</CardDescription>
+            <CardDescription>
+              Enter your credentials to access the admin dashboard
+            </CardDescription>
           </CardHeader>
           <form onSubmit={handleSubmit}>
             <CardContent className="space-y-4">
-              {error && <div className="p-3 text-sm bg-red-50 text-red-500 rounded-md">{error}</div>}
-
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="user_email">Email</Label>
                 <Input
-                  id="email"
-                  type="email"
+                  id="user_email"
+                  type="user_email"
+                  name="user_email"
                   placeholder="admin@taskmaster.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  value={formData.user_email}
+                  onChange={handleChange}
                   required
                 />
               </div>
@@ -78,17 +124,21 @@ export default function AdminLoginPage() {
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <Label htmlFor="password">Password</Label>
-                  <Link href="/admin/forgot-password" className="text-xs text-primary hover:underline">
+                  <Link
+                    href="/admin/forgot-password"
+                    className="text-xs text-primary hover:underline"
+                  >
                     Forgot password?
                   </Link>
                 </div>
                 <div className="relative">
                   <Input
                     id="password"
+                    name="password"
                     type={showPassword ? "text" : "password"}
                     placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    value={formData.password}
+                    onChange={handleChange}
                     required
                   />
                   <Button
@@ -103,13 +153,19 @@ export default function AdminLoginPage() {
                     ) : (
                       <Eye className="h-4 w-4 text-muted-foreground" />
                     )}
-                    <span className="sr-only">{showPassword ? "Hide password" : "Show password"}</span>
+                    <span className="sr-only">
+                      {showPassword ? "Hide password" : "Show password"}
+                    </span>
                   </Button>
                 </div>
               </div>
 
               <div className="flex items-center space-x-2">
-                <Checkbox id="remember" checked={rememberMe} onCheckedChange={(checked) => setRememberMe(!!checked)} />
+                <Checkbox
+                  id="remember"
+                  checked={rememberMe}
+                  onCheckedChange={(checked) => setRememberMe(!!checked)}
+                />
                 <Label htmlFor="remember" className="text-sm font-normal">
                   Remember me for 30 days
                 </Label>
@@ -140,5 +196,5 @@ export default function AdminLoginPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

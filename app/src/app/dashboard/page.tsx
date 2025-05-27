@@ -555,9 +555,13 @@ export default function DashboardPage() {
       const response = await axiosInstance.put(`/delete-job/${selectedJobId}/`);
       if (response.data.status_code === 200) {
         toast.success("Task deleted successfully!");
-        // Remove the deleted task from postedTasks
+        // Update the deletion_status of the task in postedTasks
         setPostedTasks((prev) =>
-          prev.filter((task) => task.id !== selectedJobId)
+          prev.map((task) =>
+            task.id === selectedJobId
+              ? { ...task, deletion_status: true }
+              : task
+          )
         );
       } else {
         toast.error(response.data.message || "Failed to delete task");
@@ -583,7 +587,7 @@ export default function DashboardPage() {
         setPostedTasks((prev) =>
           prev.map((task) =>
             task.id === selectedJobId
-              ? { ...task, deletion_status : true }
+              ? { ...task, deletion_status: true }
               : task
           )
         );
@@ -681,78 +685,6 @@ export default function DashboardPage() {
             <TabsTrigger value="my-bids">My Bids</TabsTrigger>
           </TabsList>
 
-          {/* <TabsContent value="my-tasks" className="space-y-4 mt-6">
-            <h2 className="text-xl font-semibold">Tasks You've Posted</h2>
-            {postedTasks.length === 0 ? (
-              <Card>
-                <CardContent className="flex flex-col items-center justify-center py-10">
-                  <p className="text-muted-foreground mb-4">
-                    You haven't posted any tasks yet
-                  </p>
-                  <Link href="/post-task">
-                    <Button>Post Your First Task</Button>
-                  </Link>
-                </CardContent>
-              </Card>
-            ) : (
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {postedTasks.map((task) => (
-                  <Card key={task.id} className="relative">
-                    <button
-                      onClick={() => handleDeleteClick(task.id)}
-                      className="absolute top-2 right-2 text-red-500 hover:text-red-700"
-                      aria-label="Delete task"
-                    >
-                      <Trash2 className="h-5 w-5" />
-                    </button>
-                    <CardHeader className="pb-2">
-                      <div className="flex justify-between items-start">
-                        <CardTitle className="text-lg">{task.title}</CardTitle>
-                        <Badge
-                          variant={
-                            task.status === "open" ? "outline" : "secondary"
-                          }
-                        >
-                          {task.status.charAt(0).toUpperCase() +
-                            task.status.slice(1)}
-                        </Badge>
-                      </div>
-                      <CardDescription className="flex items-center gap-1">
-                        <Clock className="h-3 w-3" />
-                        <span>{task.postedAt}</span>
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
-                        {task.description}
-                      </p>
-                      <div className="flex flex-col gap-2 text-sm">
-                        <div className="flex items-center gap-2">
-                          <IndianRupee className="h-4 w-4 text-muted-foreground" />
-                          <span>{task.budget}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <MapPin className="h-4 w-4 text-muted-foreground" />
-                          <span>{task.location}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Briefcase className="h-4 w-4 text-muted-foreground" />
-                          <span>{task.offers || 0} offers</span>
-                        </div>
-                      </div>
-                    </CardContent>
-                    <CardFooter>
-                      <Link href={`/tasks/${task.id}`} className="w-full">
-                        <Button variant="outline" className="w-full">
-                          View Details
-                        </Button>
-                      </Link>
-                    </CardFooter>
-                  </Card>
-                ))}
-              </div>
-            )}
-          </TabsContent> */}
           <TabsContent value="my-tasks" className="space-y-4 mt-6">
             <h2 className="text-xl font-semibold">Tasks You've Posted</h2>
             {postedTasks.length === 0 ? (
@@ -784,9 +716,9 @@ export default function DashboardPage() {
                           : ""
                       }`}
                     >
-                      {!task.deletion_status && (
+                      {!task.deletion_status && task.status === "open" && (
                         <button
-                          onClick={() => handleRequestUndeleteClick(task.id)}
+                          onClick={() => handleDeleteClick(task.id)}
                           className="absolute top-2 right-2 text-red-500 hover:text-red-700"
                           aria-label="Delete task"
                         >
