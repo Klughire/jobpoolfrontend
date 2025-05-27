@@ -22,14 +22,14 @@ import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { Alert, AlertDescription, AlertTitle } from "../../components/ui/alert";
-import  axiosInstance  from "../../lib/axiosInstance"; 
-
+import axiosInstance from "../../lib/axiosInstance";
+import axios from "axios";
 
 export default function AdminForgotPasswordPage() {
   const [email, setEmail] = useState("");
-  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">(
-    "idle"
-  );
+  const [status, setStatus] = useState<
+    "idle" | "loading" | "success" | "error"
+  >("idle");
   const [errorMessage, setErrorMessage] = useState("");
 
   const isValidEmail = (email: string) => {
@@ -50,7 +50,9 @@ export default function AdminForgotPasswordPage() {
 
     try {
       // Make API call to the backend using axiosInstance
-      const response = await axiosInstance.put(`/send-forgot-link?email=${email}`);
+      const response = await axiosInstance.put(
+        `/send-forgot-link?email=${email}`
+      );
 
       // Check if the response indicates success
       if (response.data.status_code === 200) {
@@ -60,13 +62,15 @@ export default function AdminForgotPasswordPage() {
         setStatus("error");
         setErrorMessage(response.data.message || "Something went wrong.");
       }
-    } catch (error: any) {
-      setStatus("error");
-      // Extract error message from API response or fallback to a generic message
-      const errorMsg =
-        error.response?.data?.message ||
-        "Failed to send reset link. Please try again later.";
-      setErrorMessage(errorMsg);
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        const errorMsg =
+          error.response?.data?.message ||
+          "Failed to send reset link. Please try again later.";
+        setErrorMessage(errorMsg);
+      } else {
+        setErrorMessage("An unknown error occurred.");
+      }
     }
   };
 
@@ -90,7 +94,7 @@ export default function AdminForgotPasswordPage() {
             <CardTitle className="text-2xl">Reset Password</CardTitle>
           </div>
           <CardDescription>
-            Enter your email address and we'll send you a link to reset your
+            Enter your email address and we&apos;ll send you a link to reset your
             password
           </CardDescription>
         </CardHeader>
@@ -111,7 +115,7 @@ export default function AdminForgotPasswordPage() {
                   Check your email
                 </AlertTitle>
                 <AlertDescription className="text-green-700">
-                  We've sent a password reset link to{" "}
+                  We&apos;ve sent a password reset link to{" "}
                   <span className="font-medium">{email}</span>. Please check
                   your inbox and spam folder.
                 </AlertDescription>
@@ -128,7 +132,7 @@ export default function AdminForgotPasswordPage() {
               </div>
 
               <div className="text-center text-sm text-gray-500">
-                Didn't receive the email? Check your spam folder or{" "}
+                Didn&apos;t receive the email? Check your spam folder or{" "}
                 <button
                   onClick={handleTryAgain}
                   className="font-medium text-primary underline underline-offset-4 hover:text-primary/90"

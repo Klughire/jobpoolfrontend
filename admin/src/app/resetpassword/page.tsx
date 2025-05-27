@@ -25,8 +25,8 @@ import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { Alert, AlertDescription, AlertTitle } from "../../components/ui/alert";
-import axiosInstance from "../../lib/axiosInstance"; 
-
+import axiosInstance from "../../lib/axiosInstance";
+import axios from "axios";
 
 export default function AdminResetPasswordPage() {
   const searchParams = useSearchParams();
@@ -64,15 +64,19 @@ export default function AdminResetPasswordPage() {
     }
 
     setStatus("loading");
-// /reset-password/?email=sirichandana997%40gmail.com
+
     try {
       // Make API call to reset password
-      const response = await axiosInstance.put(`/reset-password/`, {
-        new_password: password,
-        confirm_new_password: confirmPassword,
-      }, {
-        params: { email: email },
-      });
+      const response = await axiosInstance.put(
+        `/reset-password/`,
+        {
+          new_password: password,
+          confirm_new_password: confirmPassword,
+        },
+        {
+          params: { email: email },
+        }
+      );
 
       // Check if the response indicates success
       if (response.data.message === "Password reset successful") {
@@ -81,12 +85,15 @@ export default function AdminResetPasswordPage() {
         setStatus("error");
         setErrorMessage(response.data.message || "Something went wrong.");
       }
-    } catch (error: any) {
-      setStatus("error");
-      const errorMsg =
-        error.response?.data?.message ||
-        "Failed to reset password. Please try again later.";
-      setErrorMessage(errorMsg);
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        const errorMsg =
+          error.response?.data?.message ||
+          "Failed to reset password. Please try again later.";
+        setErrorMessage(errorMsg);
+      } else {
+        setErrorMessage("An unknown error occurred.");
+      }
     }
   };
 
