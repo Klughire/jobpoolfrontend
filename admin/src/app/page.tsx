@@ -17,7 +17,6 @@ import {
   CardTitle,
 } from "../components/ui/card";
 import { Checkbox } from "../components/ui/checkbox";
-import { Toaster } from "../components/ui/sonner";
 import { toast } from "sonner";
 import axiosInstance from "../lib/axiosInstance";
 import useStore from "../lib/Zustand";
