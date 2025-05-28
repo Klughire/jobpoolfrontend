@@ -494,60 +494,56 @@ export default function PayoutsPage() {
 
   // Fetch payouts from the backend
   useEffect(() => {
-    const fetchPayouts = async () => {
-      try {
-        setIsLoading(true);
-        setError(null);
-        const response = await axiosInstance.get("get-all-task-orders/");
+  const fetchPayouts = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const response = await axiosInstance.get("get-all-task-orders/");
 
-        if (response.data.status_code !== 200) {
-          throw new Error(response.data.message);
-        }
-
-        // Map backend response to Payout interface
-        const fetchedPayouts: Payout[] = response.data.data.task_orders.map(
-          (order: {
-            order_id: number;
-            tasker_id: string;
-            bid_amount: string;
-            gst: string;
-            commission: string;
-            payable_amount: string;
-            status: number;
-            method?: string;
-            payment_id?: string;
-            created_at?: string;
-            completed_at?: string | null;
-          }) => ({
-            id: order.order_id,
-            tasker: {
-              id: parseInt(order.tasker_id),
-              name: `${order.tasker_id}`, // Replace with actual tasker name if available
-              // email: `tasker${order.tasker_id}@example.com`, // Replace with actual email if available
-            },
-            amount: parseFloat(order.bid_amount) || 0, // Convert string to number, default to 0 if invalid
-            fee:
-              (parseFloat(order.gst) || 0) +
-              (parseFloat(order.commission) || 0), // Convert and sum
-            netAmount: parseFloat(order.payable_amount) || 0, // Convert string to number
-            status: statusMap[order.status] || "Unknown", // Map status code to string
-            method: order.method || "Bank Transfer", // Mock if not provided
-            reference: order.payment_id || `REF-${order.order_id}`, // Mock if not provided
-            date: order.created_at || new Date().toISOString().split("T")[0], // Use created_at or mock
-            completedDate: order.completed_at || null, // Add completed_at to backend if needed
-          })
-        );
-
-        setPayouts(fetchedPayouts);
-      } catch (error: unknown) {
-        setError("Failed to fetch payouts");
-      } finally {
-        setIsLoading(false);
+      if (response.data.status_code !== 200) {
+        throw new Error(response.data.message);
       }
-    };
 
-    fetchPayouts();
-  }, []);
+      const fetchedPayouts: Payout[] = response.data.data.task_orders.map(
+        (order: {
+          order_id: number;
+          tasker_id: string;
+          bid_amount: string;
+          gst: string;
+          commission: string;
+          payable_amount: string;
+          status: number;
+          method?: string;
+          payment_id?: string;
+          created_at?: string;
+          completed_at?: string | null;
+        }) => ({
+          id: order.order_id,
+          tasker: {
+            id: parseInt(order.tasker_id),
+            name: `${order.tasker_id}`,
+          },
+          amount: parseFloat(order.bid_amount) || 0,
+          fee: (parseFloat(order.gst) || 0) + (parseFloat(order.commission) || 0),
+          netAmount: parseFloat(order.payable_amount) || 0,
+          status: statusMap[order.status] || "Unknown",
+          method: order.method || "Bank Transfer",
+          reference: order.payment_id || `REF-${order.order_id}`,
+          date: order.created_at || new Date().toISOString().split("T")[0],
+          completedDate: order.completed_at || null,
+        })
+      );
+
+      setPayouts(fetchedPayouts);
+    } catch (_error: unknown) {
+      setError("Failed to fetch payouts");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  fetchPayouts();
+}, [statusMap]); // Added statusMap to dependency array
 
   const handleStatusChange = async (payoutId: number, newStatus: string) => {
     try {
