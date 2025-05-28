@@ -139,7 +139,7 @@ export default function AdminUsersPage() {
       } else {
         toast.error(response.data.message || "Failed to create user");
       }
-    } catch (error: any) {
+    } catch (error: unknown) { 
       toast.error("An error occurred while creating user");
     } finally {
       setIsLoading(false);
@@ -187,27 +187,27 @@ export default function AdminUsersPage() {
     }
   };
 
-  const handleDeleteUser = async () => {
-    if (userToDelete === null) return;
+  // const handleDeleteUser = async () => {
+  //   if (userToDelete === null) return;
 
-    try {
-      setIsLoading(true);
-      const response = await axiosInstance.delete(`users/${userToDelete}/`);
+  //   try {
+  //     setIsLoading(true);
+  //     const response = await axiosInstance.delete(`users/${userToDelete}/`);
 
-      if (response.data.status_code === 200) {
-        toast.success("User deleted successfully");
-        setUsers(users.filter((user) => user.user_id !== userToDelete));
-        setUserToDelete(null);
-        setIsDeleteDialogOpen(false);
-      } else {
-        toast.error(response.data.message || "Failed to delete user");
-      }
-    } catch {
-      toast.error("An error occurred while deleting user");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  //     if (response.data.status_code === 200) {
+  //       toast.success("User deleted successfully");
+  //       setUsers(users.filter((user) => user.user_id !== userToDelete));
+  //       setUserToDelete(null);
+  //       setIsDeleteDialogOpen(false);
+  //     } else {
+  //       toast.error(response.data.message || "Failed to delete user");
+  //     }
+  //   } catch {
+  //     toast.error("An error occurred while deleting user");
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
 
   return (
     <div className="flex flex-col gap-4">

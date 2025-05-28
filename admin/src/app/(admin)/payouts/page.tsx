@@ -403,13 +403,10 @@
 //   )
 // }
 
+"use client";
 
-
-
-"use client"
-
-import { useState, useEffect } from "react"
-import axios from "axios"
+import { useState, useEffect } from "react";
+import axios from "axios";
 import {
   Search,
   Download,
@@ -418,9 +415,9 @@ import {
   XCircle,
   Clock,
   AlertCircle,
-} from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -428,7 +425,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
+} from "@/components/ui/table";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -436,17 +433,17 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from "@/components/ui/dropdown-menu";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
-import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Dialog,
   DialogContent,
@@ -454,38 +451,38 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
-import { Label } from "@/components/ui/label"
-import axiosInstance from "@/lib/axiosInstance"
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import axiosInstance from "@/lib/axiosInstance";
 
 interface Tasker {
-  id: number
-  name: string
-  email: string
+  id: number;
+  name: string;
+  email: string;
 }
 
 interface Payout {
-  id: number
-  tasker: Tasker
-  amount: number
-  fee: number
-  netAmount: number
-  status: string
-  method: string
-  reference: string
-  date: string
-  completedDate: string | null
+  id: number;
+  tasker: Tasker;
+  amount: number;
+  fee: number;
+  netAmount: number;
+  status: string;
+  method: string;
+  reference: string;
+  date: string;
+  completedDate: string | null;
 }
 
 export default function PayoutsPage() {
-  const [payouts, setPayouts] = useState<Payout[]>([])
-  const [searchTerm, setSearchTerm] = useState("")
-  const [statusFilter, setStatusFilter] = useState("all")
-  const [methodFilter, setMethodFilter] = useState("all")
-  const [selectedPayout, setSelectedPayout] = useState<Payout | null>(null)
-  const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false)
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [payouts, setPayouts] = useState<Payout[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [methodFilter, setMethodFilter] = useState("all");
+  const [selectedPayout, setSelectedPayout] = useState<Payout | null>(null);
+  const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // Map backend status codes to frontend status strings
   const statusMap: { [key: number]: string } = {
@@ -493,48 +490,64 @@ export default function PayoutsPage() {
     0: "Processing",
     1: "Completed",
     2: "Failed",
-  }
+  };
 
   // Fetch payouts from the backend
   useEffect(() => {
     const fetchPayouts = async () => {
       try {
-        setIsLoading(true)
-        setError(null)
-        const response = await axiosInstance.get("get-all-task-orders/")
+        setIsLoading(true);
+        setError(null);
+        const response = await axiosInstance.get("get-all-task-orders/");
 
         if (response.data.status_code !== 200) {
-          throw new Error(response.data.message)
+          throw new Error(response.data.message);
         }
 
         // Map backend response to Payout interface
-        const fetchedPayouts: Payout[] = response.data.data.task_orders.map((order: any) => ({
-          id: order.order_id,
-          tasker: {
-            id: parseInt(order.tasker_id),
-            name: `${order.tasker_id}`, // Replace with actual tasker name if available
-            // email: `tasker${order.tasker_id}@example.com`, // Replace with actual email if available
-          },
-          amount: parseFloat(order.bid_amount) || 0, // Convert string to number, default to 0 if invalid
-          fee: (parseFloat(order.gst) || 0) + (parseFloat(order.commission) || 0), // Convert and sum
-          netAmount: parseFloat(order.payable_amount) || 0, // Convert string to number
-          status: statusMap[order.status] || "Unknown", // Map status code to string
-          method: order.method || "Bank Transfer", // Mock if not provided
-          reference: order.payment_id || `REF-${order.order_id}`, // Mock if not provided
-          date: order.created_at || new Date().toISOString().split("T")[0], // Use created_at or mock
-          completedDate: order.completed_at || null, // Add completed_at to backend if needed
-        }))
+        const fetchedPayouts: Payout[] = response.data.data.task_orders.map(
+          (order: {
+            order_id: number;
+            tasker_id: string;
+            bid_amount: string;
+            gst: string;
+            commission: string;
+            payable_amount: string;
+            status: number;
+            method?: string;
+            payment_id?: string;
+            created_at?: string;
+            completed_at?: string | null;
+          }) => ({
+            id: order.order_id,
+            tasker: {
+              id: parseInt(order.tasker_id),
+              name: `${order.tasker_id}`, // Replace with actual tasker name if available
+              // email: `tasker${order.tasker_id}@example.com`, // Replace with actual email if available
+            },
+            amount: parseFloat(order.bid_amount) || 0, // Convert string to number, default to 0 if invalid
+            fee:
+              (parseFloat(order.gst) || 0) +
+              (parseFloat(order.commission) || 0), // Convert and sum
+            netAmount: parseFloat(order.payable_amount) || 0, // Convert string to number
+            status: statusMap[order.status] || "Unknown", // Map status code to string
+            method: order.method || "Bank Transfer", // Mock if not provided
+            reference: order.payment_id || `REF-${order.order_id}`, // Mock if not provided
+            date: order.created_at || new Date().toISOString().split("T")[0], // Use created_at or mock
+            completedDate: order.completed_at || null, // Add completed_at to backend if needed
+          })
+        );
 
-        setPayouts(fetchedPayouts)
-      } catch (err: any) {
-        setError(err.message || "Failed to fetch payouts")
+        setPayouts(fetchedPayouts);
+      } catch (error: unknown) {
+        setError("Failed to fetch payouts");
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
-    }
+    };
 
-    fetchPayouts()
-  }, [])
+    fetchPayouts();
+  }, []);
 
   const handleStatusChange = async (payoutId: number, newStatus: string) => {
     try {
@@ -544,52 +557,52 @@ export default function PayoutsPage() {
         Processing: 0,
         Completed: 1,
         Failed: 2,
-      }
-      const statusCode = reverseStatusMap[newStatus]
-      await axios.patch(`http://localhost:8000/task-order/${payoutId}/status`, { status: statusCode })
+      };
+      const statusCode = reverseStatusMap[newStatus];
+      await axios.patch(`http://localhost:8000/task-order/${payoutId}/status`, {
+        status: statusCode,
+      });
       setPayouts((prev) =>
-        prev.map((p) =>
-          p.id === payoutId ? { ...p, status: newStatus } : p
-        )
-      )
-    } catch (err: any) {
-      setError("Failed to update payout status")
+        prev.map((p) => (p.id === payoutId ? { ...p, status: newStatus } : p))
+      );
+    } catch (err: unknown) {
+      setError("Failed to update payout status");
     }
-  }
+  };
 
   const filteredPayouts = payouts.filter((payout) => {
     const matchesSearch =
       payout.tasker.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       payout.tasker.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      payout.reference.toLowerCase().includes(searchTerm.toLowerCase())
+      payout.reference.toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchesStatus =
       statusFilter === "all" ||
-      payout.status.toLowerCase() === statusFilter.toLowerCase()
+      payout.status.toLowerCase() === statusFilter.toLowerCase();
 
     const matchesMethod =
       methodFilter === "all" ||
-      payout.method.toLowerCase() === methodFilter.toLowerCase()
+      payout.method.toLowerCase() === methodFilter.toLowerCase();
 
-    return matchesSearch && matchesStatus && matchesMethod
-  })
+    return matchesSearch && matchesStatus && matchesMethod;
+  });
 
   const totalPending = payouts
     .filter((p) => p.status === "Pending")
     .reduce((sum, p) => sum + p.amount, 0)
-    .toFixed(2)
+    .toFixed(2);
   const totalProcessing = payouts
     .filter((p) => p.status === "Processing")
     .reduce((sum, p) => sum + p.amount, 0)
-    .toFixed(2)
+    .toFixed(2);
   const totalCompleted = payouts
     .filter((p) => p.status === "Completed")
     .reduce((sum, p) => sum + p.amount, 0)
-    .toFixed(2)
+    .toFixed(2);
   const totalFailed = payouts
     .filter((p) => p.status === "Failed")
     .reduce((sum, p) => sum + p.amount, 0)
-    .toFixed(2)
+    .toFixed(2);
 
   return (
     <div className="flex flex-col gap-4">
@@ -619,7 +632,9 @@ export default function PayoutsPage() {
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Processing</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  Processing
+                </CardTitle>
                 <AlertCircle className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
@@ -698,7 +713,10 @@ export default function PayoutsPage() {
               <TableBody>
                 {filteredPayouts.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                    <TableCell
+                      colSpan={6}
+                      className="text-center py-8 text-muted-foreground"
+                    >
                       No payouts found
                     </TableCell>
                   </TableRow>
@@ -708,20 +726,34 @@ export default function PayoutsPage() {
                       <TableCell>
                         <div className="flex items-center gap-3">
                           <Avatar>
-                            <AvatarImage src={`/images/placeholder.svg`} alt={payout.tasker.name} />
+                            <AvatarImage
+                              src={`/images/placeholder.svg`}
+                              alt={payout.tasker.name}
+                            />
                             <AvatarFallback>
-                              {payout.tasker.name.split(" ").map((n) => n[0]).join("")}
+                              {payout.tasker.name
+                                .split(" ")
+                                .map((n) => n[0])
+                                .join("")}
                             </AvatarFallback>
                           </Avatar>
                           <div>
-                            <div className="font-medium">{payout.tasker.name}</div>
-                            <div className="text-sm text-muted-foreground">{payout.tasker.email}</div>
+                            <div className="font-medium">
+                              {payout.tasker.name}
+                            </div>
+                            <div className="text-sm text-muted-foreground">
+                              {payout.tasker.email}
+                            </div>
                           </div>
                         </div>
                       </TableCell>
                       <TableCell>
-                        <div className="font-medium">INR {payout.amount.toFixed(2)}</div>
-                        <div className="text-sm text-muted-foreground">Net: INR {payout.netAmount.toFixed(2)}</div>
+                        <div className="font-medium">
+                          INR {payout.amount.toFixed(2)}
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          Net: INR {payout.netAmount.toFixed(2)}
+                        </div>
                       </TableCell>
                       <TableCell>
                         <Badge
@@ -738,14 +770,21 @@ export default function PayoutsPage() {
                           {payout.status}
                         </Badge>
                       </TableCell>
-                      <TableCell className="hidden md:table-cell">{payout.method}</TableCell>
-                      <TableCell className="hidden md:table-cell">{payout.date}</TableCell>
+                      <TableCell className="hidden md:table-cell">
+                        {payout.method}
+                      </TableCell>
+                      <TableCell className="hidden md:table-cell">
+                        {payout.date}
+                      </TableCell>
                       <TableCell className="text-right">
                         <Dialog
-                          open={isDetailsDialogOpen && selectedPayout?.id === payout.id}
+                          open={
+                            isDetailsDialogOpen &&
+                            selectedPayout?.id === payout.id
+                          }
                           onOpenChange={(open) => {
-                            setIsDetailsDialogOpen(open)
-                            if (!open) setSelectedPayout(null)
+                            setIsDetailsDialogOpen(open);
+                            if (!open) setSelectedPayout(null);
                           }}
                         >
                           <DropdownMenu>
@@ -759,8 +798,8 @@ export default function PayoutsPage() {
                               <DropdownMenuLabel>Actions</DropdownMenuLabel>
                               <DropdownMenuItem
                                 onClick={() => {
-                                  setSelectedPayout(payout)
-                                  setIsDetailsDialogOpen(true)
+                                  setSelectedPayout(payout);
+                                  setIsDetailsDialogOpen(true);
                                 }}
                               >
                                 View Details
@@ -768,12 +807,21 @@ export default function PayoutsPage() {
                               {payout.status === "Pending" && (
                                 <>
                                   <DropdownMenuSeparator />
-                                  <DropdownMenuItem onClick={() => handleStatusChange(payout.id, "Processing")}>
+                                  <DropdownMenuItem
+                                    onClick={() =>
+                                      handleStatusChange(
+                                        payout.id,
+                                        "Processing"
+                                      )
+                                    }
+                                  >
                                     Process Payout
                                   </DropdownMenuItem>
                                   <DropdownMenuItem
                                     className="text-destructive"
-                                    onClick={() => handleStatusChange(payout.id, "Failed")}
+                                    onClick={() =>
+                                      handleStatusChange(payout.id, "Failed")
+                                    }
                                   >
                                     Cancel Payout
                                   </DropdownMenuItem>
@@ -782,7 +830,11 @@ export default function PayoutsPage() {
                               {payout.status === "Failed" && (
                                 <>
                                   <DropdownMenuSeparator />
-                                  <DropdownMenuItem onClick={() => handleStatusChange(payout.id, "Pending")}>
+                                  <DropdownMenuItem
+                                    onClick={() =>
+                                      handleStatusChange(payout.id, "Pending")
+                                    }
+                                  >
                                     Retry Payout
                                   </DropdownMenuItem>
                                 </>
@@ -792,13 +844,18 @@ export default function PayoutsPage() {
                           <DialogContent className="sm:max-w-[425px]">
                             <DialogHeader>
                               <DialogTitle>Payout Details</DialogTitle>
-                              <DialogDescription>Complete information about this payout.</DialogDescription>
+                              <DialogDescription>
+                                Complete information about this payout.
+                              </DialogDescription>
                             </DialogHeader>
                             {selectedPayout && (
                               <div className="grid gap-4 py-4">
                                 <div className="flex items-center gap-4">
                                   <Avatar className="h-12 w-12">
-                                    <AvatarImage src={`/images/placeholder.svg`} alt={selectedPayout.tasker.name} />
+                                    <AvatarImage
+                                      src={`/images/placeholder.svg`}
+                                      alt={selectedPayout.tasker.name}
+                                    />
                                     <AvatarFallback>
                                       {selectedPayout.tasker.name
                                         .split(" ")
@@ -807,14 +864,20 @@ export default function PayoutsPage() {
                                     </AvatarFallback>
                                   </Avatar>
                                   <div>
-                                    <h3 className="font-medium">{selectedPayout.tasker.name}</h3>
-                                    <p className="text-sm text-muted-foreground">{selectedPayout.tasker.email}</p>
+                                    <h3 className="font-medium">
+                                      {selectedPayout.tasker.name}
+                                    </h3>
+                                    <p className="text-sm text-muted-foreground">
+                                      {selectedPayout.tasker.email}
+                                    </p>
                                   </div>
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
                                   <div>
                                     <Label>Amount</Label>
-                                    <div className="font-medium">${selectedPayout.amount.toFixed(2)}</div>
+                                    <div className="font-medium">
+                                      ${selectedPayout.amount.toFixed(2)}
+                                    </div>
                                   </div>
                                   <div>
                                     <Label>Status</Label>
@@ -824,7 +887,8 @@ export default function PayoutsPage() {
                                           ? "default"
                                           : selectedPayout.status === "Pending"
                                           ? "outline"
-                                          : selectedPayout.status === "Processing"
+                                          : selectedPayout.status ===
+                                            "Processing"
                                           ? "secondary"
                                           : "destructive"
                                       }
@@ -836,11 +900,15 @@ export default function PayoutsPage() {
                                 <div className="grid grid-cols-2 gap-4">
                                   <div>
                                     <Label>Fee</Label>
-                                    <div className="font-medium">${selectedPayout.fee.toFixed(2)}</div>
+                                    <div className="font-medium">
+                                      ${selectedPayout.fee.toFixed(2)}
+                                    </div>
                                   </div>
                                   <div>
                                     <Label>Net Amount</Label>
-                                    <div className="font-medium">${selectedPayout.netAmount.toFixed(2)}</div>
+                                    <div className="font-medium">
+                                      ${selectedPayout.netAmount.toFixed(2)}
+                                    </div>
                                   </div>
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
@@ -850,7 +918,9 @@ export default function PayoutsPage() {
                                   </div>
                                   <div>
                                     <Label>Reference</Label>
-                                    <div className="font-mono text-sm">{selectedPayout.reference}</div>
+                                    <div className="font-mono text-sm">
+                                      {selectedPayout.reference}
+                                    </div>
                                   </div>
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
@@ -860,13 +930,18 @@ export default function PayoutsPage() {
                                   </div>
                                   <div>
                                     <Label>Completed Date</Label>
-                                    <div>{selectedPayout.completedDate || "N/A"}</div>
+                                    <div>
+                                      {selectedPayout.completedDate || "N/A"}
+                                    </div>
                                   </div>
                                 </div>
                               </div>
                             )}
                             <DialogFooter>
-                              <Button variant="outline" onClick={() => setIsDetailsDialogOpen(false)}>
+                              <Button
+                                variant="outline"
+                                onClick={() => setIsDetailsDialogOpen(false)}
+                              >
                                 Close
                               </Button>
                             </DialogFooter>
@@ -882,5 +957,5 @@ export default function PayoutsPage() {
         </>
       )}
     </div>
-  )
+  );
 }
