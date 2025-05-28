@@ -1,51 +1,34 @@
-// 'use client';
 
-// import React, { useEffect } from 'react';
-// import { useSearchParams } from 'next/navigation';
-
-// interface Props {
-//   onParamsFetch: (params: Record<string, string>) => void;
-//   children: React.ReactNode;
-// }
-
-// const SuspenseSearchParamsWrapper: React.FC<Props> = ({
-//   onParamsFetch,
-//   children,
-// }) => {
-//   const searchParams = useSearchParams();
-
-//   useEffect(() => {
-//     const params: Record<string, string> = {};
-//     searchParams.forEach((value, key) => {
-//       params[key] = value;
-//     });
-//     onParamsFetch(params);
-//   }, [searchParams, onParamsFetch]);
-
-//   return <>{children}</>; // Render the children after fetching search params
-// };
-
-// export default SuspenseSearchParamsWrapper;
-
-
-// SuspenseSearchParamsWrapper.tsx
 "use client";
+
 import { useEffect } from "react";
 import { useSearchParams } from "next/navigation";
+
+interface SuspenseSearchParamsWrapperProps {
+  onParamsFetch: (params: Record<string, string>) => void;
+  children: React.ReactNode;
+}
 
 export default function SuspenseSearchParamsWrapper({
   onParamsFetch,
   children,
-}: {
-  onParamsFetch: (params: Record<string, string>) => void;
-  children: React.ReactNode;
-}) {
+}: SuspenseSearchParamsWrapperProps) {
   const searchParams = useSearchParams();
 
   useEffect(() => {
-    const email = searchParams.get("email") || "";
+    // Log searchParams for debugging
+    console.log("Search params:", searchParams?.toString() ?? "No params");
+
+    // Get email from searchParams, default to empty string if null
+    const email = searchParams?.get("email") ?? "";
+    
+    // Log raw and decoded email for debugging
+    console.log("Raw email:", email);
+    console.log("Decoded email:", email ? decodeURIComponent(email) : "");
+
+    // Pass email to parent component
     onParamsFetch({
-      email: decodeURIComponent(email), // ✅ DECODE here
+      email: email ? decodeURIComponent(email) : "",
     });
   }, [searchParams, onParamsFetch]);
 

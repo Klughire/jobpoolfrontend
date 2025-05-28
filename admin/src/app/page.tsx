@@ -64,10 +64,10 @@ export default function AdminLoginPage() {
 
         toast.success("Login successful!");
         router.push("/dashboard");
-      // } else if (status_code === 201) {
-      //   toast.warning("Login successful, please reset your default password");
-      //   router.push(`/resetpassword?email=${encodeURIComponent(formData.user_email)}`);
-      // } else {
+      } else if (status_code === 201) {
+        toast.warning("Login successful, please reset your default password");
+        router.push(`/resetpassword?email=${encodeURIComponent(formData.user_email)}`);
+      } else {
         toast.error(message || "Login failed");
       }
     } catch (err: unknown) {
