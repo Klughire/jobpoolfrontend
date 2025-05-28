@@ -233,7 +233,7 @@ export default function CategoriesPage() {
               filteredCategories.map((category) => (
                 <TableRow key={category.category_id}>
                   <TableCell className="font-medium">{category.category_name}</TableCell>
-                  <TableCell>{category.status ? "Active" : "Inactive"}</TableCell>
+                  <TableCell>{category.status ? "Inactive" : "Active"}</TableCell>
                   <TableCell>{new Date(category.tstamp).toLocaleDateString()}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
