@@ -34,7 +34,7 @@ interface Category {
   category_id: string;
   category_name: string;
   status: boolean;
-  tstamp: string;
+  created_at: string;
 }
 
 export default function CategoriesPage() {
@@ -47,6 +47,14 @@ export default function CategoriesPage() {
   const [categoryToDelete, setCategoryToDelete] = useState<null | string>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
+  const formatDate = (isoString: string): string => {
+    const date = new Date(isoString);
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0"); // Months are 0-based
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+  };  
 
   const fetchCategories = async () => {
     try {
@@ -234,7 +242,7 @@ export default function CategoriesPage() {
                 <TableRow key={category.category_id}>
                   <TableCell className="font-medium">{category.category_name}</TableCell>
                   <TableCell>{category.status ? "Inactive" : "Active"}</TableCell>
-                  <TableCell>{new Date(category.tstamp).toLocaleDateString()}</TableCell>
+                  <TableCell>{formatDate(category.created_at)}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
                       <Dialog

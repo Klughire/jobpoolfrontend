@@ -956,7 +956,6 @@
 //   );
 // }
 
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -1014,9 +1013,16 @@ interface Tasker {
   email: string;
 }
 
+interface Poster {
+  id: number;
+  name: string;
+  email: string;
+}
+
 interface Payout {
   id: number;
   tasker: Tasker;
+  poster: Poster;
   amount: number;
   fee: number;
   netAmount: number;
@@ -1036,6 +1042,14 @@ export default function PayoutsPage() {
   const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const formatDate = (isoString: string): string => {
+    const date = new Date(isoString);
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0"); // Months are 0-based
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+  };
 
   // Map backend status codes to frontend status strings
   const statusMap: { [key: number]: string } = {
@@ -1061,6 +1075,9 @@ export default function PayoutsPage() {
           (order: {
             order_id: number;
             tasker_id: string;
+            tasker_name: string;
+            poster_id: string;
+            poster_name: string;
             bid_amount: string;
             gst: string;
             commission: string;
@@ -1074,11 +1091,18 @@ export default function PayoutsPage() {
             id: order.order_id,
             tasker: {
               id: parseInt(order.tasker_id),
-              name: `Tasker ${order.tasker_id}`, // Fallback name
+              name: `${order.tasker_name}`, // Fallback name
               email: `tasker${order.tasker_id}@example.com`, // Fallback email
             },
+            poster: {
+              id: parseInt(order.poster_id),
+              name: `${order.poster_name}`, // Fallback name
+              email: `tasker${order.poster_id}@example.com`, // Fallback email
+            },
             amount: parseFloat(order.bid_amount) || 0,
-            fee: (parseFloat(order.gst) || 0) + (parseFloat(order.commission) || 0),
+            fee:
+              (parseFloat(order.gst) || 0) +
+              (parseFloat(order.commission) || 0),
             netAmount: parseFloat(order.payable_amount) || 0,
             status: statusMap[order.status] || "Unknown",
             method: order.method || "Bank Transfer",
@@ -1181,7 +1205,9 @@ export default function PayoutsPage() {
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Processing</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  Processing
+                </CardTitle>
                 <AlertCircle className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
@@ -1250,6 +1276,7 @@ export default function PayoutsPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Tasker</TableHead>
+                  <TableHead>Poster</TableHead>
                   <TableHead>Amount</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="hidden md:table-cell">Method</TableHead>
@@ -1260,7 +1287,10 @@ export default function PayoutsPage() {
               <TableBody>
                 {filteredPayouts.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                    <TableCell
+                      colSpan={6}
+                      className="text-center py-8 text-muted-foreground"
+                    >
                       No payouts found
                     </TableCell>
                   </TableRow>
@@ -1271,18 +1301,45 @@ export default function PayoutsPage() {
                         <div className="flex items-center gap-3">
                           <Avatar>
                             <AvatarFallback>
-                              {payout.tasker.name.split(" ").map((n) => n[0]).join("")}
+                              {payout.tasker.name
+                                .split(" ")
+                                .map((n) => n[0])
+                                .join("")}
                             </AvatarFallback>
                           </Avatar>
                           <div>
-                            <div className="font-medium">{payout.tasker.name}</div>
-                            <div className="text-sm text-muted-foreground">{payout.tasker.email}</div>
+                            <div className="font-medium">
+                              {payout.tasker.name}
+                            </div>
+                            {/* <div className="text-sm text-muted-foreground">{payout.tasker.email}</div> */}
                           </div>
                         </div>
                       </TableCell>
                       <TableCell>
-                        <div className="font-medium">INR {payout.amount.toFixed(2)}</div>
-                        <div className="text-sm text-muted-foreground">Net: INR {payout.netAmount.toFixed(2)}</div>
+                        <div className="flex items-center gap-3">
+                          <Avatar>
+                            <AvatarFallback>
+                              {payout.poster.name
+                                .split(" ")
+                                .map((n) => n[0])
+                                .join("")}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <div className="font-medium">
+                              {payout.poster.name}
+                            </div>
+                            {/* <div className="text-sm text-muted-foreground">{payout.tasker.email}</div> */}
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="font-medium">
+                          INR {payout.amount.toFixed(2)}
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          Net: INR {payout.netAmount.toFixed(2)}
+                        </div>
                       </TableCell>
                       <TableCell>
                         <Badge
@@ -1299,11 +1356,18 @@ export default function PayoutsPage() {
                           {payout.status}
                         </Badge>
                       </TableCell>
-                      <TableCell className="hidden md:table-cell">{payout.method}</TableCell>
-                      <TableCell className="hidden md:table-cell">{payout.date}</TableCell>
+                      <TableCell className="hidden md:table-cell">
+                        {payout.method}
+                      </TableCell>
+                      <TableCell className="hidden md:table-cell">
+                        {formatDate(payout.date)}
+                      </TableCell>
                       <TableCell className="text-right">
                         <Dialog
-                          open={isDetailsDialogOpen && selectedPayout?.id === payout.id}
+                          open={
+                            isDetailsDialogOpen &&
+                            selectedPayout?.id === payout.id
+                          }
                           onOpenChange={(open) => {
                             setIsDetailsDialogOpen(open);
                             if (!open) setSelectedPayout(null);
@@ -1329,12 +1393,21 @@ export default function PayoutsPage() {
                               {payout.status === "Pending" && (
                                 <>
                                   <DropdownMenuSeparator />
-                                  <DropdownMenuItem onClick={() => handleStatusChange(payout.id, "Processing")}>
+                                  <DropdownMenuItem
+                                    onClick={() =>
+                                      handleStatusChange(
+                                        payout.id,
+                                        "Processing"
+                                      )
+                                    }
+                                  >
                                     Process Payout
                                   </DropdownMenuItem>
                                   <DropdownMenuItem
                                     className="text-destructive"
-                                    onClick={() => handleStatusChange(payout.id, "Failed")}
+                                    onClick={() =>
+                                      handleStatusChange(payout.id, "Failed")
+                                    }
                                   >
                                     Cancel Payout
                                   </DropdownMenuItem>
@@ -1343,7 +1416,11 @@ export default function PayoutsPage() {
                               {payout.status === "Failed" && (
                                 <>
                                   <DropdownMenuSeparator />
-                                  <DropdownMenuItem onClick={() => handleStatusChange(payout.id, "Pending")}>
+                                  <DropdownMenuItem
+                                    onClick={() =>
+                                      handleStatusChange(payout.id, "Pending")
+                                    }
+                                  >
                                     Retry Payout
                                   </DropdownMenuItem>
                                 </>
@@ -1353,25 +1430,36 @@ export default function PayoutsPage() {
                           <DialogContent className="sm:max-w-[425px]">
                             <DialogHeader>
                               <DialogTitle>Payout Details</DialogTitle>
-                              <DialogDescription>Complete information about this payout.</DialogDescription>
+                              <DialogDescription>
+                                Complete information about this payout.
+                              </DialogDescription>
                             </DialogHeader>
                             {selectedPayout && (
                               <div className="grid gap-4 py-4">
                                 <div className="flex items-center gap-4">
                                   <Avatar className="h-12 w-12">
                                     <AvatarFallback>
-                                      {selectedPayout.tasker.name.split(" ").map((n) => n[0]).join("")}
+                                      {selectedPayout.tasker.name
+                                        .split(" ")
+                                        .map((n) => n[0])
+                                        .join("")}
                                     </AvatarFallback>
                                   </Avatar>
                                   <div>
-                                    <h3 className="font-medium">{selectedPayout.tasker.name}</h3>
-                                    <p className="text-sm text-muted-foreground">{selectedPayout.tasker.email}</p>
+                                    <h3 className="font-medium">
+                                      {selectedPayout.tasker.name}
+                                    </h3>
+                                    <p className="text-sm text-muted-foreground">
+                                      {selectedPayout.tasker.email}
+                                    </p>
                                   </div>
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
                                   <div>
                                     <Label>Amount</Label>
-                                    <div className="font-medium">INR {selectedPayout.amount.toFixed(2)}</div>
+                                    <div className="font-medium">
+                                      INR {selectedPayout.amount.toFixed(2)}
+                                    </div>
                                   </div>
                                   <div>
                                     <Label>Status</Label>
@@ -1381,7 +1469,8 @@ export default function PayoutsPage() {
                                           ? "default"
                                           : selectedPayout.status === "Pending"
                                           ? "outline"
-                                          : selectedPayout.status === "Processing"
+                                          : selectedPayout.status ===
+                                            "Processing"
                                           ? "secondary"
                                           : "destructive"
                                       }
@@ -1393,11 +1482,15 @@ export default function PayoutsPage() {
                                 <div className="grid grid-cols-2 gap-4">
                                   <div>
                                     <Label>Fee</Label>
-                                    <div className="font-medium">INR {selectedPayout.fee.toFixed(2)}</div>
+                                    <div className="font-medium">
+                                      INR {selectedPayout.fee.toFixed(2)}
+                                    </div>
                                   </div>
                                   <div>
                                     <Label>Net Amount</Label>
-                                    <div className="font-medium">INR {selectedPayout.netAmount.toFixed(2)}</div>
+                                    <div className="font-medium">
+                                      INR {selectedPayout.netAmount.toFixed(2)}
+                                    </div>
                                   </div>
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
@@ -1407,23 +1500,34 @@ export default function PayoutsPage() {
                                   </div>
                                   <div>
                                     <Label>Reference</Label>
-                                    <div className="font-mono text-sm">{selectedPayout.reference}</div>
+                                    <div className="font-mono text-sm">
+                                      {selectedPayout.reference}
+                                    </div>
                                   </div>
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
                                   <div>
                                     <Label>Request Date</Label>
-                                    <div>{selectedPayout.date}</div>
+                                    <div>{formatDate(selectedPayout.date)}</div>
                                   </div>
                                   <div>
                                     <Label>Completed Date</Label>
-                                    <div>{selectedPayout.completedDate || "N/A"}</div>
+                                    <div>
+                                      {selectedPayout.completedDate
+                                        ? formatDate(
+                                            selectedPayout.completedDate
+                                          )
+                                        : "N/A"}
+                                    </div>
                                   </div>
                                 </div>
                               </div>
                             )}
                             <DialogFooter>
-                              <Button variant="outline" onClick={() => setIsDetailsDialogOpen(false)}>
+                              <Button
+                                variant="outline"
+                                onClick={() => setIsDetailsDialogOpen(false)}
+                              >
                                 Close
                               </Button>
                             </DialogFooter>

@@ -507,6 +507,14 @@ export default function AdminUsersPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [roles, setRoles] = useState<Role[]>([]);
 
+  const formatDate = (isoString: string): string => {
+    const date = new Date(isoString);
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0"); // Months are 0-based
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+  }; 
+
   const fetchRoles = async () => {
     try {
       const response = await axiosInstance.get("/roles/");
@@ -757,7 +765,7 @@ export default function AdminUsersPage() {
                   <TableCell>{user.email}</TableCell>
                   <TableCell>{user.role_name}</TableCell>
                   <TableCell>{user.status ? "Inactive" : "Active"}</TableCell>
-                  <TableCell>{new Date(user.created_at).toLocaleDateString()}</TableCell>
+                  <TableCell>{formatDate(user.created_at)}</TableCell>
                   <TableCell className="text-right">
                     <Dialog
                       open={isEditDialogOpen && editUser?.user_id === user.user_id}

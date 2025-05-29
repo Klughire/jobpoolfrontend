@@ -72,12 +72,13 @@ export function Header({
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                <Avatar className="h-8 w-8">
-                  <AvatarImage
-                    src="/images/placeholder.svg?height=32&width=32"
-                    alt="Admin"
-                  />
-                  <AvatarFallback>AD</AvatarFallback>
+                <Avatar>
+                  <AvatarFallback>
+                    {user?.name
+                      .split(" ")
+                      .map((n) => n[0])
+                      .join("")}
+                  </AvatarFallback>
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
@@ -114,12 +115,13 @@ export function Header({
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                <Avatar className="h-8 w-8">
-                  <AvatarImage
-                    src="/images/placeholder.svg?height=32&width=32"
-                    alt="Admin"
-                  />
-                  <AvatarFallback>AD</AvatarFallback>
+                <Avatar>
+                  <AvatarFallback>
+                    {user?.name
+                      .split(" ")
+                      .map((n) => n[0])
+                      .join("")}
+                  </AvatarFallback>
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>

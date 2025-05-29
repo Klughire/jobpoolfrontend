@@ -107,6 +107,14 @@ export default function TasksPage() {
   const [editTask, setEditTask] = useState<Task | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
+  const formatDate = (isoString: string): string => {
+    const date = new Date(isoString);
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0"); // Months are 0-based
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+  };
+
   // Fetch tasks from API
   const fetchTasks = async () => {
     try {
@@ -450,7 +458,7 @@ export default function TasksPage() {
                   <TableCell className="hidden md:table-cell">
                     <div className="flex items-center gap-1">
                       <Calendar className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm">{task.dueDate}</span>
+                       <span>{formatDate(task.dueDate)}</span>
                     </div>
                   </TableCell>
                   <TableCell>
@@ -609,7 +617,8 @@ export default function TasksPage() {
                                   <Label>Due Date</Label>
                                   <div className="flex items-center gap-2 mt-2">
                                     <Calendar className="h-4 w-4 text-muted-foreground" />
-                                    <span>{selectedTask.dueDate}</span>
+                                    <span>{formatDate(selectedTask.dueDate)}</span>
+
                                   </div>
                                 </div>
 
