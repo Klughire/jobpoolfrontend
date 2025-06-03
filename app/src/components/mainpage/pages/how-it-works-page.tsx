@@ -254,7 +254,7 @@ export function HowItWorksPage() {
                 >
                   <div className="relative h-[400px] rounded-xl overflow-hidden">
                     <Image
-                      src="images/images/placeholder.svg?height=400&width=600"
+                      src="images/placeholder.svg?height=400&width=600"
                       fill
                       alt="Post a task"
                       className="object-cover"
@@ -407,7 +407,7 @@ export function HowItWorksPage() {
                   </div>
                   <div className="relative h-[400px] rounded-xl overflow-hidden">
                     <Image
-                      src="images/images/placeholder.svg?height=400&width=600"
+                      src="images/placeholder.svg?height=400&width=600"
                       fill
                       alt="Become a Tasker"
                       className="object-cover"
@@ -511,7 +511,7 @@ export function HowItWorksPage() {
                 <Link href="/become-tasker">
                   <Button
                     variant="outline"
-                    className="border-white text-white hover:bg-blue-700 px-8 py-6 text-lg w-full sm:w-auto"
+                    className="bg-white text-blue-600 hover:bg-blue-50 px-8 py-6 text-lg w-full sm:w-auto"
                   >
                     Become a Tasker
                   </Button>
@@ -526,7 +526,7 @@ export function HowItWorksPage() {
               className="relative h-[400px]"
             >
               <Image
-                src="images/images/placeholder.svg?height=400&width=600"
+                src="images/placeholder.svg?height=400&width=600"
                 fill
                 alt="TaskMaster"
                 className="object-cover rounded-xl"
