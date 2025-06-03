@@ -52,6 +52,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
 import axiosInstance from "@/lib/axiosInstance";
+import { ConfirmDialog } from "@/components/ConfirmDialog"; // Import ConfirmDialog
 
 interface User {
   id: string;
@@ -74,6 +75,7 @@ interface Job {
   job_due_date: string;
   job_images: { urls: string[] };
   status: boolean;
+  deletion_status: boolean;
 }
 
 interface Task {
@@ -94,6 +96,7 @@ interface Task {
   completedAt?: string;
   cancelledAt?: string;
   cancellationReason?: string;
+  deletion_status: boolean;
 }
 
 export default function TasksPage() {
@@ -102,15 +105,18 @@ export default function TasksPage() {
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
-  const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState<boolean>(false);
+  const [isDetailsDialogOpen, setIsDetailsDialogOpen] =
+    useState<boolean>(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState<boolean>(false);
   const [editTask, setEditTask] = useState<Task | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isResetDialogOpen, setIsResetDialogOpen] = useState<boolean>(false);
+  const [taskToReset, setTaskToReset] = useState<string | null>(null);
 
   const formatDate = (isoString: string): string => {
     const date = new Date(isoString);
     const day = String(date.getDate()).padStart(2, "0");
-    const month = String(date.getMonth() + 1).padStart(2, "0"); // Months are 0-based
+    const month = String(date.getMonth() + 1).padStart(2, "0");
     const year = date.getFullYear();
     return `${day}/${month}/${year}`;
   };
@@ -138,7 +144,6 @@ export default function TasksPage() {
             name: job.posted_by,
             avatar: undefined,
           },
-          
           tasker: job.tasker_id
             ? {
                 id: job.tasker_id,
@@ -150,6 +155,7 @@ export default function TasksPage() {
           completedAt: undefined,
           cancelledAt: job.status ? new Date().toISOString() : undefined,
           cancellationReason: undefined,
+          deletion_status: job.deletion_status || false,
         }));
         setTasks(mappedTasks);
       } else {
@@ -175,21 +181,29 @@ export default function TasksPage() {
       task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       task.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
       task.taskmaster.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (task.tasker && task.tasker.name.toLowerCase().includes(searchTerm.toLowerCase()));
+      (task.tasker &&
+        task.tasker.name.toLowerCase().includes(searchTerm.toLowerCase()));
 
-    const matchesCategory = categoryFilter === "all" || task.category === categoryFilter;
-    const matchesStatus = statusFilter === "all" || task.status === statusFilter;
+    const matchesCategory =
+      categoryFilter === "all" || task.category === categoryFilter;
+    const matchesStatus =
+      statusFilter === "all" || task.status === statusFilter;
 
     return matchesSearch && matchesCategory && matchesStatus;
   });
 
   // Calculate statistics
   const openTasks = tasks.filter((t) => t.status === "Open").length;
-  const inProgressTasks = tasks.filter((t) => t.status === "In Progress").length;
+  const inProgressTasks = tasks.filter(
+    (t) => t.status === "In Progress"
+  ).length;
   const completedTasks = tasks.filter((t) => t.status === "Completed").length;
   const totalBudget = tasks.reduce((sum, t) => sum + t.budget, 0);
 
-  const handleUpdateTaskStatus = async (taskId: string, newStatus: Task["status"]) => {
+  const handleUpdateTaskStatus = async (
+    taskId: string,
+    newStatus: Task["status"]
+  ) => {
     try {
       setIsLoading(true);
       const response = await axiosInstance.put(`update-job/${taskId}/`, {
@@ -204,8 +218,14 @@ export default function TasksPage() {
               ? {
                   ...task,
                   status: newStatus,
-                  cancelledAt: newStatus === "Cancelled" ? new Date().toISOString() : undefined,
-                  completedAt: newStatus === "Completed" ? new Date().toISOString() : undefined,
+                  cancelledAt:
+                    newStatus === "Cancelled"
+                      ? new Date().toISOString()
+                      : undefined,
+                  completedAt:
+                    newStatus === "Completed"
+                      ? new Date().toISOString()
+                      : undefined,
                 }
               : task
           )
@@ -218,6 +238,33 @@ export default function TasksPage() {
       toast.error("An error occurred while updating task status");
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleResetTask = async (taskId: string) => {
+    try {
+      setIsLoading(true);
+      const response = await axiosInstance.put(`/reset-job/${taskId}/`, {
+        deletion_status: false,
+      });
+
+      if (response.data.status_code === 200) {
+        toast.success("Task reset successfully");
+        setTasks(
+          tasks.map((task) =>
+            task.id === taskId ? { ...task, deletion_status: false } : task
+          )
+        );
+        setIsDetailsDialogOpen(false);
+      } else {
+        toast.error(response.data.message || "Failed to reset task");
+      }
+    } catch {
+      toast.error("An error occurred while resetting task");
+    } finally {
+      setIsLoading(false);
+      setIsResetDialogOpen(false);
+      setTaskToReset(null);
     }
   };
 
@@ -243,8 +290,14 @@ export default function TasksPage() {
             task.id === editTask.id
               ? {
                   ...editTask,
-                  cancelledAt: editTask.status === "Cancelled" ? new Date().toISOString() : undefined,
-                  completedAt: editTask.status === "Completed" ? new Date().toISOString() : undefined,
+                  cancelledAt:
+                    editTask.status === "Cancelled"
+                      ? new Date().toISOString()
+                      : undefined,
+                  completedAt:
+                    editTask.status === "Completed"
+                      ? new Date().toISOString()
+                      : undefined,
                 }
               : task
           )
@@ -333,7 +386,9 @@ export default function TasksPage() {
             <CardTitle className="text-sm font-medium">Total Budget</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${totalBudget.toLocaleString()}</div>
+            <div className="text-2xl font-bold">
+              ${totalBudget.toLocaleString()}
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -351,7 +406,11 @@ export default function TasksPage() {
           />
         </div>
         <div className="flex items-center gap-2 w-full md:w-auto">
-          <Select value={categoryFilter} onValueChange={setCategoryFilter} disabled={isLoading}>
+          <Select
+            value={categoryFilter}
+            onValueChange={setCategoryFilter}
+            disabled={isLoading}
+          >
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Filter by category" />
             </SelectTrigger>
@@ -364,7 +423,11 @@ export default function TasksPage() {
               ))}
             </SelectContent>
           </Select>
-          <Select value={statusFilter} onValueChange={setStatusFilter} disabled={isLoading}>
+          <Select
+            value={statusFilter}
+            onValueChange={setStatusFilter}
+            disabled={isLoading}
+          >
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Filter by status" />
             </SelectTrigger>
@@ -397,13 +460,19 @@ export default function TasksPage() {
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                <TableCell
+                  colSpan={8}
+                  className="text-center py-8 text-muted-foreground"
+                >
                   Loading...
                 </TableCell>
               </TableRow>
             ) : filteredTasks.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                <TableCell
+                  colSpan={8}
+                  className="text-center py-8 text-muted-foreground"
+                >
                   No tasks found
                 </TableCell>
               </TableRow>
@@ -420,7 +489,10 @@ export default function TasksPage() {
                     <Badge variant="outline">{task.category}</Badge>
                   </TableCell>
                   <TableCell>
-                    <Badge variant={getStatusBadgeVariant(task.status)} className="flex items-center w-fit">
+                    <Badge
+                      variant={getStatusBadgeVariant(task.status)}
+                      className="flex items-center w-fit"
+                    >
                       {getStatusIcon(task.status)}
                       {task.status}
                     </Badge>
@@ -452,13 +524,15 @@ export default function TasksPage() {
                         <span className="text-sm">{task.tasker.name}</span>
                       </div>
                     ) : (
-                      <span className="text-sm text-muted-foreground">Unassigned</span>
+                      <span className="text-sm text-muted-foreground">
+                        Unassigned
+                      </span>
                     )}
                   </TableCell>
                   <TableCell className="hidden md:table-cell">
                     <div className="flex items-center gap-1">
                       <Calendar className="h-4 w-4 text-muted-foreground" />
-                       <span>{formatDate(task.dueDate)}</span>
+                      <span>{formatDate(task.dueDate)}</span>
                     </div>
                   </TableCell>
                   <TableCell>
@@ -477,7 +551,11 @@ export default function TasksPage() {
                     >
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" disabled={isLoading}>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            disabled={isLoading}
+                          >
                             <MoreHorizontal className="h-4 w-4" />
                             <span className="sr-only">Open menu</span>
                           </Button>
@@ -500,60 +578,103 @@ export default function TasksPage() {
                           >
                             Edit Task
                           </DropdownMenuItem>
+                          {task.deletion_status && (
+                            <DropdownMenuItem
+                              onClick={() => {
+                                setTaskToReset(task.id);
+                                setIsResetDialogOpen(true);
+                              }}
+                            >
+                              Reset Task
+                            </DropdownMenuItem>
+                          )}
                           <DropdownMenuSeparator />
                           {task.status === "Open" && (
-                            <DropdownMenuItem onClick={() => handleUpdateTaskStatus(task.id, "Assigned")}>
+                            <DropdownMenuItem
+                              onClick={() =>
+                                handleUpdateTaskStatus(task.id, "Assigned")
+                              }
+                            >
                               Mark as Assigned
                             </DropdownMenuItem>
                           )}
-                          {(task.status === "Open" || task.status === "Assigned") && (
-                            <DropdownMenuItem onClick={() => handleUpdateTaskStatus(task.id, "In Progress")}>
+                          {(task.status === "Open" ||
+                            task.status === "Assigned") && (
+                            <DropdownMenuItem
+                              onClick={() =>
+                                handleUpdateTaskStatus(task.id, "In Progress")
+                              }
+                            >
                               Mark as In Progress
                             </DropdownMenuItem>
                           )}
                           {task.status === "In Progress" && (
-                            <DropdownMenuItem onClick={() => handleUpdateTaskStatus(task.id, "Completed")}>
+                            <DropdownMenuItem
+                              onClick={() =>
+                                handleUpdateTaskStatus(task.id, "Completed")
+                              }
+                            >
                               Mark as Completed
                             </DropdownMenuItem>
                           )}
-                          {task.status !== "Completed" && task.status !== "Cancelled" && (
-                            <DropdownMenuItem
-                              className="text-destructive"
-                              onClick={() => handleUpdateTaskStatus(task.id, "Cancelled")}
-                            >
-                              Cancel Task
-                            </DropdownMenuItem>
-                          )}
+                          {task.status !== "Completed" &&
+                            task.status !== "Cancelled" && (
+                              <DropdownMenuItem
+                                className="text-destructive"
+                                onClick={() =>
+                                  handleUpdateTaskStatus(task.id, "Cancelled")
+                                }
+                              >
+                                Cancel Task
+                              </DropdownMenuItem>
+                            )}
                         </DropdownMenuContent>
                       </DropdownMenu>
                       <DialogContent className="max-w-3xl">
                         <DialogHeader>
                           <DialogTitle>Task Details</DialogTitle>
-                          <DialogDescription>Complete information about this task.</DialogDescription>
+                          <DialogDescription>
+                            Complete information about this task.
+                          </DialogDescription>
                         </DialogHeader>
                         {selectedTask && (
                           <div className="grid gap-6 py-4">
                             <div className="flex justify-between items-start">
                               <div>
-                                <h2 className="text-xl font-semibold mb-1">{selectedTask.title}</h2>
+                                <h2 className="text-xl font-semibold mb-1">
+                                  {selectedTask.title}
+                                </h2>
                                 <div className="flex items-center gap-2">
-                                  <Badge variant="outline">{selectedTask.category}</Badge>
-                                  <Badge variant={getStatusBadgeVariant(selectedTask.status)}>
+                                  <Badge variant="outline">
+                                    {selectedTask.category}
+                                  </Badge>
+                                  <Badge
+                                    variant={getStatusBadgeVariant(
+                                      selectedTask.status
+                                    )}
+                                  >
                                     {selectedTask.status}
                                   </Badge>
                                 </div>
                               </div>
                               <div className="text-right">
-                                <div className="font-medium text-lg">${selectedTask.budget}</div>
+                                <div className="font-medium text-lg">
+                                  ${selectedTask.budget}
+                                </div>
                                 <div className="text-sm text-muted-foreground">
-                                  Created on {new Date(selectedTask.createdAt).toLocaleDateString()}
+                                  Created on{" "}
+                                  {new Date(
+                                    selectedTask.createdAt
+                                  ).toLocaleDateString()}
                                 </div>
                               </div>
                             </div>
 
                             <div className="space-y-2">
                               <Label>Description</Label>
-                              <div className="p-4 bg-muted rounded-md">{selectedTask.description}</div>
+                              <div className="p-4 bg-muted rounded-md">
+                                {selectedTask.description}
+                              </div>
                             </div>
 
                             <div className="grid md:grid-cols-2 gap-6">
@@ -570,7 +691,9 @@ export default function TasksPage() {
                                       </AvatarFallback>
                                     </Avatar>
                                     <div>
-                                      <div className="font-medium">{selectedTask.taskmaster.name}</div>
+                                      <div className="font-medium">
+                                        {selectedTask.taskmaster.name}
+                                      </div>
                                       <div className="text-sm text-muted-foreground">
                                         ID: {selectedTask.taskmaster.id}
                                       </div>
@@ -591,14 +714,18 @@ export default function TasksPage() {
                                         </AvatarFallback>
                                       </Avatar>
                                       <div>
-                                        <div className="font-medium">{selectedTask.tasker.name}</div>
+                                        <div className="font-medium">
+                                          {selectedTask.tasker.name}
+                                        </div>
                                         <div className="text-sm text-muted-foreground">
                                           ID: {selectedTask.tasker.id}
                                         </div>
                                       </div>
                                     </div>
                                   ) : (
-                                    <div className="text-muted-foreground mt-2">Not assigned yet</div>
+                                    <div className="text-muted-foreground mt-2">
+                                      Not assigned yet
+                                    </div>
                                   )}
                                 </div>
                               </div>
@@ -609,7 +736,9 @@ export default function TasksPage() {
                                   <div className="flex items-center gap-2 mt-2">
                                     <MapPin className="h-4 w-4 text-muted-foreground" />
                                     <span>{selectedTask.location}</span>
-                                    {selectedTask.remote && <Badge variant="outline">Remote</Badge>}
+                                    {selectedTask.remote && (
+                                      <Badge variant="outline">Remote</Badge>
+                                    )}
                                   </div>
                                 </div>
 
@@ -617,49 +746,61 @@ export default function TasksPage() {
                                   <Label>Due Date</Label>
                                   <div className="flex items-center gap-2 mt-2">
                                     <Calendar className="h-4 w-4 text-muted-foreground" />
-                                    <span>{formatDate(selectedTask.dueDate)}</span>
-
+                                    <span>
+                                      {formatDate(selectedTask.dueDate)}
+                                    </span>
                                   </div>
                                 </div>
 
                                 <div>
                                   <Label>Offers</Label>
                                   <div className="mt-2">
-                                    <span className="font-medium">{selectedTask.offers}</span>{" "}
-                                    <span className="text-muted-foreground">offers received</span>
+                                    <span className="font-medium">
+                                      {selectedTask.offers}
+                                    </span>{" "}
+                                    <span className="text-muted-foreground">
+                                      offers received
+                                    </span>
                                   </div>
                                 </div>
 
-                                {selectedTask.status === "Completed" && selectedTask.completedAt && (
-                                  <div>
-                                    <Label>Completed On</Label>
-                                    <div className="flex items-center gap-2 mt-2">
-                                      <CheckCircle className="h-4 w-4 text-green-500" />
-                                      <span>{selectedTask.completedAt}</span>
-                                    </div>
-                                  </div>
-                                )}
-
-                                {selectedTask.status === "Cancelled" && selectedTask.cancelledAt && (
-                                  <div>
-                                    <Label>Cancelled On</Label>
-                                    <div className="flex items-center gap-2 mt-2">
-                                      <AlertCircle className="h-4 w-4 text-red-500" />
-                                      <span>{selectedTask.cancelledAt}</span>
-                                    </div>
-                                    {selectedTask.cancellationReason && (
-                                      <div className="mt-1 text-sm text-muted-foreground">
-                                        Reason: {selectedTask.cancellationReason}
+                                {selectedTask.status === "Completed" &&
+                                  selectedTask.completedAt && (
+                                    <div>
+                                      <Label>Completed On</Label>
+                                      <div className="flex items-center gap-2 mt-2">
+                                        <CheckCircle className="h-4 w-4 text-green-500" />
+                                        <span>{selectedTask.completedAt}</span>
                                       </div>
-                                    )}
-                                  </div>
-                                )}
+                                    </div>
+                                  )}
+
+                                {selectedTask.status === "Cancelled" &&
+                                  selectedTask.cancelledAt && (
+                                    <div>
+                                      <Label>Cancelled On</Label>
+                                      <div className="flex items-center gap-2 mt-2">
+                                        <AlertCircle className="h-4 w-4 text-red-500" />
+                                        <span>{selectedTask.cancelledAt}</span>
+                                      </div>
+                                      {selectedTask.cancellationReason && (
+                                        <div className="mt-1 text-sm text-muted-foreground">
+                                          Reason:{" "}
+                                          {selectedTask.cancellationReason}
+                                        </div>
+                                      )}
+                                    </div>
+                                  )}
                               </div>
                             </div>
                           </div>
                         )}
                         <DialogFooter>
-                          <Button variant="outline" onClick={() => setIsDetailsDialogOpen(false)} disabled={isLoading}>
+                          <Button
+                            variant="outline"
+                            onClick={() => setIsDetailsDialogOpen(false)}
+                            disabled={isLoading}
+                          >
                             Close
                           </Button>
                         </DialogFooter>
@@ -676,7 +817,9 @@ export default function TasksPage() {
                       <DialogContent>
                         <DialogHeader>
                           <DialogTitle>Edit Task</DialogTitle>
-                          <DialogDescription>Make changes to the task details.</DialogDescription>
+                          <DialogDescription>
+                            Make changes to the task details.
+                          </DialogDescription>
                         </DialogHeader>
                         {editTask && (
                           <div className="grid gap-4 py-4">
@@ -685,7 +828,12 @@ export default function TasksPage() {
                               <Input
                                 id="title"
                                 value={editTask.title}
-                                onChange={(e) => setEditTask({ ...editTask, title: e.target.value })}
+                                onChange={(e) =>
+                                  setEditTask({
+                                    ...editTask,
+                                    title: e.target.value,
+                                  })
+                                }
                                 disabled={isLoading}
                               />
                             </div>
@@ -695,7 +843,12 @@ export default function TasksPage() {
                                 id="description"
                                 rows={4}
                                 value={editTask.description}
-                                onChange={(e) => setEditTask({ ...editTask, description: e.target.value })}
+                                onChange={(e) =>
+                                  setEditTask({
+                                    ...editTask,
+                                    description: e.target.value,
+                                  })
+                                }
                                 disabled={isLoading}
                               />
                             </div>
@@ -704,7 +857,12 @@ export default function TasksPage() {
                                 <Label htmlFor="category">Category</Label>
                                 <Select
                                   value={editTask.category}
-                                  onValueChange={(value) => setEditTask({ ...editTask, category: value })}
+                                  onValueChange={(value) =>
+                                    setEditTask({
+                                      ...editTask,
+                                      category: value,
+                                    })
+                                  }
                                   disabled={isLoading}
                                 >
                                   <SelectTrigger id="category">
@@ -712,7 +870,10 @@ export default function TasksPage() {
                                   </SelectTrigger>
                                   <SelectContent>
                                     {categories.map((category) => (
-                                      <SelectItem key={category} value={category}>
+                                      <SelectItem
+                                        key={category}
+                                        value={category}
+                                      >
                                         {category}
                                       </SelectItem>
                                     ))}
@@ -723,7 +884,9 @@ export default function TasksPage() {
                                 <Label htmlFor="status">Status</Label>
                                 <Select
                                   value={editTask.status}
-                                  onValueChange={(value: Task["status"]) => setEditTask({ ...editTask, status: value })}
+                                  onValueChange={(value: Task["status"]) =>
+                                    setEditTask({ ...editTask, status: value })
+                                  }
                                   disabled={isLoading}
                                 >
                                   <SelectTrigger id="status">
@@ -731,10 +894,18 @@ export default function TasksPage() {
                                   </SelectTrigger>
                                   <SelectContent>
                                     <SelectItem value="Open">Open</SelectItem>
-                                    <SelectItem value="Assigned">Assigned</SelectItem>
-                                    <SelectItem value="In Progress">In Progress</SelectItem>
-                                    <SelectItem value="Completed">Completed</SelectItem>
-                                    <SelectItem value="Cancelled">Cancelled</SelectItem>
+                                    <SelectItem value="Assigned">
+                                      Assigned
+                                    </SelectItem>
+                                    <SelectItem value="In Progress">
+                                      In Progress
+                                    </SelectItem>
+                                    <SelectItem value="Completed">
+                                      Completed
+                                    </SelectItem>
+                                    <SelectItem value="Cancelled">
+                                      Cancelled
+                                    </SelectItem>
                                   </SelectContent>
                                 </Select>
                               </div>
@@ -745,7 +916,12 @@ export default function TasksPage() {
                                 <Input
                                   id="location"
                                   value={editTask.location}
-                                  onChange={(e) => setEditTask({ ...editTask, location: e.target.value })}
+                                  onChange={(e) =>
+                                    setEditTask({
+                                      ...editTask,
+                                      location: e.target.value,
+                                    })
+                                  }
                                   disabled={isLoading}
                                 />
                               </div>
@@ -755,7 +931,12 @@ export default function TasksPage() {
                                   id="budget"
                                   type="number"
                                   value={editTask.budget}
-                                  onChange={(e) => setEditTask({ ...editTask, budget: Number(e.target.value) })}
+                                  onChange={(e) =>
+                                    setEditTask({
+                                      ...editTask,
+                                      budget: Number(e.target.value),
+                                    })
+                                  }
                                   disabled={isLoading}
                                 />
                               </div>
@@ -766,7 +947,12 @@ export default function TasksPage() {
                                 id="dueDate"
                                 type="date"
                                 value={editTask.dueDate}
-                                onChange={(e) => setEditTask({ ...editTask, dueDate: e.target.value })}
+                                onChange={(e) =>
+                                  setEditTask({
+                                    ...editTask,
+                                    dueDate: e.target.value,
+                                  })
+                                }
                                 disabled={isLoading}
                               />
                             </div>
@@ -780,12 +966,32 @@ export default function TasksPage() {
                           >
                             Cancel
                           </Button>
-                          <Button onClick={handleSaveTask} disabled={!editTask || isLoading}>
+                          <Button
+                            onClick={handleSaveTask}
+                            disabled={!editTask || isLoading}
+                          >
                             {isLoading ? "Saving..." : "Save Changes"}
                           </Button>
                         </DialogFooter>
                       </DialogContent>
                     </Dialog>
+
+                    <ConfirmDialog
+                      open={isResetDialogOpen}
+                      onOpenChange={(open) => {
+                        setIsResetDialogOpen(open);
+                        if (!open) setTaskToReset(null);
+                      }}
+                      onConfirm={async () => {
+                        if (taskToReset) {
+                          await handleResetTask(taskToReset);
+                        }
+                      }}
+                      title="Confirm Task Reset"
+                      description="Are you sure you want to reset this task? This will restore the task to an active state."
+                      confirmText="Confirm"
+                      cancelText="Cancel"
+                    />
                   </TableCell>
                 </TableRow>
               ))
