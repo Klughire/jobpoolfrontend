@@ -113,10 +113,9 @@
 //   )
 // }
 
-
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import {
   Card,
   CardContent,
@@ -133,10 +132,10 @@ import VerificationComplete from "../../components/verification/verification-com
 import VerificationIntro from "../../components/verification/verification-intro"
 import VerticalStepIndicator from "../../components/verification/vertical-step-indicator"
 
-const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
-
 export default function VerificationFlow() {
   const [currentStep, setCurrentStep] = useState(0)
+  const [isWaiting, setIsWaiting] = useState(false)
+  const [timer, setTimer] = useState(30)
   const [verificationStatus, setVerificationStatus] = useState({
     pan: { completed: false, skipped: false },
     aadhar: { completed: false, skipped: false },
@@ -178,11 +177,25 @@ export default function VerificationFlow() {
     }))
 
     if (step === "pan" || step === "aadhar") {
-      await wait(30000) // 30-second delay
+      setIsWaiting(true)
+      setTimer(30)
+    } else {
+      handleNext()
     }
-
-    handleNext()
   }
+
+  // Countdown effect
+  useEffect(() => {
+    if (isWaiting && timer > 0) {
+      const interval = setInterval(() => {
+        setTimer((prev) => prev - 1)
+      }, 1000)
+      return () => clearInterval(interval)
+    } else if (isWaiting && timer === 0) {
+      setIsWaiting(false)
+      handleNext()
+    }
+  }, [isWaiting, timer])
 
   const steps = [
     { name: "Introduction", status: { completed: currentStep > 0, skipped: false } },
@@ -202,7 +215,12 @@ export default function VerificationFlow() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {currentStep === 4 ? (
+          {isWaiting ? (
+            <div className="flex flex-col items-center justify-center py-12">
+              <h2 className="text-lg font-medium mb-2">Please wait for the next step</h2>
+              <p className="text-muted-foreground text-sm">Continuing in {timer} seconds...</p>
+            </div>
+          ) : currentStep === 4 ? (
             <VerificationComplete verificationStatus={verificationStatus} />
           ) : (
             <div className="flex flex-col gap-6 md:flex-row">
@@ -211,9 +229,7 @@ export default function VerificationFlow() {
               </div>
               <div className="w-full md:w-2/3">
                 {currentStep === 0 && <VerificationIntro onStart={handleNext} />}
-                {currentStep === 1 && (
-                  <PanVerification onComplete={() => handleComplete("pan")} />
-                )}
+                {currentStep === 1 && <PanVerification onComplete={() => handleComplete("pan")} />}
                 {currentStep === 2 && (
                   <AadharVerification onComplete={() => handleComplete("aadhar")} />
                 )}
@@ -224,7 +240,7 @@ export default function VerificationFlow() {
             </div>
           )}
         </CardContent>
-        {currentStep !== 4 && (
+        {currentStep !== 4 && !isWaiting && (
           <CardFooter className="flex justify-between">
             <div className="flex gap-2">
               {currentStep > 0 && currentStep < totalSteps - 1 && (
