@@ -258,7 +258,6 @@
 // }
 
 
-
 "use client"
 
 import { useEffect, useState } from "react"
@@ -286,7 +285,7 @@ export default function VerificationFlow() {
     aadhar: { completed: false, skipped: false },
   })
 
-  const totalSteps = 4 // Reduced from 5 to 4 since bank verification is removed
+  const totalSteps = 4 // Intro, PAN, Aadhar, Complete
 
   const handleNext = () => {
     if (currentStep < totalSteps - 1) {
@@ -314,6 +313,7 @@ export default function VerificationFlow() {
       ...prev,
       [step]: { completed: true, skipped: false },
     }))
+
     setIsWaiting(true)
     setTimer(30)
   }
