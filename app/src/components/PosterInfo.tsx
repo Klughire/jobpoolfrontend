@@ -60,17 +60,64 @@
 
 
 // components/PosterInfo.tsx
+// import { Button } from '@/components/ui/button';
+// import Link from 'next/link';
+
+// interface User {
+//     id: string;
+//     name: string;
+//     rating: number;
+//     taskCount: number;
+//     joinedDate: string;
+//   }
+
+
+// interface PosterInfoProps {
+//   poster: User;
+//   isTaskPoster: boolean;
+//   handleMessageUser: (receiverId?: string) => void;
+// }
+
+// export function PosterInfo({ poster, isTaskPoster, handleMessageUser }: PosterInfoProps) {
+//   return (
+//     <div className="border p-4 rounded-md">
+//       <h2 className="text-lg font-semibold">Posted By</h2>
+      
+//       <Link href={`/profilepage/${poster.id}`} className="font-medium">
+//         {poster.name}
+//       </Link>
+//       <p className="text-sm">Rating: {poster.rating} ★</p>
+//       <p className="text-sm">Tasks Completed: {poster.taskCount}</p>
+//       <p className="text-sm">Joined: {poster.joinedDate}</p>
+//       {!isTaskPoster && (
+//         <Button
+//           variant="outline"
+//           size="sm"
+//           className="mt-4"
+//           onClick={() => {
+//             console.log('Messaging poster:', { posterId: poster.id });
+//             handleMessageUser(poster.id);
+//           }}
+//         >
+//           Message Poster
+//         </Button>
+//       )}
+//     </div>
+//   );
+// }
+
+// change on aug 3rd
+
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 
 interface User {
-    id: string;
-    name: string;
-    rating: number;
-    taskCount: number;
-    joinedDate: string;
-  }
-
+  id: string;
+  name: string;
+  rating?: number | null;
+  taskCount?: number | null;
+  joinedDate?: string | null;
+}
 
 interface PosterInfoProps {
   poster: User;
@@ -82,13 +129,25 @@ export function PosterInfo({ poster, isTaskPoster, handleMessageUser }: PosterIn
   return (
     <div className="border p-4 rounded-md">
       <h2 className="text-lg font-semibold">Posted By</h2>
-      
       <Link href={`/profilepage/${poster.id}`} className="font-medium">
         {poster.name}
       </Link>
-      <p className="text-sm">Rating: {poster.rating} ★</p>
-      <p className="text-sm">Tasks Completed: {poster.taskCount}</p>
-      <p className="text-sm">Joined: {poster.joinedDate}</p>
+      
+      {/* Only show rating if it exists and is not null/undefined */}
+      {poster.rating !== null && poster.rating !== undefined && (
+        <p className="text-sm">Rating: {poster.rating} ★</p>
+      )}
+      
+      {/* Only show task count if it exists and is not null/undefined */}
+      {poster.taskCount !== null && poster.taskCount !== undefined && (
+        <p className="text-sm">Tasks Posted: {poster.taskCount}</p>
+      )}
+      
+      {/* Only show joined date if it exists and is not null/undefined/empty */}
+      {poster.joinedDate && poster.joinedDate.trim() !== '' && (
+        <p className="text-sm">Joined: {poster.joinedDate}</p>
+      )}
+      
       {!isTaskPoster && (
         <Button
           variant="outline"

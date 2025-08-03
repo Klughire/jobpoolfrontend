@@ -40,12 +40,12 @@ interface Address {
 }
 
 interface BankInfo {
-  account_holder_name: string;
+  // account_holder_name: string;
   bank_account_number: string;
   ifsc_code: string;
-  bank_name: string;
-  bank_location: string;
-  swift_code: string;
+  // bank_name: string;
+  // bank_location: string;
+  // swift_code: string;
 }
 
 interface UserProfile {
@@ -169,12 +169,12 @@ export default function ProfilePage() {
           joinDate: data.tstamp ? formatDate(data.tstamp) : "",
           bank_info: data.bank_info
             ? {
-                account_holder_name: data.bank_info.account_holder_name || "",
+                // account_holder_name: data.bank_info.account_holder_name || "",
                 bank_account_number: data.bank_info.bank_account_number || "",
                 ifsc_code: data.bank_info.ifsc_code || "",
-                bank_name: data.bank_info.bank_name || "",
-                bank_location: data.bank_info.bank_location || "",
-                swift_code: data.bank_info.swift_code || "",
+                // bank_name: data.bank_info.bank_name || "",
+                // bank_location: data.bank_info.bank_location || "",
+                // swift_code: data.bank_info.swift_code || "",
               }
             : undefined,
           job_title: data.job_title || "",
@@ -679,12 +679,12 @@ export default function ProfilePage() {
                             </div>
                           </div>
                           <div className="grid gap-4 md:grid-cols-2">
-                            <div>
+                            {/* <div>
                               <p className="text-sm font-medium text-muted-foreground">
                                 Account Holder Name
                               </p>
                               <p>{profileuser.bank_info.account_holder_name}</p>
-                            </div>
+                            </div> */}
                             <div>
                               <p className="text-sm font-medium text-muted-foreground">
                                 Account Number
@@ -701,26 +701,32 @@ export default function ProfilePage() {
                               <p className="text-sm font-medium text-muted-foreground">
                                 IFSC Code
                               </p>
-                              <p>{profileuser.bank_info.ifsc_code}</p>
+                              <p>
+                                {maskString(
+                                  profileuser.bank_info.ifsc_code,
+                                  0,
+                                  4
+                                )}
+                                </p>
                             </div>
-                            <div>
+                            {/* <div>
                               <p className="text-sm font-medium text-muted-foreground">
                                 Bank Name
                               </p>
                               <p>{profileuser.bank_info.bank_name}</p>
-                            </div>
-                            <div>
+                            </div> */}
+                            {/* <div>
                               <p className="text-sm font-medium text-muted-foreground">
                                 Bank Location
                               </p>
                               <p>{profileuser.bank_info.bank_location}</p>
-                            </div>
-                            <div>
+                            </div> */}
+                            {/* <div>
                               <p className="text-sm font-medium text-muted-foreground">
                                 SWIFT Code
                               </p>
                               <p>{profileuser.bank_info.swift_code}</p>
-                            </div>
+                            </div> */}
                           </div>
                         </>
                       ) : (
@@ -730,16 +736,29 @@ export default function ProfilePage() {
                               <p className="font-medium">
                                 Verification Pending
                               </p>
-                              <p className="text-sm">
+                              {/* <p className="text-sm">
                                 Please complete your bank account verification
-                              </p>
+                              </p> */}
                             </div>
                           </div>
                         </div>
                       )}
-                      {!verificationStatus.bank.completed && (
+                      {/* {!verificationStatus.bank.completed && (
                         <Button asChild>
                           <Link href="/verification">Start Verification</Link>
+                        </Button>
+                      )} */}
+                      {!verificationStatus.bank.completed && (
+                        <Button asChild>
+                          <Link
+                            href={
+                              user?.verification_status === 2
+                                ? "/bankverification"
+                                : "/verification"
+                            }
+                          >
+                            Start Verification
+                          </Link>
                         </Button>
                       )}
                     </div>

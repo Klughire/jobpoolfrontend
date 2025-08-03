@@ -8,9 +8,9 @@ export interface Image {
     avatar: string;
     id: string; // Strictly string, as expected in OffersSection, TaskInfo, PosterInfo
     name: string;
-    rating: number;
-    taskCount: number;
-    joinedDate: string;
+    rating?: number | null; 
+    taskCount?: number | null;
+    joinedDate: string | null;
     email?: string;
     accountType?: string;
     isLoggedIn?: boolean;

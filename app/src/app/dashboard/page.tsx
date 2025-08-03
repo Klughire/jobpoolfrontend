@@ -826,8 +826,8 @@ const handleConfirmUndelete = async () => {
                           onValueChange={setPriceRange}
                         />
                         <div className="flex justify-between mt-2 text-sm text-muted-foreground">
-                          <span>${priceRange[0]}</span>
-                          <span>${priceRange[1]}</span>
+                          <span>₹{priceRange[0]}</span>
+                          <span>₹{priceRange[1]}</span>
                         </div>
                       </div>
                     </div>

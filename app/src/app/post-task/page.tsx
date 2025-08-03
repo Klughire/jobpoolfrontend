@@ -153,6 +153,62 @@ export default function PostTaskPage() {
     setImages((prev) => prev.filter((image) => image.id !== id));
   };
 
+  // const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  //   e.preventDefault();
+
+  //   if (
+  //     !formData.title ||
+  //     !formData.description ||
+  //     !formData.category ||
+  //     !formData.budget
+  //   ) {
+  //     toast.error("Please fill in all required fields");
+  //     return;
+  //   }
+
+  //   // Validate at least one image is uploaded
+  //   if (images.length === 0) {
+  //     toast.error("Please upload at least one image");
+  //     return;
+  //   }
+
+  //   setIsSubmitting(true);
+
+  //   const formDataToSubmit = new FormData();
+  //   formDataToSubmit.append("user_id", userId || "");
+  //   formDataToSubmit.append("user_id", userId || "");
+  //   formDataToSubmit.append("title", formData.title);
+  //   formDataToSubmit.append("description", formData.description);
+  //   formDataToSubmit.append("category", formData.category); // Ensure this is category_id
+  //   formDataToSubmit.append("budget", formData.budget.toString());
+  //   formDataToSubmit.append("location", formData.location);
+  //   formDataToSubmit.append("due_date", formData.dueDate);
+
+  //   images.forEach((image) => {
+  //     formDataToSubmit.append("images", image.file);
+  //   });
+
+  //   try {
+  //     const response = await axiosInstance.post(
+  //       "/post-a-job/",
+  //       formDataToSubmit,
+  //       {
+  //         headers: {
+  //           "Content-Type": "multipart/form-data",
+  //         },
+  //       }
+  //     );
+
+  //     if (response.data.status_code === 201) {
+  //       toast.success("Your task has been posted!");
+  //       router.push("/dashboard");
+  //     }
+  //   } catch (error) {
+  //     handleAxiosError(error);
+  //   } finally {
+  //     setIsSubmitting(false);
+  //   }
+  // };
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
@@ -167,19 +223,18 @@ export default function PostTaskPage() {
     }
 
     // Validate at least one image is uploaded
-    if (images.length === 0) {
-      toast.error("Please upload at least one image");
-      return;
-    }
+    // if (images.length === 0) {
+    //   toast.error("Please upload at least one image");
+    //   return;
+    // }
 
     setIsSubmitting(true);
 
     const formDataToSubmit = new FormData();
     formDataToSubmit.append("user_id", userId || "");
-    formDataToSubmit.append("user_id", userId || "");
     formDataToSubmit.append("title", formData.title);
     formDataToSubmit.append("description", formData.description);
-    formDataToSubmit.append("category", formData.category); // Ensure this is category_id
+    formDataToSubmit.append("category", formData.category);
     formDataToSubmit.append("budget", formData.budget.toString());
     formDataToSubmit.append("location", formData.location);
     formDataToSubmit.append("due_date", formData.dueDate);
@@ -202,13 +257,32 @@ export default function PostTaskPage() {
       if (response.data.status_code === 201) {
         toast.success("Your task has been posted!");
         router.push("/dashboard");
+      } else if (response.data.status_code === 403) {
+        // Fixed: Show error toast and display the actual backend message
+        toast.error(response.data.message || "Please complete verification to post a job");
+        
+        // Optional: Log verification status for debugging
+        if (response.data.data?.verification_status !== undefined) {
+          console.log("Verification status:", response.data.data.verification_status);
+        }
       } else {
         toast.error(
           response.data.message || "Failed to post task. Please try again."
         );
       }
-    } catch (error) {
-      handleAxiosError(error);
+    } catch (error: any) {
+      // Enhanced error handling for axios errors
+      if (error.response && error.response.data) {
+        const errorData = error.response.data;
+        if (errorData.status_code === 403) {
+          toast.error(errorData.message || "Please complete verification to post a job");
+        } else {
+          toast.error(errorData.message || "Something went wrong. Please try again.");
+        }
+      } else {
+        // Fallback to your existing error handler
+        handleAxiosError(error);
+      }
     } finally {
       setIsSubmitting(false);
     }
