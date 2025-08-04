@@ -1,113 +1,7 @@
-// "use client";
-
-// import { useState, useEffect } from "react";
-// import { Search } from "lucide-react";
-// import { Input } from "@/components/ui/input";
-// import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-// import { Toaster } from "@/components/ui/sonner";
-// import { toast } from "sonner";
-// import axiosInstance from "@/lib/axiosInstance";
-
-// interface Customer {
-//   user_id: string;
-//   user_fullname: string;
-//   user_email: string;
-//   status: boolean;
-//   tstamp: string;
-// }
-
-// export default function CustomersPage() {
-//   const [customers, setCustomers] = useState<Customer[]>([]);
-//   const [searchTerm, setSearchTerm] = useState("");
-//   const [isLoading, setIsLoading] = useState(false);
-
-//   const fetchCustomers = async () => {
-//     try {
-//       setIsLoading(true);
-//       const response = await axiosInstance.get("all-user-details/");
-//       setCustomers(response.data);
-//     } catch {
-//       toast.error("An error occurred while fetching customers");
-//     } finally {
-//       setIsLoading(false);
-//     }
-//   };
-
-//   useEffect(() => {
-//     fetchCustomers();
-//   }, []);
-
-//   const filteredCustomers = customers.filter(
-//     (customer) =>
-//       customer.user_fullname.toLowerCase().includes(searchTerm.toLowerCase()) ||
-//       customer.user_email.toLowerCase().includes(searchTerm.toLowerCase())
-//   );
-
-//   return (
-//     <div className="flex flex-col gap-4">
-//       <Toaster />
-//       <div className="flex items-center justify-between">
-//         <h1 className="text-xl font-semibold">Customers Management</h1>
-//       </div>
-
-//       <div className="flex items-center gap-2">
-//         <div className="relative flex-1">
-//           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-//           <Input
-//             type="search"
-//             placeholder="Search customers..."
-//             className="pl-8"
-//             value={searchTerm}
-//             onChange={(e) => setSearchTerm(e.target.value)}
-//             disabled={isLoading}
-//           />
-//         </div>
-//       </div>
-
-//       <div className="rounded-md border">
-//         <Table>
-//           <TableHeader>
-//             <TableRow>
-//               <TableHead>Name</TableHead>
-//               <TableHead>Email</TableHead>
-//               <TableHead>Status</TableHead>
-//               {/* <TableHead>Created At</TableHead> */}
-//             </TableRow>
-//           </TableHeader>
-//           <TableBody>
-//             {isLoading ? (
-//               <TableRow>
-//                 <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
-//                   Loading...
-//                 </TableCell>
-//               </TableRow>
-//             ) : filteredCustomers.length === 0 ? (
-//               <TableRow>
-//                 <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
-//                   No customers found
-//                 </TableCell>
-//               </TableRow>
-//             ) : (
-//               filteredCustomers.map((customer) => (
-//                 <TableRow key={customer.user_id}>
-//                   <TableCell className="font-medium">{customer.user_fullname}</TableCell>
-//                   <TableCell>{customer.user_email}</TableCell>
-//                   <TableCell>{customer.status ? "Inactive" : "Active"}</TableCell>
-//                   {/* <TableCell>{new Date(customer.tstamp).toLocaleDateString()}</TableCell> */}
-//                 </TableRow>
-//               ))
-//             )}
-//           </TableBody>
-//         </Table>
-//       </div>
-//     </div>
-//   );
-// }
-
 "use client";
 
 import { useState, useEffect } from "react";
-import { Search, Eye, EyeOff, CreditCard } from "lucide-react";
+import { Search, Eye, EyeOff, CreditCard, Phone } from "lucide-react";
 import axiosInstance from "@/lib/axiosInstance";
 import { toast } from "sonner";
 
@@ -120,15 +14,13 @@ interface Customer {
   user_id: string;
   user_fullname: string;
   user_email: string;
+  phone_number?: string; // Added mobile number field
   tasker: boolean;
   task_manager: boolean;
   status: boolean;
   verification_status: number;
   bank_info: BankInfo | null;
 }
-
-// Import axiosInstance if using separate file, or define it here
-// import axiosInstance from "@/lib/axiosInstance";
 
 export default function CustomersPage() {
   const [customers, setCustomers] = useState<Customer[]>([]);
@@ -156,7 +48,8 @@ export default function CustomersPage() {
   const filteredCustomers = customers.filter(
     (customer) =>
       customer.user_fullname.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      customer.user_email.toLowerCase().includes(searchTerm.toLowerCase())
+      customer.user_email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (customer.phone_number && customer.phone_number.includes(searchTerm))
   );
 
   const toggleBankDetails = (userId: string) => {
@@ -232,6 +125,24 @@ export default function CustomersPage() {
     );
   };
 
+  const renderMobileNumber = (phoneNumber?: string) => {
+    if (!phoneNumber) {
+      return (
+        <div className="flex items-center gap-2 text-gray-500">
+          <Phone className="h-4 w-4" />
+          <span className="text-sm">Not provided</span>
+        </div>
+      );
+    }
+
+    return (
+      <div className="flex items-center gap-2">
+        <Phone className="h-4 w-4 text-gray-600" />
+        <span className="text-sm text-gray-900">{phoneNumber}</span>
+      </div>
+    );
+  };
+
   const getUserRoles = (customer: Customer) => {
     const roles = [];
     if (customer.tasker) roles.push("Tasker");
@@ -255,7 +166,7 @@ export default function CustomersPage() {
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
           <input
             type="search"
-            placeholder="Search customers by name or email..."
+            placeholder="Search by name, email or phone number..."
             className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -277,6 +188,9 @@ export default function CustomersPage() {
                   Email
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Mobile
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Role
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -293,7 +207,7 @@ export default function CustomersPage() {
             <tbody className="bg-white divide-y divide-gray-200">
               {isLoading ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
+                  <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
                     <div className="flex items-center justify-center gap-2">
                       <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
                       Loading customers...
@@ -302,7 +216,7 @@ export default function CustomersPage() {
                 </tr>
               ) : error ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center">
+                  <td colSpan={7} className="px-6 py-12 text-center">
                     <div className="text-red-600">
                       {error}
                     </div>
@@ -316,7 +230,7 @@ export default function CustomersPage() {
                 </tr>
               ) : filteredCustomers.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
+                  <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
                     {searchTerm ? "No customers found matching your search" : "No customers found"}
                   </td>
                 </tr>
@@ -332,6 +246,9 @@ export default function CustomersPage() {
                       <div className="text-sm text-gray-600">
                         {customer.user_email}
                       </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {renderMobileNumber(customer.phone_number)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">

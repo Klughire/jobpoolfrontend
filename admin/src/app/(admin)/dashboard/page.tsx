@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Activity, CreditCard, DollarSign, Users, CheckCircle2, Clock, AlertCircle } from "lucide-react";
+import { Activity, CreditCard, DollarSign, Users, CheckCircle2, Clock, AlertCircle, IndianRupee } from "lucide-react";
 import axiosInstance from "@/lib/axiosInstance";
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
@@ -110,14 +110,14 @@ export default function AdminDashboard() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
+            <IndianRupee className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             {isLoading ? (
               <div className="text-2xl font-bold">Loading...</div>
             ) : (
               <>
-                <div className="text-2xl font-bold">${totalRevenue.toLocaleString()}</div>
+                <div className="text-2xl font-bold">₹{totalRevenue.toLocaleString()}</div>
                 <p className="text-xs text-muted-foreground">+20.1% from last month</p>
               </>
             )}
@@ -161,7 +161,7 @@ export default function AdminDashboard() {
             <CreditCard className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${pendingPayouts.toLocaleString()}</div>
+            <div className="text-2xl font-bold">₹{pendingPayouts.toLocaleString()}</div>
             <p className="text-xs text-muted-foreground">{pendingPayoutsCount} payouts pending</p>
           </CardContent>
         </Card>
@@ -334,7 +334,7 @@ function RecentTasksList({ jobs, isLoading }: { jobs: Job[]; isLoading: boolean 
     taskmaster: job.posted_by,
     tasker: "Unassigned", // No tasker data in API
     status: job.status ? "Cancelled" : "Open",
-    amount: `$${job.job_budget.toLocaleString()}`,
+    amount: `₹${job.job_budget.toLocaleString()}`,
   })).slice(0, 5); // Limit to 5 tasks
 
   return (
@@ -384,7 +384,7 @@ function RecentPayoutsList() {
     {
       id: 1,
       tasker: "Emily Johnson",
-      amount: "$450.00",
+      amount: "₹450.00",
       date: "2023-04-15",
       status: "Completed",
       method: "Bank Transfer",
@@ -392,7 +392,7 @@ function RecentPayoutsList() {
     {
       id: 2,
       tasker: "Michael Brown",
-      amount: "$150.00",
+      amount: "₹150.00",
       date: "2023-04-14",
       status: "Completed",
       method: "PayPal",
@@ -400,7 +400,7 @@ function RecentPayoutsList() {
     {
       id: 3,
       tasker: "Jessica Davis",
-      amount: "$300.00",
+      amount: "₹300.00",
       date: "2023-04-14",
       status: "Pending",
       method: "Bank Transfer",
@@ -408,7 +408,7 @@ function RecentPayoutsList() {
     {
       id: 4,
       tasker: "Thomas Anderson",
-      amount: "$600.00",
+      amount: "₹600.00",
       date: "2023-04-13",
       status: "Completed",
       method: "PayPal",
@@ -416,7 +416,7 @@ function RecentPayoutsList() {
     {
       id: 5,
       tasker: "Sarah Williams",
-      amount: "$275.00",
+      amount: "₹275.00",
       date: "2023-04-12",
       status: "Failed",
       method: "Bank Transfer",
