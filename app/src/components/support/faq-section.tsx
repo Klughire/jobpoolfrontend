@@ -15,23 +15,23 @@ interface FAQItem {
 const faqData: FAQItem[] = [
   {
     id: "1",
-    question: "How do I create an account?",
+    question: "How do I contact customer support?",
     answer:
-      "To create an account, click on the 'Sign Up' button in the top right corner of our homepage. Fill in your details including name, email, and password. You'll receive a verification email to activate your account.",
+      "You can reach us through email us at support@jobpool.in, call us at +917799789200, or use our live chat feature.",
     category: "account",
   },
   {
     id: "2",
-    question: "How do I reset my password?",
+    question: "How do I get refund?",
     answer:
-      "Click on 'Forgot Password' on the login page. Enter your email address and we'll send you a reset link. Follow the instructions in the email to create a new password.",
+      "-	Refunds can be requested within 7 days of payment.. Refunds are processed within 5-7 business days.",
     category: "account",
   },
   {
     id: "3",
-    question: "What payment methods do you accept?",
+    question: "What are you business hours?",
     answer:
-      "We accept all major credit cards (Visa, MasterCard, American Express), debit cards, UPI, net banking, and digital wallets like Paytm and PhonePe.",
+      "-	Our customer support is available Monday to Sunday  9:00 AM to 10:00 PM IST. For urgent issues, you can submit a ticket anytime and we'll respond within 24 hours.",
     category: "billing",
   },
   {
@@ -48,22 +48,9 @@ const faqData: FAQItem[] = [
       "Payment failures can occur due to insufficient funds, incorrect card details, expired cards, or network issues. Please check your payment information and try again. Contact your bank if the issue persists.",
     category: "technical",
   },
+  
   {
     id: "6",
-    question: "How do I contact customer support?",
-    answer:
-      "You can reach us through multiple channels: submit a support ticket through this page, email us at support@example.com, call us at +91-1234567890, or use our live chat feature.",
-    category: "general",
-  },
-  {
-    id: "7",
-    question: "What are your business hours?",
-    answer:
-      "Our customer support is available Monday to Friday, 9:00 AM to 6:00 PM IST. For urgent issues, you can submit a ticket anytime and we'll respond within 24 hours.",
-    category: "general",
-  },
-  {
-    id: "8",
     question: "How do I update my profile information?",
     answer:
       "Log into your account and go to 'Profile Settings'. You can update your personal information, contact details, and preferences. Don't forget to save your changes.",

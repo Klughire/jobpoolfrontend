@@ -149,7 +149,7 @@ export function HowItWorksPage() {
     {
       question: "Is TaskMaster available in my area?",
       answer:
-        "TaskMaster is currently available in major cities across the United States, with plans to expand to more locations soon. Check our website or app to see if we're in your area.",
+        "TaskMaster is currently available in major cities across the India with plans to expand to more locations soon. Check our website or app to see if we're in your area.",
     },
   ]
 
@@ -345,7 +345,7 @@ export function HowItWorksPage() {
                 </motion.div>
 
                 <div className="flex justify-center">
-                  <Link href="/become-tasker">
+                  <Link href="/signup">
                     <Button className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-6 text-lg">
                       Become a Tasker
                       <ArrowRight className="ml-2 h-5 w-5" />
@@ -508,7 +508,7 @@ export function HowItWorksPage() {
                     Post a Task
                   </Button>
                 </Link>
-                <Link href="/become-tasker">
+                <Link href="/signup">
                   <Button
                     variant="outline"
                     className="bg-white text-blue-600 hover:bg-blue-50 px-8 py-6 text-lg w-full sm:w-auto"

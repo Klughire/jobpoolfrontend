@@ -10,26 +10,26 @@ export function ContactInfo() {
       icon: Mail,
       title: "Email Support",
       description: "Get help via email",
-      contact: "support@example.com",
+      contact: "info@jobpool.in",
       action: "Send Email",
-      href: "mailto:support@example.com",
+      href: "mailto:info@jobpool.in",
     },
     {
       icon: Phone,
       title: "Phone Support",
       description: "Speak with our team",
-      contact: "+91-1234567890",
+      contact: "+91-7799789200",
       action: "Call Now",
-      href: "tel:+911234567890",
+      href: "tel:+917799789200",
     },
-    {
-      icon: MessageCircle,
-      title: "Live Chat",
-      description: "Chat with us in real-time",
-      contact: "Available 24/7",
-      action: "Start Chat",
-      href: "#",
-    },
+    // {
+    //   icon: MessageCircle,
+    //   title: "Live Chat",
+    //   description: "Chat with us in real-time",
+    //   contact: "Available 24/7",
+    //   action: "Start Chat",
+    //   href: "#",
+    // },
   ]
 
   return (
@@ -68,11 +68,11 @@ export function ContactInfo() {
             <div>
               <h3 className="font-medium">Address</h3>
               <p className="text-sm text-muted-foreground">
-                123 Business Street
-                <br />
-                Tech Park, Bangalore
-                <br />
-                Karnataka 560001, India
+                Sri Sai Complex, 2nd Floor,<br />
+Sushma Sai Nagar Colony,<br />
+Vanasthalipuram, Hyd - 70
+
+               
               </p>
             </div>
           </div>
@@ -82,9 +82,8 @@ export function ContactInfo() {
             <div>
               <h3 className="font-medium">Business Hours</h3>
               <div className="text-sm text-muted-foreground space-y-1">
-                <p>Monday - Friday: 9:00 AM - 6:00 PM IST</p>
-                <p>Saturday: 10:00 AM - 4:00 PM IST</p>
-                <p>Sunday: Closed</p>
+                <p>Monday to Sunday – 24 Hours Live</p>
+                
               </div>
             </div>
           </div>
