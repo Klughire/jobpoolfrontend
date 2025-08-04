@@ -943,7 +943,6 @@
 //   );
 // }
 
-
 "use client";
 
 import { useEffect, useState } from "react";
@@ -975,11 +974,10 @@ export function CategoriesPage() {
       setIsLoading(true);
       const response = await axiosInstance.get("get-all-categories/");
       if (response.data.status_code === 200) {
-        // Map job_count to tasks and assign a default icon
         const enrichedCategories = response.data.data.map((category: Category) => ({
           ...category,
-          icon: <SquareCheckBig className="h-8 w-8" />, // Consistent icon for all
-          tasks: category.job_count || 0, // Map job_count to tasks
+          icon: <SquareCheckBig className="h-8 w-8" />,
+          tasks: category.job_count || 0,
         }));
         setCategories(enrichedCategories);
       } else {
@@ -1027,7 +1025,7 @@ export function CategoriesPage() {
   return (
     <>
       <section className="bg-slate-50 py-12 md:py-20">
-        <div className="container px-4 md:px-6">
+        <div className="w-full px-4 md:px-6 lg:px-8 xl:px-12 2xl:px-16">
           <motion.div
             className="max-w-3xl mx-auto text-center"
             initial={{ opacity: 0, y: -20 }}
@@ -1057,7 +1055,7 @@ export function CategoriesPage() {
       </section>
 
       <section className="py-16">
-        <div className="container px-4 md:px-6">
+        <div className="w-full px-4 md:px-6 lg:px-8 xl:px-12 2xl:px-16">
           <motion.div
             className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
             variants={containerVariants}
@@ -1101,7 +1099,7 @@ export function CategoriesPage() {
       </section>
 
       <section className="py-16 bg-slate-50">
-        <div className="container px-4 md:px-6">
+        <div className="w-full px-4 md:px-6 lg:px-8 xl:px-12 2xl:px-16">
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <motion.div
               initial={{ opacity: 0, x: -50 }}

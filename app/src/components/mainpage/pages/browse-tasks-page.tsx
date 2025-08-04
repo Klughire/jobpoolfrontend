@@ -672,7 +672,6 @@
 //   );
 // }
 
-
 "use client";
 
 import { useEffect, useState } from "react";
@@ -937,7 +936,7 @@ export function BrowseTasksPage() {
       ) : (
         <>
           <section className="bg-slate-50 py-12 md:py-20">
-            <div className="container px-4 md:px-6">
+            <div className="w-full px-4 md:px-6 lg:px-8 xl:px-12 2xl:px-16">
               <motion.div
                 className="max-w-3xl mx-auto text-center"
                 initial={{ opacity: 0, y: -20 }}
@@ -967,7 +966,7 @@ export function BrowseTasksPage() {
           </section>
 
           <section className="py-16">
-            <div className="container px-4 md:px-6">
+            <div className="w-full px-4 md:px-6 lg:px-8 xl:px-12 2xl:px-16">
               <div className="flex flex-col md:flex-row gap-8">
                 {/* Filters sidebar */}
                 <div className="w-full md:w-1/4">
@@ -1027,9 +1026,9 @@ export function BrowseTasksPage() {
                           <h3 className="font-medium mb-3">Price Range</h3>
                           <div className="px-2">
                             <Slider
-                              defaultValue={[0, 1000]}
-                              max={1000}
-                              step={10}
+                              defaultValue={[0, 50000]}
+                              max={50000}
+                              step={100}
                               value={priceRange}
                               onValueChange={setPriceRange}
                               className="mb-6"
@@ -1092,7 +1091,7 @@ export function BrowseTasksPage() {
                           className="w-full bg-blue-600 hover:bg-blue-700"
                           onClick={() => {
                             setSearchQuery("");
-                            setPriceRange([0, 1000]);
+                            setPriceRange([0, 50000]);
                             setSelectedCategories([]);
                             setSelectedLocation("all");
                             setSelectedDateRange("any");
@@ -1266,7 +1265,7 @@ export function BrowseTasksPage() {
                       <Button
                         onClick={() => {
                           setSearchQuery("");
-                          setPriceRange([0, 1000]);
+                          setPriceRange([0, 50000]);
                           setSelectedCategories([]);
                           setSelectedLocation("all");
                           setSelectedDateRange("any");
@@ -1282,7 +1281,7 @@ export function BrowseTasksPage() {
           </section>
 
           <section className="py-16 bg-slate-50">
-            <div className="container px-4 md:px-6">
+            <div className="w-full px-4 md:px-6 lg:px-8 xl:px-12 2xl:px-16">
               <div className="grid md:grid-cols-2 gap-12 items-center">
                 <motion.div
                   initial={{ opacity: 0, x: -50 }}

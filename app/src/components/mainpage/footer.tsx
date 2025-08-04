@@ -140,7 +140,6 @@
 //     </footer>
 //   )
 // }
-
 "use client";
 
 import { motion } from "framer-motion";
@@ -168,15 +167,13 @@ export function Footer() {
       links: [
         { name: "Terms of Service", href: "/termsandconditions" },
         { name: "Privacy Policy", href: "/privacy-policy" },
-        // { name: "Cookie Policy", href: "#" },
-        // { name: "Accessibility", href: "#" },
       ],
     },
   ];
 
   return (
     <footer className="bg-slate-900 text-white">
-      <div className="w-full px-4 md:px-6 py-12 md:py-16 max-w-7xl mx-auto">
+      <div className="w-full px-4 md:px-6 lg:px-8 xl:px-12 2xl:px-16 py-12 md:py-16">
         <div className="grid gap-8 lg:grid-cols-4">
           <div className="flex flex-col">
             <Link href="/" className="inline-block mb-6">
@@ -272,9 +269,6 @@ export function Footer() {
             <Link href="/termsandconditions" className="text-slate-400 hover:text-white text-sm">
               Terms
             </Link>
-            {/* <Link href="#" className="text-slate-400 hover:text-white text-sm">
-              Cookies
-            </Link> */}
           </div>
         </div>
       </div>
