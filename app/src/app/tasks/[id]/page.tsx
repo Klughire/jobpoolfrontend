@@ -1219,7 +1219,14 @@ import {
 import { TaskProgress } from "@/components/TaskProgress";
 import { Button } from "@/components/ui/button";
 import Header from "@/components/Header";
-
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 
 interface TaskDetailPageProps {
   params: Promise<{ id: string }>;
@@ -1254,6 +1261,7 @@ export default function TaskDetailPage({ params }: TaskDetailPageProps) {
   const [showImageGallery, setShowImageGallery] = useState<boolean>(false);
   const [currentImageIndex, setCurrentImageIndex] = useState<number>(0);
   const [isEditing, setIsEditing] = useState<boolean>(false);
+  const [showConfirmBid, setShowConfirmBid] = useState<boolean>(false);
   const taskerId = offers.length > 0 ? offers[0].tasker.id : null;
 
   // Load user, profile, and sync bids
@@ -1478,12 +1486,11 @@ export default function TaskDetailPage({ params }: TaskDetailPageProps) {
       toast.error("Please fill in all required fields");
       return;
     }
-    const offerAmountNumber = parseFloat(offerAmount);
+    setShowConfirmBid(true);
+  };
 
-    if (task && offerAmountNumber > task.budget) {
-      toast.error("Offer amount cannot be greater than the task budget.");
-      return;
-    }
+  const confirmBidSubmission = async () => {
+    const offerAmountNumber = parseFloat(offerAmount);
 
     const payload = {
       job_ref_id: id,
@@ -1493,6 +1500,7 @@ export default function TaskDetailPage({ params }: TaskDetailPageProps) {
     };
 
     setIsSubmitting(true);
+    setShowConfirmBid(false);
 
     try {
       const response = await axiosInstance.post("/bid-a-job/", payload);
@@ -1753,6 +1761,9 @@ export default function TaskDetailPage({ params }: TaskDetailPageProps) {
 
   const isTaskPoster: boolean = task.poster.id === userId;
   const hasSubmittedOffer = offers.some((offer) => offer.tasker.id === userId);
+  const bidAmountNumber = parseFloat(offerAmount) || 0;
+  const handlingCharges = bidAmountNumber * 0.2;
+  const totalAmount = bidAmountNumber + handlingCharges;
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -1833,7 +1844,42 @@ export default function TaskDetailPage({ params }: TaskDetailPageProps) {
         nextImage={nextImage}
         prevImage={prevImage}
       />
+      <Dialog open={showConfirmBid} onOpenChange={setShowConfirmBid}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm Your Bid</DialogTitle>
+            <DialogDescription>
+              Please review your bid details before submitting.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="flex justify-between">
+              <span>Bid Amount:</span>
+              <span>₹{bidAmountNumber.toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span>Handling Charges (20%):</span>
+              <span>₹{handlingCharges.toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between font-bold">
+              <span>Total:</span>
+              <span>₹{totalAmount.toFixed(2)}</span>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowConfirmBid(false)}
+              disabled={isSubmitting}
+            >
+              Cancel
+            </Button>
+            <Button onClick={confirmBidSubmission} disabled={isSubmitting}>
+              {isSubmitting ? "Submitting..." : "Confirm Bid"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
-   
   );
 }
