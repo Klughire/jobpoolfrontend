@@ -1191,7 +1191,6 @@
 //     </div>
 //   );
 // }
-
 "use client";
 
 import { ImageGalleryModal } from "@/components/ImageGalleryModal";
@@ -1208,25 +1207,10 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, use, useEffect, useState } from "react";
 import { toast } from "sonner";
-import {
-  Task,
-  User,
-  Bid,
-  Offer,
-  ApiBidResponse,
-  ApiJobResponse,
-} from "../../types";
-import { TaskProgress } from "@/components/TaskProgress";
+import { Task, User, Bid, Offer, ApiBidResponse, ApiJobResponse } from "../../types";
 import { Button } from "@/components/ui/button";
 import Header from "@/components/Header";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 
 interface TaskDetailPageProps {
   params: Promise<{ id: string }>;
@@ -1321,7 +1305,7 @@ export default function TaskDetailPage({ params }: TaskDetailPageProps) {
         }
       };
 
-      // Sync bids to localStorage
+      // Sync user's bids to localStorage
       if (userId) {
         const syncBids = async () => {
           try {
@@ -1329,10 +1313,10 @@ export default function TaskDetailPage({ params }: TaskDetailPageProps) {
             const data: ApiBidResponse = response.data;
             if (data.status_code === 200) {
               localStorage.setItem("bids", JSON.stringify(data.data));
-              console.log("Synced bids to localStorage:", data.data);
+              console.log("Synced user bids to localStorage:", data.data);
             }
           } catch (error) {
-            console.error("Error syncing bids:", error);
+            console.error("Error syncing user bids:", error);
           }
         };
         fetchProfile();
@@ -1355,7 +1339,7 @@ export default function TaskDetailPage({ params }: TaskDetailPageProps) {
         }
 
         const job = data.data;
-        console.log("API Response Data:", job);
+        console.log("API Response Data (Job):", job);
 
         const mappedTask: Task = {
           id: job.job_id,
@@ -1425,36 +1409,44 @@ export default function TaskDetailPage({ params }: TaskDetailPageProps) {
   useEffect(() => {
     if (!userId || !task) return;
 
-    const isTaskPoster = task.poster.id === userId;
-
     async function loadBids() {
       try {
-        let taskBids: Bid[] = [];
-        if (isTaskPoster) {
-          const response = await axiosInstance.get(`/get-bids/${id}/`);
-          const data: ApiBidResponse = response.data;
-          if (data.status_code !== 200) {
-            throw new Error(data.message);
-          }
-          taskBids = data.data;
-        } else {
-          const storedBids = localStorage.getItem("bids");
-          const allBids: Bid[] = storedBids ? JSON.parse(storedBids) : [];
-          taskBids = allBids.filter((bid) => bid.job_id === id);
+        // Fetch all bids for the task from the API
+        const response = await axiosInstance.get(`/get-bids/${id}/`);
+        const data: ApiBidResponse = response.data;
+        console.log("Raw API response for bids:", data); // Debug log
+
+        if (data.status_code !== 200) {
+          throw new Error(data.message || "Failed to fetch bids");
         }
 
+        const taskBids: Bid[] = data.data;
+        console.log("Fetched task bids:", taskBids); // Debug log
+
+        // Update localStorage with only the current user's bids
+        const storedBids = localStorage.getItem("bids");
+        let allBids: Bid[] = storedBids ? JSON.parse(storedBids) : [];
+        // Keep non-task bids and update with current user's bids from API
+        allBids = [
+          ...allBids.filter((bid) => bid.job_id !== id), // Remove old bids for this task
+          ...taskBids.filter((bid) => bid.bidder_id === userId), // Add current user's bids
+        ];
+        localStorage.setItem("bids", JSON.stringify(allBids));
+        console.log("Updated localStorage bids:", allBids); // Debug log
+
+        // Map all task bids to offers
         const newOffers: Offer[] = taskBids.map((bid: Bid, index: number) => ({
           id: `bid${index + 1}`,
           tasker: {
             id: bid.bidder_id,
-            name: `${bid.bidder_name}`,
+            name: bid.bidder_name || "Unknown",
             avatar: "/images/placeholder.svg",
             rating: null,
             taskCount: null,
             joinedDate: null,
           },
           amount: bid.bid_amount,
-          message: bid.bid_description,
+          message: bid.bid_description || "",
           createdAt: bid.created_at
             ? new Date(bid.created_at).toLocaleString("en-GB", {
                 day: "2-digit",
@@ -1469,11 +1461,10 @@ export default function TaskDetailPage({ params }: TaskDetailPageProps) {
 
         setOffers(newOffers);
         setBids(taskBids);
-        console.log("Loaded bids:", taskBids);
-        console.log("Mapped offers:", newOffers);
+        console.log("Mapped offers:", newOffers); // Debug log
       } catch (error: any) {
         console.error("Error loading bids:", error);
-        toast.error("Failed to load bids");
+        toast.error(error.response?.data?.message || "Failed to load bids");
       }
     }
 
@@ -1509,45 +1500,50 @@ export default function TaskDetailPage({ params }: TaskDetailPageProps) {
         toast.success("Your offer has been submitted!");
 
         const storedBids = localStorage.getItem("bids");
-        const allBids: Bid[] = storedBids ? JSON.parse(storedBids) : [];
+        let allBids: Bid[] = storedBids ? JSON.parse(storedBids) : [];
         allBids.push({
           job_id: id,
           bidder_id: userId!,
           bid_amount: offerAmountNumber,
           bid_description: offerMessage,
-          bidder_name: user?.name,
+          bidder_name: user?.name || "Unknown",
           created_at: new Date().toISOString(),
         });
         localStorage.setItem("bids", JSON.stringify(allBids));
 
-        const taskBids = allBids.filter((bid) => bid.job_id === id);
-        const newOffers: Offer[] = taskBids.map((bid: Bid, index: number) => ({
-          id: `bid${index + 1}`,
-          tasker: {
-            id: bid.bidder_id,
-            name: `${bid.bidder_name}`,
-            avatar: "/images/placeholder.svg",
-            rating: null,
-            taskCount: null,
-            joinedDate: null,
-          },
-          amount: bid.bid_amount,
-          message: bid.bid_description,
-          createdAt: bid.created_at
-            ? new Date(bid.created_at).toLocaleString("en-GB", {
-                day: "2-digit",
-                month: "2-digit",
-                year: "numeric",
-                hour: "2-digit",
-                minute: "2-digit",
-                timeZone: "UTC",
-              })
-            : "Just now",
-        }));
-        setOffers(newOffers);
-        setBids(taskBids);
-        console.log("Updated bids after submission:", taskBids);
-        console.log("Updated offers after submission:", newOffers);
+        // Refresh bids from API to ensure all offers are up-to-date
+        const response = await axiosInstance.get(`/get-bids/${id}/`);
+        const data: ApiBidResponse = response.data;
+        if (data.status_code === 200) {
+          const taskBids = data.data;
+          const newOffers: Offer[] = taskBids.map((bid: Bid, index: number) => ({
+            id: `bid${index + 1}`,
+            tasker: {
+              id: bid.bidder_id,
+              name: bid.bidder_name || "Unknown",
+              avatar: "/images/placeholder.svg",
+              rating: null,
+              taskCount: null,
+              joinedDate: null,
+            },
+            amount: bid.bid_amount,
+            message: bid.bid_description || "",
+            createdAt: bid.created_at
+              ? new Date(bid.created_at).toLocaleString("en-GB", {
+                  day: "2-digit",
+                  month: "2-digit",
+                  year: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  timeZone: "UTC",
+                })
+              : "Just now",
+          }));
+          setOffers(newOffers);
+          setBids(taskBids);
+          console.log("Updated bids after submission:", taskBids);
+          console.log("Updated offers after submission:", newOffers);
+        }
 
         setOfferAmount("");
         setOfferMessage("");
@@ -1815,6 +1811,7 @@ export default function TaskDetailPage({ params }: TaskDetailPageProps) {
                 offerMessage={offerMessage}
                 setOfferMessage={setOfferMessage}
                 isSubmitting={isSubmitting}
+                currentUserId={userId}
               />
             </div>
             <div className="space-y-6">

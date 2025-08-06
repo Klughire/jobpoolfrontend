@@ -1264,7 +1264,9 @@ import {
   Filter,
   Trash2,
   IndianRupee,
+  X
 } from "lucide-react";
+
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -1300,6 +1302,7 @@ interface UserProfile {
 }
 
 interface Task {
+  cancel_status: boolean;
   id: string;
   user_ref_id?: string;
   title: string;
@@ -1389,6 +1392,7 @@ export default function DashboardPage() {
   const [location, setLocation] = useState("");
   const [showFilters, setShowFilters] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [cancelConfirmOpen, setCancelConfirmOpen] = useState(false);
 
   // Check authentication and fetch user from localStorage
   useEffect(() => {
@@ -1498,6 +1502,7 @@ export default function DashboardPage() {
               location: job.job_location || "Unknown",
               status: jobStatus,
               deletion_status: job.deletion_status,
+              cancel_status: job.cancel_status ?? false, // Add cancel_status
               postedAt: job.job_due_date
                 ? new Date(job.job_due_date).toLocaleDateString("en-GB")
                 : "Unknown",
@@ -1562,6 +1567,7 @@ export default function DashboardPage() {
                     ? "Completed"
                     : "Not Completed",
                 deletion_status: job.deletion_status || "active",
+                cancel_status: job.cancel_status ?? false,
               };
             });
 
@@ -1838,6 +1844,38 @@ const handleConfirmUndelete = async () => {
     router.push("/");
   };
 
+
+  const handleCancelClick = (jobId: string) => {
+  setSelectedJobId(jobId);
+  setCancelConfirmOpen(true);
+};
+
+const handleConfirmCancel = async () => {
+  if (!selectedJobId) return;
+
+  setCancelConfirmOpen(false);
+
+  try {
+    const response = await axiosInstance.put(`/cancel-job/${selectedJobId}/`);
+    if (response.data.status_code === 200) {
+      toast.success("Task canceled successfully!");
+      setPostedTasks((prev) =>
+        prev.map((task) =>
+          task.id === selectedJobId
+            ? { ...task, cancel_status: true } // Update cancel_status
+            : task
+        )
+      );
+    } else {
+      toast.error(response.data.message || "Failed to cancel task");
+    }
+  } catch (error) {
+    toast.error("An error occurred while canceling the task");
+  } finally {
+    setSelectedJobId(null);
+  }
+};
+
   // Filter tasks for Available Tasks tab
   const filteredTasks = availableTasks.filter((task) => {
     const matchesSearch =
@@ -1851,6 +1889,7 @@ const handleConfirmUndelete = async () => {
     const matchesLocation =
       location === "" ||
       task.location.toLowerCase().includes(location.toLowerCase());
+    const isNotCanceled = !task.cancel_status; // Exclude canceled tasks  
 
     console.log(`Task ${task.id} filter check:`, {
       matchesSearch,
@@ -1914,346 +1953,352 @@ const handleConfirmUndelete = async () => {
             <TabsTrigger value="my-bids">My Bids</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="my-tasks" className="space-y-4 mt-6">
-            <h2 className="text-xl font-semibold">Tasks You've Posted</h2>
-            {postedTasks.length === 0 ? (
-              <Card>
-                <CardContent className="flex flex-col items-center justify-center py-10">
-                  <p className="text-muted-foreground mb-4">
-                    You haven't posted any tasks yet
-                  </p>
-                  <Link href="/post-task">
-                    <Button>Post Your First Task</Button>
-                  </Link>
-                </CardContent>
-              </Card>
-            ) : (
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {postedTasks.map((task) => {
-                  // Debug: Log deletion_status for each task
-                  console.log(
-                    `Task ${task.id} deletion_status:`,
-                    task.deletion_status
-                  );
+        <TabsContent value="my-tasks" className="space-y-4 mt-6">
+  <h2 className="text-xl font-semibold">Tasks You've Posted</h2>
+  {postedTasks.length === 0 ? (
+    <Card>
+      <CardContent className="flex flex-col items-center justify-center py-10">
+        <p className="text-muted-foreground mb-4">
+          You haven't posted any tasks yet
+        </p>
+        <Link href="/post-task">
+          <Button>Post Your First Task</Button>
+        </Link>
+      </CardContent>
+    </Card>
+  ) : (
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      {postedTasks.map((task) => {
+        console.log(
+          `Task ${task.id} deletion_status: ${task.deletion_status}, cancel_status: ${task.cancel_status}`
+        );
 
-                  return (
-                    <Card
-                      key={task.id}
-                      className={`relative ${
-                        task.deletion_status
-                          ? "opacity-50 bg-gray-100 border-gray-300 cursor-not-allowed"
-                          : ""
-                      }`}
-                    >
-                      {!task.deletion_status && task.status === "open" && (
-                        <button
-                          onClick={() => handleDeleteClick(task.id)}
-                          className="absolute top-2 right-2 text-red-500 hover:text-red-700"
-                          aria-label="Delete task"
-                        >
-                          <Trash2 className="h-5 w-5" />
-                        </button>
-                      )}
-                      <CardHeader className="pb-2">
-                        <div className="flex justify-between items-start">
-                          <CardTitle className="text-lg">
-                            {task.title}
-                          </CardTitle>
-                          <Badge
-                            variant={
-                              task.deletion_status
-                                ? "destructive"
-                                : task.status === "open"
-                                ? "outline"
-                                : "secondary"
-                            }
-                          >
-                            {task.deletion_status
-                              ? "Deleted"
-                              : task.status.charAt(0).toUpperCase() +
-                                task.status.slice(1)}
-                          </Badge>
-                        </div>
-                        <CardDescription className="flex items-center gap-1">
-                          <Clock className="h-3 w-3" />
-                          <span>{task.postedAt}</span>
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
-                          {task.description}
-                        </p>
-                        <div className="flex flex-col gap-2 text-sm">
-                          <div className="flex items-center gap-2">
-                            <IndianRupee className="h-4 w-4 text-muted-foreground" />
-                            <span>{task.budget}</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <MapPin className="h-4 w-4 text-muted-foreground" />
-                            <span>{task.location}</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Briefcase className="h-4 w-4 text-muted-foreground" />
-                            <span>{task.offers || 0} offers</span>
-                          </div>
-                        </div>
-                      </CardContent>
-                      <CardFooter>
-                        {task.deletion_status ? (
-                          <Button
-                            variant="outline"
-                            className="w-full"
-                            onClick={() => handleRequestUndeleteClick(task.id)}
-                          >
-                            Request Access
-                          </Button>
-                        ) : (
-                          <Link href={`/tasks/${task.id}`} className="w-full">
-                            <Button variant="outline" className="w-full">
-                              View Details
-                            </Button>
-                          </Link>
-                        )}
-                      </CardFooter>
-                    </Card>
-                  );
-                })}
-              </div>
+        return (
+          <Card
+            key={task.id}
+            className={`relative ${
+              task.deletion_status || task.cancel_status
+                ? "opacity-50 bg-gray-100 border-gray-300 cursor-not-allowed"
+                : ""
+            }`}
+          >
+            {!task.deletion_status && !task.cancel_status && task.status === "open" && (
+              <>
+                <button
+                  onClick={() => handleDeleteClick(task.id)}
+                  className="absolute top-2 right-2 text-red-500 hover:text-red-700"
+                  aria-label="Delete task"
+                >
+                  <Trash2 className="h-5 w-5" />
+                </button>
+                <button
+                  onClick={() => handleCancelClick(task.id)}
+                  className="absolute top-2 right-10 text-yellow-500 hover:text-yellow-700"
+                  aria-label="Cancel task"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </>
             )}
-          </TabsContent>
+            <CardHeader className="pb-2">
+              <div className="flex justify-between items-start">
+                <CardTitle className="text-lg">
+                  {task.title}
+                </CardTitle>
+                <Badge
+                  variant={
+                    task.cancel_status
+                      ? "destructive"
+                      : task.deletion_status
+                      ? "destructive"
+                      : task.status === "open"
+                      ? "outline"
+                      : "secondary"
+                  }
+                >
+                  {task.cancel_status
+                    ? "Canceled"
+                    : task.deletion_status
+                    ? "Deleted"
+                    : task.status.charAt(0).toUpperCase() +
+                      task.status.slice(1)}
+                </Badge>
+              </div>
+              <CardDescription className="flex items-center gap-1">
+                <Clock className="h-3 w-3" />
+                <span>{task.postedAt}</span>
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
+                {task.description}
+              </p>
+              <div className="flex flex-col gap-2 text-sm">
+                <div className="flex items-center gap-2">
+                  <IndianRupee className="h-4 w-4 text-muted-foreground" />
+                  <span>{task.budget}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <MapPin className="h-4 w-4 text-muted-foreground" />
+                  <span>{task.location}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Briefcase className="h-4 w-4 text-muted-foreground" />
+                  <span>{task.offers || 0} offers</span>
+                </div>
+              </div>
+            </CardContent>
+            <CardFooter>
+              {task.deletion_status || task.cancel_status ? (
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => handleRequestUndeleteClick(task.id)}
+                >
+                  Request Access
+                </Button>
+              ) : (
+                <Link href={`/tasks/${task.id}`} className="w-full">
+                  <Button variant="outline" className="w-full">
+                    View Details
+                  </Button>
+                </Link>
+              )}
+            </CardFooter>
+          </Card>
+        );
+      })}
+    </div>
+  )}
+</TabsContent>
 
           <TabsContent value="available" className="space-y-4 mt-6">
-            <h2 className="text-xl font-semibold">Available Tasks</h2>
-            <div className="grid gap-6 md:grid-cols-4">
-              <div className="md:col-span-1 space-y-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Filters</CardTitle>
-                    <CardDescription>Refine your search</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">Category</label>
-                      <Select value={category} onValueChange={setCategory}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select a category" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">All Categories</SelectItem>
-                          {categories.length > 0 ? (
-                            categories.map((cat) => (
-                              <SelectItem key={cat.id} value={cat.id}>
-                                {cat.name}
-                              </SelectItem>
-                            ))
-                          ) : (
-                            <SelectItem value="loading" disabled>
-                              Loading categories...
-                            </SelectItem>
-                          )}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">Price Range</label>
-                      <div className="pt-4">
-                        <Slider
-                          defaultValue={[0, 50000]}
-                          max={50000}
-                          step={10}
-                          value={priceRange}
-                          onValueChange={setPriceRange}
-                        />
-                        <div className="flex justify-between mt-2 text-sm text-muted-foreground">
-                          <span>₹{priceRange[0]}</span>
-                          <span>₹{priceRange[1]}</span>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">Location</label>
-                      <Input
-                        placeholder="Any location"
-                        value={location}
-                        onChange={(e) => setLocation(e.target.value)}
-                      />
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-
-              <div className="md:col-span-3 space-y-6">
-                <div className="flex flex-col sm:flex-row gap-4">
-                  <form onSubmit={handleSearch} className="flex-1 flex gap-2">
-                    <div className="relative flex-1">
-                      <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        type="search"
-                        placeholder="Search tasks..."
-                        className="pl-8"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                      />
-                    </div>
-                    <Button type="submit">Search</Button>
-                  </form>
-                  <Button
-                    variant="outline"
-                    className="sm:hidden"
-                    onClick={() => setShowFilters(!showFilters)}
-                  >
-                    <Filter className="mr-2 h-4 w-4" />
-                    Filters
-                  </Button>
-                </div>
-
-                {showFilters && (
-                  <Card className="sm:hidden">
-                    <CardHeader>
-                      <CardTitle className="text-lg">Filters</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium">Category</label>
-                        <Select value={category} onValueChange={setCategory}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select a category" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="all">All Categories</SelectItem>
-                            {categories.length > 0 ? (
-                              categories.map((cat) => (
-                                <SelectItem key={cat.id} value={cat.id}>
-                                  {cat.name}
-                                </SelectItem>
-                              ))
-                            ) : (
-                              <SelectItem value="loading" disabled>
-                                Loading categories...
-                              </SelectItem>
-                            )}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium">
-                          Price Range
-                        </label>
-                        <div className="pt-4">
-                          <Slider
-                            defaultValue={[0, 50000]}
-                            max={50000}
-                            step={10}
-                            value={priceRange}
-                            onValueChange={setPriceRange}
-                          />
-                          <div className="flex justify-between mt-2 text-sm text-muted-foreground">
-                            <span>₹{priceRange[0]}</span>
-                            <span>₹{priceRange[1]}</span>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium">Location</label>
-                        <Input
-                          placeholder="Any location"
-                          value={location}
-                          onChange={(e) => setLocation(e.target.value)}
-                        />
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
-
-                <div className="flex justify-between items-center">
-                  <p className="text-sm text-muted-foreground">
-                    {filteredTasks.length} tasks found
-                  </p>
-                  <Select defaultValue="newest">
-                    <SelectTrigger className="w-[180px]">
-                      <SelectValue placeholder="Sort by" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="newest">Newest first</SelectItem>
-                      <SelectItem value="oldest">Oldest first</SelectItem>
-                      <SelectItem value="highest">Highest budget</SelectItem>
-                      <SelectItem value="lowest">Lowest budget</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {filteredTasks.length === 0 ? (
-                  <Card>
-                    <CardContent className="flex flex-col items-center justify-center py-10">
-                      <p className="text-muted-foreground mb-4">
-                        No tasks found matching your criteria
-                      </p>
-                      <Button
-                        onClick={() => {
-                          setSearchTerm("");
-                          setCategory("all");
-                          setPriceRange([0, 50000]);
-                          setLocation("");
-                        }}
-                      >
-                        Clear Filters
-                      </Button>
-                    </CardContent>
-                  </Card>
+  <h2 className="text-xl font-semibold">Available Tasks</h2>
+  <div className="grid gap-6 md:grid-cols-4">
+    <div className="md:col-span-1 space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Filters</CardTitle>
+          <CardDescription>Refine your search</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Category</label>
+            <Select value={category} onValueChange={setCategory}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select a category" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Categories</SelectItem>
+                {categories.length > 0 ? (
+                  categories.map((cat) => (
+                    <SelectItem key={cat.id} value={cat.id}>
+                      {cat.name}
+                    </SelectItem>
+                  ))
                 ) : (
-                  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                    {filteredTasks.map((task) => (
-                      <Card key={task.id} className="flex flex-col">
-                        <CardHeader className="pb-2">
-                          <div className="flex justify-between items-start">
-                            <CardTitle className="text-lg">
-                              {task.title}
-                            </CardTitle>
-                            <Badge variant="outline">
-                              {task.status.charAt(0).toUpperCase() +
-                                task.status.slice(1)}
-                            </Badge>
-                          </div>
-                          <CardDescription className="flex items-center gap-1">
-                            <Clock className="h-3 w-3" />
-                            <span>{task.postedAt}</span>
-                          </CardDescription>
-                        </CardHeader>
-                        <CardContent className="flex-1">
-                          <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
-                            {task.description}
-                          </p>
-                          <div className="flex flex-col gap-2 text-sm">
-                            <div className="flex items-center gap-2">
-                              <IndianRupee className="h-4 w-4 text-muted-foreground" />
-                              <span>{task.budget}</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <MapPin className="h-4 w-4 text-muted-foreground" />
-                              <span>{task.location}</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <Avatar className="h-4 w-4">
-                                <AvatarFallback>
-                                  {task.posted_by?.charAt(0) || "?"}
-                                </AvatarFallback>
-                              </Avatar>
-                              <span>{task.posted_by || "Unknown"}</span>
-                            </div>
-                          </div>
-                        </CardContent>
-                        <CardFooter>
-                          <Link href={`/tasks/${task.id}`} className="w-full">
-                            <Button className="w-full">Make an Offer</Button>
-                          </Link>
-                        </CardFooter>
-                      </Card>
-                    ))}
-                  </div>
+                  <SelectItem value="loading" disabled>
+                    Loading categories...
+                  </SelectItem>
                 )}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Price Range</label>
+            <div className="pt-4">
+              <Slider
+                defaultValue={[0, 50000]}
+                max={50000}
+                step={10}
+                value={priceRange}
+                onValueChange={setPriceRange}
+              />
+              <div className="flex justify-between mt-2 text-sm text-muted-foreground">
+                <span>₹{priceRange[0]}</span>
+                <span>₹{priceRange[1]}</span>
               </div>
             </div>
-          </TabsContent>
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Location</label>
+            <Input
+              placeholder="Any location"
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+            />
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+
+    <div className="md:col-span-3 space-y-6">
+      <div className="flex flex-col sm:flex-row gap-4">
+        <form onSubmit={handleSearch} className="flex-1 flex gap-2">
+          <div className="relative flex-1">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="search"
+              placeholder="Search tasks..."
+              className="pl-8"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          <Button type="submit">Search</Button>
+        </form>
+        <Button
+          variant="outline"
+          className="sm:hidden"
+          onClick={() => setShowFilters(!showFilters)}
+        >
+          <Filter className="mr-2 h-4 w-4" />
+          Filters
+        </Button>
+      </div>
+
+      {showFilters && (
+        <Card className="sm:hidden">
+          <CardHeader>
+            <CardTitle className="text-lg">Filters</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Category</label>
+              <Select value={category} onValueChange={setCategory}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a category" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Categories</SelectItem>
+                  {categories.length > 0 ? (
+                    categories.map((cat) => (
+                      <SelectItem key={cat.id} value={cat.id}>
+                        {cat.name}
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <SelectItem value="loading" disabled>
+                      Loading categories...
+                    </SelectItem>
+                  )}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Price Range</label>
+              <div className="pt-4">
+                <Slider
+                  defaultValue={[0, 50000]}
+                  max={50000}
+                  step={10}
+                  value={priceRange}
+                  onValueChange={setPriceRange}
+                />
+                <div className="flex justify-between mt-2 text-sm text-muted-foreground">
+                  <span>₹{priceRange[0]}</span>
+                  <span>₹{priceRange[1]}</span>
+                </div>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Location</label>
+              <Input
+                placeholder="Any location"
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+              />
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      <div className="flex justify-between items-center">
+        <p className="text-sm text-muted-foreground">
+          {filteredTasks.length} tasks found
+        </p>
+        <Select defaultValue="newest">
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Sort by" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="newest">Newest first</SelectItem>
+            <SelectItem value="oldest">Oldest first</SelectItem>
+            <SelectItem value="highest">Highest budget</SelectItem>
+            <SelectItem value="lowest">Lowest budget</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {filteredTasks.length === 0 ? (
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center py-10">
+            <p className="text-muted-foreground mb-4">
+              No tasks found matching your criteria
+            </p>
+            <Button
+              onClick={() => {
+                setSearchTerm("");
+                setCategory("all");
+                setPriceRange([0, 50000]);
+                setLocation("");
+              }}
+            >
+              Clear Filters
+            </Button>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {filteredTasks.map((task) => (
+            <Card key={task.id} className="flex flex-col">
+              <CardHeader className="pb-2">
+                <div className="flex justify-between items-start">
+                  <CardTitle className="text-lg">{task.title}</CardTitle>
+                  <Badge variant="outline">
+                    {task.status.charAt(0).toUpperCase() + task.status.slice(1)}
+                  </Badge>
+                </div>
+                <CardDescription className="flex items-center gap-1">
+                  <Clock className="h-3 w-3" />
+                  <span>{task.postedAt}</span>
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="flex-1">
+                <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
+                  {task.description}
+                </p>
+                <div className="flex flex-col gap-2 text-sm">
+                  <div className="flex items-center gap-2">
+                    <IndianRupee className="h-4 w-4 text-muted-foreground" />
+                    <span>{task.budget}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <MapPin className="h-4 w-4 text-muted-foreground" />
+                    <span>{task.location}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Avatar className="h-4 w-4">
+                      <AvatarFallback>
+                        {task.posted_by?.charAt(0) || "?"}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span>{task.posted_by || "Unknown"}</span>
+                  </div>
+                </div>
+              </CardContent>
+              <CardFooter>
+                <Link href={`/tasks/${task.id}`} className="w-full">
+                  <Button className="w-full">Make an Offer</Button>
+                </Link>
+              </CardFooter>
+            </Card>
+          ))}
+        </div>
+      )}
+    </div>
+  </div>
+</TabsContent>
 
           <TabsContent value="assigned" className="space-y-4 mt-6">
             <h2 className="text-xl font-semibold">Tasks Assigned to You</h2>
@@ -2471,6 +2516,15 @@ const handleConfirmUndelete = async () => {
           confirmText="Delete"
           cancelText="Cancel"
         />
+        <ConfirmDialog
+  open={cancelConfirmOpen}
+  onOpenChange={setCancelConfirmOpen}
+  onConfirm={handleConfirmCancel}
+  title="Cancel Task"
+  description="Canceling this task will incur an 8% cancellation fee. Are you sure you want to proceed?"
+  confirmText="Yes, Cancel"
+  cancelText="No"
+/>
       </main>
     </div>
   );
